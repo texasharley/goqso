@@ -1,24 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dashboard } from "./components/Dashboard";
 import { QsoLog } from "./components/QsoLog";
 import { AwardsMatrix } from "./components/AwardsMatrix";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { SyncStatus } from "./components/SyncStatus";
+import { ToastContainer, toast } from "./components/Toast";
+import { listen } from "@tauri-apps/api/event";
 import { Trophy, List, Target, Settings, Wifi, WifiOff } from "lucide-react";
 
 type Tab = "dashboard" | "log" | "awards";
+
+interface QsoEvent {
+  call: string;
+  band: string;
+  mode: string;
+}
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [isOnline, _setIsOnline] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
 
+  // Listen for QSO logged events and show toast
+  useEffect(() => {
+    const unlisten = listen<QsoEvent>("qso-logged", (event) => {
+      const { call, band, mode } = event.payload;
+      toast({
+        type: "success",
+        title: `QSO Logged: ${call}`,
+        message: `${band} ${mode}`,
+        duration: 5000,
+      });
+    });
+
+    return () => {
+      unlisten.then(fn => fn());
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-zinc-900 text-zinc-100">
+      {/* Toast notifications */}
+      <ToastContainer />
+
       {/* Header */}
-      <header className="border-b border-border px-4 py-3 flex items-center justify-between">
+      <header className="border-b border-zinc-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Trophy className="h-6 w-6 text-primary" />
+          <Trophy className="h-6 w-6 text-sky-500" />
           <h1 className="text-xl font-bold">GoQSO</h1>
         </div>
         <div className="flex items-center gap-4">
@@ -27,18 +55,18 @@ function App() {
             {isOnline ? (
               <>
                 <Wifi className="h-4 w-4 text-green-500" />
-                <span className="text-muted-foreground">Online</span>
+                <span className="text-zinc-500">Online</span>
               </>
             ) : (
               <>
                 <WifiOff className="h-4 w-4 text-yellow-500" />
-                <span className="text-muted-foreground">Offline</span>
+                <span className="text-zinc-500">Offline</span>
               </>
             )}
           </div>
           <button
             onClick={() => setShowSettings(true)}
-            className="p-2 hover:bg-accent rounded-lg transition-colors"
+            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
           >
             <Settings className="h-5 w-5" />
           </button>
@@ -46,7 +74,7 @@ function App() {
       </header>
 
       {/* Navigation */}
-      <nav className="border-b border-border px-4">
+      <nav className="border-b border-zinc-800 px-4">
         <div className="flex gap-1">
           <TabButton
             active={activeTab === "dashboard"}
@@ -95,8 +123,8 @@ function TabButton({ active, onClick, icon, label }: TabButtonProps) {
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
         active
-          ? "border-primary text-primary"
-          : "border-transparent text-muted-foreground hover:text-foreground"
+          ? "border-sky-500 text-sky-500"
+          : "border-transparent text-zinc-500 hover:text-zinc-300"
       }`}
     >
       {icon}
