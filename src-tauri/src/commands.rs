@@ -725,31 +725,6 @@ pub async fn update_qso(
     Ok(())
 }
 
-#[derive(Debug, Serialize)]
-pub struct ImportResult {
-    pub imported: i32,
-    pub duplicates: i32,
-    pub errors: i32,
-}
-
-#[command]
-pub async fn import_adif(path: String) -> Result<ImportResult, String> {
-    log::info!("Importing ADIF from: {}", path);
-    // TODO: Parse ADIF file and import
-    Ok(ImportResult {
-        imported: 0,
-        duplicates: 0,
-        errors: 0,
-    })
-}
-
-#[command]
-pub async fn export_adif(path: String, qso_ids: Option<Vec<i64>>) -> Result<i32, String> {
-    log::info!("Exporting ADIF to: {}", path);
-    // TODO: Export QSOs to ADIF format
-    Ok(0)
-}
-
 /// Add test QSOs for UI development - removes all previous test entries first
 #[command]
 pub async fn add_test_qsos(
@@ -884,73 +859,6 @@ pub async fn detect_tqsl_path() -> Result<Option<String>, String> {
 }
 
 // ============================================================================
-// Awards Progress Commands
-// ============================================================================
-
-#[derive(Debug, Serialize)]
-pub struct DxccProgress {
-    pub worked: i32,
-    pub confirmed: i32,
-    pub total: i32,
-}
-
-#[derive(Debug, Serialize)]
-pub struct WasProgress {
-    pub worked: i32,
-    pub confirmed: i32,
-    pub total: i32,
-    pub states: Vec<StateStatus>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct StateStatus {
-    pub abbrev: String,
-    pub name: String,
-    pub worked: bool,
-    pub confirmed: bool,
-}
-
-#[derive(Debug, Serialize)]
-pub struct VuccProgress {
-    pub worked: i32,
-    pub confirmed: i32,
-    pub target: i32,
-    pub band: Option<String>,
-}
-
-#[command]
-pub async fn get_dxcc_progress() -> Result<DxccProgress, String> {
-    // TODO: Calculate from database
-    Ok(DxccProgress {
-        worked: 0,
-        confirmed: 0,
-        total: 340,
-    })
-}
-
-#[command]
-pub async fn get_was_progress() -> Result<WasProgress, String> {
-    // TODO: Calculate from database
-    Ok(WasProgress {
-        worked: 0,
-        confirmed: 0,
-        total: 50,
-        states: vec![],
-    })
-}
-
-#[command]
-pub async fn get_vucc_progress(band: Option<String>) -> Result<VuccProgress, String> {
-    // TODO: Calculate from database
-    Ok(VuccProgress {
-        worked: 0,
-        confirmed: 0,
-        target: 100,
-        band,
-    })
-}
-
-// ============================================================================
 // CTY Lookup Commands
 // ============================================================================
 
@@ -1016,4 +924,464 @@ pub async fn get_db_stats(state: tauri::State<'_, AppState>) -> Result<DbStats, 
         Some(pool) => crate::db::get_db_stats(pool).await,
         None => Err("Database not initialized".to_string()),
     }
+}
+
+// ============================================================================
+// ADIF Import/Export Commands
+// ============================================================================
+
+#[derive(Debug, Serialize)]
+pub struct ImportResult {
+    pub total_records: usize,
+    pub imported: usize,
+    pub skipped: usize,
+    pub errors: usize,
+    pub error_messages: Vec<String>,
+}
+
+#[command]
+pub async fn import_adif(
+    state: tauri::State<'_, AppState>,
+    content: String,
+    skip_duplicates: bool,
+) -> Result<ImportResult, String> {
+    use crate::adif::parse_adif;
+    
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let adif_file = parse_adif(&content)?;
+    
+    let mut result = ImportResult {
+        total_records: adif_file.records.len(),
+        imported: 0,
+        skipped: 0,
+        errors: 0,
+        error_messages: Vec::new(),
+    };
+    
+    for record in &adif_file.records {
+        let call = match record.call() {
+            Some(c) => c.to_uppercase(),
+            None => {
+                result.errors += 1;
+                result.error_messages.push("Record missing CALL field".to_string());
+                continue;
+            }
+        };
+        
+        let band = record.get_or("BAND", "").to_uppercase();
+        let mode = record.get_or("MODE", "").to_uppercase();
+        let qso_date = record.get_or("QSO_DATE", "");
+        let time_on = record.get_or("TIME_ON", "");
+        
+        if band.is_empty() || mode.is_empty() || qso_date.is_empty() {
+            result.errors += 1;
+            result.error_messages.push(format!("Record for {} missing required fields", call));
+            continue;
+        }
+        
+        // Check for duplicate
+        if skip_duplicates {
+            let exists: bool = sqlx::query_scalar(
+                "SELECT EXISTS(SELECT 1 FROM qsos WHERE call = ? AND qso_date = ? AND band = ? AND mode = ?)"
+            )
+            .bind(&call)
+            .bind(&qso_date)
+            .bind(&band)
+            .bind(&mode)
+            .fetch_one(pool)
+            .await
+            .unwrap_or(false);
+            
+            if exists {
+                result.skipped += 1;
+                continue;
+            }
+        }
+        
+        // Build adif_fields JSON for extended fields
+        let mut adif_fields = serde_json::Map::new();
+        for (key, value) in &record.fields {
+            // Skip core fields we store in columns
+            let core_fields = ["CALL", "QSO_DATE", "TIME_ON", "TIME_OFF", "BAND", "MODE", "FREQ",
+                              "DXCC", "COUNTRY", "STATE", "CNTY", "GRIDSQUARE", "CQZ", "ITUZ", "CONT",
+                              "RST_SENT", "RST_RCVD", "STATION_CALLSIGN", "MY_GRIDSQUARE", "TX_PWR"];
+            if !core_fields.contains(&key.as_str()) && !key.starts_with("APP_") {
+                adif_fields.insert(key.to_lowercase(), serde_json::Value::String(value.clone()));
+            }
+        }
+        
+        let uuid = uuid::Uuid::new_v4().to_string();
+        let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        
+        // Insert the QSO
+        let insert_result = sqlx::query(
+            r#"INSERT INTO qsos (
+                uuid, call, qso_date, time_on, time_off, band, mode, freq,
+                dxcc, country, state, cnty, gridsquare, continent, cqz, ituz,
+                rst_sent, rst_rcvd, station_callsign, my_gridsquare, tx_pwr,
+                adif_fields, source, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#
+        )
+        .bind(&uuid)
+        .bind(&call)
+        .bind(&qso_date)
+        .bind(&time_on)
+        .bind(record.get("TIME_OFF"))
+        .bind(&band)
+        .bind(&mode)
+        .bind(record.freq())
+        .bind(record.dxcc())
+        .bind(record.country())
+        .bind(record.state())
+        .bind(record.cnty())
+        .bind(record.gridsquare())
+        .bind(record.get("CONT"))
+        .bind(record.cqz())
+        .bind(record.ituz())
+        .bind(record.get("RST_SENT"))
+        .bind(record.get("RST_RCVD"))
+        .bind(record.get("STATION_CALLSIGN"))
+        .bind(record.get("MY_GRIDSQUARE"))
+        .bind(record.get("TX_PWR").and_then(|s| s.parse::<f64>().ok()))
+        .bind(serde_json::to_string(&adif_fields).unwrap_or_default())
+        .bind("ADIF")
+        .bind(&now)
+        .bind(&now)
+        .execute(pool)
+        .await;
+        
+        match insert_result {
+            Ok(_) => result.imported += 1,
+            Err(e) => {
+                result.errors += 1;
+                if result.error_messages.len() < 10 {
+                    result.error_messages.push(format!("{}: {}", call, e));
+                }
+            }
+        }
+    }
+    
+    log::info!("ADIF import: {} imported, {} skipped, {} errors", 
+              result.imported, result.skipped, result.errors);
+    
+    Ok(result)
+}
+
+#[command]
+pub async fn export_adif(
+    state: tauri::State<'_, AppState>,
+    qso_ids: Option<Vec<i64>>,
+) -> Result<String, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let qsos: Vec<serde_json::Value> = if let Some(ids) = qso_ids {
+        // Export specific QSOs
+        let placeholders = ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let query = format!("SELECT * FROM qsos WHERE id IN ({}) ORDER BY qso_date DESC, time_on DESC", placeholders);
+        let mut q = sqlx::query(&query);
+        for id in &ids {
+            q = q.bind(id);
+        }
+        let rows = q.fetch_all(pool).await.map_err(|e| e.to_string())?;
+        rows.iter().map(|r| row_to_json(r)).collect()
+    } else {
+        // Export all QSOs
+        let rows = sqlx::query("SELECT * FROM qsos ORDER BY qso_date DESC, time_on DESC")
+            .fetch_all(pool)
+            .await
+            .map_err(|e| e.to_string())?;
+        rows.iter().map(|r| row_to_json(r)).collect()
+    };
+    
+    let records: Vec<std::collections::HashMap<String, String>> = qsos
+        .iter()
+        .map(|q| crate::adif::writer::qso_to_adif(q))
+        .collect();
+    
+    Ok(crate::adif::write_adif(&records, "GoQSO"))
+}
+
+fn row_to_json(row: &sqlx::sqlite::SqliteRow) -> serde_json::Value {
+    use sqlx::Row;
+    
+    serde_json::json!({
+        "id": row.get::<i64, _>("id"),
+        "uuid": row.get::<String, _>("uuid"),
+        "call": row.get::<String, _>("call"),
+        "qso_date": row.get::<String, _>("qso_date"),
+        "time_on": row.get::<String, _>("time_on"),
+        "time_off": row.try_get::<String, _>("time_off").ok(),
+        "band": row.get::<String, _>("band"),
+        "mode": row.get::<String, _>("mode"),
+        "freq": row.try_get::<f64, _>("freq").ok(),
+        "dxcc": row.try_get::<i64, _>("dxcc").ok(),
+        "country": row.try_get::<String, _>("country").ok(),
+        "state": row.try_get::<String, _>("state").ok(),
+        "cnty": row.try_get::<String, _>("cnty").ok(),
+        "gridsquare": row.try_get::<String, _>("gridsquare").ok(),
+        "continent": row.try_get::<String, _>("continent").ok(),
+        "cqz": row.try_get::<i64, _>("cqz").ok(),
+        "ituz": row.try_get::<i64, _>("ituz").ok(),
+        "rst_sent": row.try_get::<String, _>("rst_sent").ok(),
+        "rst_rcvd": row.try_get::<String, _>("rst_rcvd").ok(),
+        "station_callsign": row.try_get::<String, _>("station_callsign").ok(),
+        "my_gridsquare": row.try_get::<String, _>("my_gridsquare").ok(),
+        "tx_pwr": row.try_get::<f64, _>("tx_pwr").ok(),
+        "adif_fields": row.try_get::<String, _>("adif_fields").ok(),
+        "source": row.try_get::<String, _>("source").ok(),
+    })
+}
+
+// ============================================================================
+// LoTW Confirmation Import
+// ============================================================================
+
+#[derive(Debug, Serialize)]
+pub struct LotwImportResult {
+    pub total_records: usize,
+    pub matched: usize,
+    pub not_found: usize,
+    pub already_confirmed: usize,
+    pub errors: usize,
+}
+
+#[command]
+pub async fn import_lotw_confirmations(
+    state: tauri::State<'_, AppState>,
+    content: String,
+) -> Result<LotwImportResult, String> {
+    use crate::adif::parse_adif;
+    
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let adif_file = parse_adif(&content)?;
+    
+    let mut result = LotwImportResult {
+        total_records: adif_file.records.len(),
+        matched: 0,
+        not_found: 0,
+        already_confirmed: 0,
+        errors: 0,
+    };
+    
+    for record in &adif_file.records {
+        // Only process confirmed records
+        if !record.is_lotw_confirmed() {
+            continue;
+        }
+        
+        let call = match record.call() {
+            Some(c) => c.to_uppercase(),
+            None => continue,
+        };
+        
+        let band = record.get_or("BAND", "").to_uppercase();
+        let mode = record.get_or("MODE", "").to_uppercase();
+        let qso_date = record.get_or("QSO_DATE", "");
+        let time_on = record.get_or("TIME_ON", "");
+        
+        // Find matching QSO in our database
+        // Match by call, band, mode, date, and time (within 5 minutes)
+        let matching_qso: Option<(i64,)> = sqlx::query_as(
+            r#"SELECT id FROM qsos 
+               WHERE call = ? AND band = ? AND mode = ? AND qso_date = ?
+               ORDER BY ABS(
+                   CAST(SUBSTR(time_on, 1, 2) AS INTEGER) * 60 + CAST(SUBSTR(time_on, 3, 2) AS INTEGER) -
+                   CAST(SUBSTR(?, 1, 2) AS INTEGER) * 60 - CAST(SUBSTR(?, 3, 2) AS INTEGER)
+               )
+               LIMIT 1"#
+        )
+        .bind(&call)
+        .bind(&band)
+        .bind(&mode)
+        .bind(&qso_date)
+        .bind(&time_on)
+        .bind(&time_on)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+        
+        let qso_id = match matching_qso {
+            Some((id,)) => id,
+            None => {
+                result.not_found += 1;
+                continue;
+            }
+        };
+        
+        // Check if already confirmed
+        let already_confirmed: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM confirmations WHERE qso_id = ? AND source = 'LOTW' AND qsl_rcvd = 'Y')"
+        )
+        .bind(qso_id)
+        .fetch_one(pool)
+        .await
+        .unwrap_or(false);
+        
+        if already_confirmed {
+            result.already_confirmed += 1;
+            continue;
+        }
+        
+        // Insert or update confirmation
+        let qslrdate = record.qslrdate().map(|s| s.as_str()).unwrap_or("");
+        let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        
+        let insert_result = sqlx::query(
+            r#"INSERT INTO confirmations (qso_id, source, qsl_rcvd, qsl_rcvd_date, verified_at)
+               VALUES (?, 'LOTW', 'Y', ?, ?)
+               ON CONFLICT(qso_id, source) DO UPDATE SET 
+                   qsl_rcvd = 'Y', 
+                   qsl_rcvd_date = excluded.qsl_rcvd_date,
+                   verified_at = excluded.verified_at"#
+        )
+        .bind(qso_id)
+        .bind(qslrdate)
+        .bind(&now)
+        .execute(pool)
+        .await;
+        
+        match insert_result {
+            Ok(_) => result.matched += 1,
+            Err(_) => result.errors += 1,
+        }
+        
+        // Also update QSO with any additional LoTW data (state, county, etc.)
+        if let Some(state) = record.state() {
+            let _ = sqlx::query("UPDATE qsos SET state = COALESCE(state, ?) WHERE id = ?")
+                .bind(state)
+                .bind(qso_id)
+                .execute(pool)
+                .await;
+        }
+        if let Some(cnty) = record.cnty() {
+            let _ = sqlx::query("UPDATE qsos SET cnty = COALESCE(cnty, ?) WHERE id = ?")
+                .bind(cnty)
+                .bind(qso_id)
+                .execute(pool)
+                .await;
+        }
+        if let Some(grid) = record.gridsquare() {
+            let _ = sqlx::query("UPDATE qsos SET gridsquare = COALESCE(gridsquare, ?) WHERE id = ?")
+                .bind(grid)
+                .bind(qso_id)
+                .execute(pool)
+                .await;
+        }
+    }
+    
+    log::info!("LoTW import: {} matched, {} not found, {} already confirmed", 
+              result.matched, result.not_found, result.already_confirmed);
+    
+    Ok(result)
+}
+
+// ============================================================================
+// Award Progress Commands
+// ============================================================================
+
+#[derive(Debug, Serialize)]
+pub struct DxccProgress {
+    pub worked: i64,
+    pub confirmed: i64,
+    pub total: i64,
+}
+
+#[command]
+pub async fn get_dxcc_progress(
+    state: tauri::State<'_, AppState>,
+    band: Option<String>,
+    mode: Option<String>,
+) -> Result<DxccProgress, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    // Count unique worked DXCC entities
+    let worked: i64 = if let (Some(b), Some(m)) = (&band, &mode) {
+        sqlx::query_scalar("SELECT COUNT(DISTINCT dxcc) FROM qsos WHERE dxcc IS NOT NULL AND band = ? AND mode = ?")
+            .bind(b).bind(m)
+            .fetch_one(pool).await.unwrap_or(0)
+    } else if let Some(b) = &band {
+        sqlx::query_scalar("SELECT COUNT(DISTINCT dxcc) FROM qsos WHERE dxcc IS NOT NULL AND band = ?")
+            .bind(b)
+            .fetch_one(pool).await.unwrap_or(0)
+    } else if let Some(m) = &mode {
+        sqlx::query_scalar("SELECT COUNT(DISTINCT dxcc) FROM qsos WHERE dxcc IS NOT NULL AND mode = ?")
+            .bind(m)
+            .fetch_one(pool).await.unwrap_or(0)
+    } else {
+        sqlx::query_scalar("SELECT COUNT(DISTINCT dxcc) FROM qsos WHERE dxcc IS NOT NULL")
+            .fetch_one(pool).await.unwrap_or(0)
+    };
+    
+    // Count confirmed DXCC entities
+    let confirmed: i64 = sqlx::query_scalar(
+        r#"SELECT COUNT(DISTINCT q.dxcc) FROM qsos q
+           JOIN confirmations c ON c.qso_id = q.id
+           WHERE q.dxcc IS NOT NULL AND c.source = 'LOTW' AND c.qsl_rcvd = 'Y'"#
+    )
+    .fetch_one(pool)
+    .await
+    .unwrap_or(0);
+    
+    Ok(DxccProgress {
+        worked,
+        confirmed,
+        total: 340, // Current active DXCC entities
+    })
+}
+
+#[derive(Debug, Serialize)]
+pub struct WasProgress {
+    pub worked: i64,
+    pub confirmed: i64,
+    pub total: i64,
+    pub worked_states: Vec<String>,
+    pub confirmed_states: Vec<String>,
+}
+
+#[command]
+pub async fn get_was_progress(
+    state: tauri::State<'_, AppState>,
+    band: Option<String>,
+    mode: Option<String>,
+) -> Result<WasProgress, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    // Get unique worked US states
+    let worked_states: Vec<(String,)> = if let (Some(b), Some(m)) = (&band, &mode) {
+        sqlx::query_as(
+            "SELECT DISTINCT state FROM qsos WHERE dxcc = 291 AND state IS NOT NULL AND band = ? AND mode = ?"
+        )
+        .bind(b).bind(m)
+        .fetch_all(pool).await.unwrap_or_default()
+    } else {
+        sqlx::query_as(
+            "SELECT DISTINCT state FROM qsos WHERE dxcc = 291 AND state IS NOT NULL"
+        )
+        .fetch_all(pool).await.unwrap_or_default()
+    };
+    
+    // Get confirmed states
+    let confirmed_states: Vec<(String,)> = sqlx::query_as(
+        r#"SELECT DISTINCT q.state FROM qsos q
+           JOIN confirmations c ON c.qso_id = q.id
+           WHERE q.dxcc = 291 AND q.state IS NOT NULL AND c.source = 'LOTW' AND c.qsl_rcvd = 'Y'"#
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap_or_default();
+    
+    Ok(WasProgress {
+        worked: worked_states.len() as i64,
+        confirmed: confirmed_states.len() as i64,
+        total: 50,
+        worked_states: worked_states.into_iter().map(|(s,)| s).collect(),
+        confirmed_states: confirmed_states.into_iter().map(|(s,)| s).collect(),
+    })
 }

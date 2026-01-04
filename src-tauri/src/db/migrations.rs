@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS qsos (
     dxcc            INTEGER,                -- DXCC entity number
     country         TEXT,                   -- Entity name
     state           TEXT,                   -- US state/CA province
+    cnty            TEXT,                   -- County (ARRL format: ST,County)
     gridsquare      TEXT,                   -- Maidenhead grid
     continent       TEXT,                   -- e.g., "NA", "EU"
     cqz             INTEGER,                -- CQ Zone

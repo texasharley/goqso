@@ -1,59 +1,203 @@
 # GoQSO - Development Roadmap
 
-## Current Status: Band Activity & Decode Display Working
+## Current Status: Phase 1 Core Complete
 
-Core architecture complete: Tauri 2.x + React + SQLite. WSJT-X connection working with live FT8 decode display.
+Core architecture complete: Tauri 2.x + React + SQLite hybrid schema. WSJT-X UDP integration working with live FT8 decodes and auto-logging. Badge system and QSO history panel implemented.
 
 ---
 
 ## ✅ Completed
 
-- [x] Tauri project setup with React + TypeScript
-- [x] SQLite schema with all tables defined
-- [x] React frontend with Tailwind CSS dark theme
-- [x] DXCC reference data (340 entities from ARRL list)
-- [x] Prefix rules for callsign → DXCC lookup
-- [x] US state data for WAS tracking
-- [x] Grid square → US state mapping
-- [x] WSJT-X UDP listener on port 2237
+### Core Architecture
+- [x] Tauri 2.x project with React + TypeScript
+- [x] SQLite hybrid schema (indexed columns + JSON blobs)
+- [x] DXCC entities (340) and prefix rules
+- [x] US state data with grid-to-state mapping
+- [x] Dark theme with Tailwind CSS
+
+### WSJT-X Integration
+- [x] UDP listener for WSJT-X (port 2237)
 - [x] Parse Heartbeat, Status, Decode, QsoLogged messages
 - [x] Band Activity display with live FT8 decodes
-- [x] Priority Queue showing NEW COUNTRY / NEW STATE stations
-- [x] Database initialization with proper migration handling
+- [x] Priority Queue (NEW COUNTRY / NEW STATE alerts)
+- [x] Auto-log QSOs from WSJT-X with DXCC enrichment
+- [x] Toast notifications on QSO logged
+
+### QSO Logging UX
+- [x] QsoLog table with sortable columns
+- [x] Badge system (new DXCC, band slot, dupe, previous QSO)
+- [x] QSO detail modal with two-column layout
+- [x] Callsign history panel (previous QSOs with station)
+- [x] Award impact preview (shows what award credit)
+- [x] Delete QSO with confirmation
+- [x] Keyboard shortcuts (/, Escape)
+- [x] UX design doc vs DXKeeper
 
 ---
 
-## Phase 1: QSO Logging (Current Focus)
+## 🔴 Critical Gaps (vs DXKeeper)
 
-### 1.1 Log View Component
-- [ ] Create `LogView.tsx` component for the Log tab
-- [ ] Minimal table: Date, Time, Call, Band, Mode, RST, Entity, Status
-- [ ] Sortable columns (click header)
-- [ ] Search/filter box
-- [ ] Pagination or virtual scroll
+### 1. ADIF Import/Export
+**Why Critical**: Can't migrate from other loggers, can't backup data
+- [ ] Parse ADIF file format
+- [ ] Import command with field mapping
+- [ ] Export to ADIF (full log or filtered)
+- [ ] Handle all 180+ modes (see Modes.txt)
 
-### 1.2 QSO Detail Modal
-- [ ] Full QSO editor with all ADIF fields
-- [ ] Sections: Basic, Station, QSL, Notes
-- [ ] Edit existing QSOs
-- [ ] Delete with confirmation
+### 2. LoTW Integration
+**Why Critical**: DXCC/WAS confirmation is the whole point
+- [ ] Import LoTW confirmations from .adi file (like lotwreport.adi)
+- [ ] Match to local QSOs by call/band/mode/date/time
+- [ ] Update confirmation status in database
+- [ ] Show confirmation badges in log (L=LoTW confirmed)
+- [ ] Upload QSOs to LoTW (requires tqsl.exe integration)
+- [ ] Track upload queue status
 
-### 1.3 Auto-Logging from WSJT-X
-- [ ] Handle QsoLogged UDP messages properly
-- [ ] Auto-populate DXCC/state/grid
-- [ ] Toast notification on new QSO
+### 3. Award Progress Dashboard
+**Why Critical**: Visual motivation is the killer feature
+- [ ] DXCC progress: X/340 worked, Y confirmed (by band/mode)
+- [ ] WAS progress: X/50 worked, Y confirmed
+- [ ] VUCC progress: grid squares on 6m+
+- [ ] USA-CA progress: counties (requires CNTY field)
+- [ ] Progress bars with targets
 
-### 1.4 Manual QSO Entry
-- [ ] "Add QSO" button with quick entry form
-- [ ] Callsign lookup as you type
-
-### 1.5 Import/Export
-- [ ] Import ADIF file
-- [ ] Export to ADIF file
+### 4. QSO Map Visualization
+**Why Critical**: Visual gratification, better than QSOmap.org
+- [ ] World map with QSO pins
+- [ ] Color coding: worked vs confirmed
+- [ ] Filter by band/mode/date range
+- [ ] Grid square overlay for VUCC
+- [ ] US state map for WAS
+- [ ] Azimuthal projection centered on home QTH
 
 ---
 
-## Phase 2: Transmission Control (Mock First)
+## Phase 1: ADIF & Mode Support (Current Focus)
+
+### 1.1 Mode Registry
+All 180+ modes from ADIF spec already supported via TEXT field.
+- [ ] Mode validation/normalization on import
+- [ ] Mode grouping (DATA, PHONE, CW, IMAGE)
+- [ ] Submode handling (FT8 is MODE=FT8, SUBMODE optional)
+
+### 1.2 ADIF Parser (Rust)
+- [ ] Parse `<FIELD:length>value` format
+- [ ] Handle header section before `<EOH>`
+- [ ] Parse QSO records ending with `<EOR>`
+- [ ] Strip comments (text after //)
+- [ ] Map ADIF fields to our schema
+
+### 1.3 ADIF Importer
+- [ ] File picker dialog
+- [ ] Preview import (show count, date range)
+- [ ] Duplicate detection (skip/update options)
+- [ ] Progress indicator for large files
+- [ ] Import report (added/skipped/errors)
+
+### 1.4 ADIF Exporter
+- [ ] Export all QSOs
+- [ ] Export filtered subset
+- [ ] Include all standard ADIF fields
+- [ ] Format for LoTW upload compatibility
+
+---
+
+## Phase 2: LoTW Confirmation Sync
+
+### 2.1 LoTW Download Import
+LoTW provides confirmations as ADIF file with special fields:
+- `<QSL_RCVD:1>Y` = Confirmed
+- `<QSLRDATE:8>20260104` = Confirmation date
+- `<APP_LoTW_2xQSL:1>Y` = Both parties confirmed
+
+**Implementation:**
+- [ ] Parse LoTW ADIF format
+- [ ] Match by: CALL + BAND + MODE + QSO_DATE + TIME_ON (±5 min)
+- [ ] Update confirmations table with:
+  - service = 'lotw'
+  - status = 'confirmed'
+  - confirmed_at = QSLRDATE
+- [ ] Handle new QSOs from LoTW (worked but not in log)
+
+### 2.2 LoTW Upload
+- [ ] Queue QSOs for upload
+- [ ] Integration with TQSL for signing
+- [ ] Track upload status (pending/uploaded/failed)
+- [ ] Batch upload support
+
+### 2.3 Confirmation UI
+- [ ] Badge colors: ✓ green (confirmed), ○ yellow (uploaded), ✗ gray (not sent)
+- [ ] Filter by confirmation status
+- [ ] "Unconfirmed" quick filter
+- [ ] Confirmation date in detail modal
+
+---
+
+## Phase 3: Award Progress Tracking
+
+### 3.1 DXCC Award
+- [ ] Worked/Confirmed counts by band and mode
+- [ ] DXCC Challenge (band-slot counting)
+- [ ] Progress toward:
+  - DXCC (100 confirmed)
+  - DXCC Honor Roll (326+)
+  - DXCC #1 (340 current entities)
+- [ ] Entity cards showing: worked bands, confirmed bands
+
+### 3.2 WAS (Worked All States)
+- [ ] 50 states tracker
+- [ ] Triple Play: Phone + CW + Digital confirmed
+- [ ] State cards with confirmation status
+
+### 3.3 VUCC (VHF/UHF Century Club)
+- [ ] Grid squares on 6m, 2m, 70cm, etc.
+- [ ] 100/200/300+ level tracking
+- [ ] Grid map visualization
+
+### 3.4 USA-CA (Counties)
+**Requires schema update: add CNTY column**
+- [ ] 3,077 US counties
+- [ ] Progress tracking
+- [ ] County map
+
+---
+
+## Phase 4: QSO Map Visualization
+
+### 4.1 Technology Choice
+Options:
+- **Leaflet.js** - Open source, free, flexible
+- **MapLibre GL** - Modern, WebGL, beautiful
+- **D3.js** - Full control, steep learning
+
+Recommendation: **MapLibre GL** for professional look
+
+### 4.2 World Map
+- [ ] QSO pins at grid square centers
+- [ ] Color: red=worked, green=confirmed
+- [ ] Clustering for dense areas
+- [ ] Popup on click: call, date, band, mode
+- [ ] Filter controls: band, mode, date range
+
+### 4.3 Projections
+- [ ] Azimuthal equidistant (ham favorite)
+- [ ] Mercator (standard)
+- [ ] Centered on user's QTH
+
+### 4.4 Overlays
+- [ ] Grid square grid (for VUCC)
+- [ ] CQ zones
+- [ ] ITU zones
+- [ ] DXCC entity boundaries
+
+### 4.5 US-Specific
+- [ ] State boundaries for WAS
+- [ ] County boundaries for USA-CA
+- [ ] State fill colors by status
+
+---
+
+## Phase 5: Transmission Control
 
 ### 2.1 Mock Transmission System
 - [ ] Test decode data for simulation

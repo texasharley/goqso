@@ -1,12 +1,13 @@
 // Prevents additional console window on Windows in release
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod adif;
+mod awards;
 mod commands;
 mod db;
-mod udp;
 mod lotw;
 mod reference;  // Authoritative DXCC/prefix data (replaces cty module)
-mod awards;
+mod udp;
 
 use std::sync::Arc;
 use tauri::{Manager, Emitter};
@@ -79,21 +80,18 @@ fn main() {
             commands::add_qso,
             commands::update_qso,
             commands::delete_qso,
+            commands::add_test_qsos,
+            // ADIF Import/Export
             commands::import_adif,
             commands::export_adif,
-            commands::add_test_qsos,
             // Callsign History & Status
             commands::get_callsign_history,
             commands::check_qso_status,
-            // LoTW Sync
-            commands::sync_lotw_upload,
-            commands::sync_lotw_download,
-            commands::get_sync_status,
-            commands::detect_tqsl_path,
-            // Awards
+            // LoTW Integration
+            commands::import_lotw_confirmations,
+            // Awards Progress
             commands::get_dxcc_progress,
             commands::get_was_progress,
-            commands::get_vucc_progress,
             // CTY Lookup
             commands::lookup_callsign,
             // Settings
