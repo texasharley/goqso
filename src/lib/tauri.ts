@@ -35,6 +35,15 @@ export interface SyncStatus {
   last_upload: string | null;
   last_download: string | null;
   is_syncing: boolean;
+  lotw_configured: boolean;
+}
+
+export interface LotwDownloadResult {
+  total_records: number;
+  matched: number;
+  unmatched: number;
+  errors: string[];
+  last_qsl: string | null;
 }
 
 export async function syncLotwUpload(): Promise<number> {

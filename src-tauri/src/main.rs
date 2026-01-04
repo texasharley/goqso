@@ -89,6 +89,9 @@ fn main() {
             commands::check_qso_status,
             // LoTW Integration
             commands::import_lotw_confirmations,
+            commands::get_sync_status,
+            commands::sync_lotw_download,
+            commands::detect_tqsl_path,
             // Awards Progress
             commands::get_dxcc_progress,
             commands::get_was_progress,

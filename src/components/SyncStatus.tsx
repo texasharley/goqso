@@ -7,6 +7,7 @@ interface SyncStatus {
   last_upload: string | null;
   last_download: string | null;
   is_syncing: boolean;
+  lotw_configured: boolean;
 }
 
 export function SyncStatus() {
@@ -15,6 +16,7 @@ export function SyncStatus() {
     last_upload: null,
     last_download: null,
     is_syncing: false,
+    lotw_configured: false,
   });
 
   useEffect(() => {

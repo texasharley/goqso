@@ -808,29 +808,197 @@ pub struct SyncStatus {
     pub last_upload: Option<String>,
     pub last_download: Option<String>,
     pub is_syncing: bool,
+    pub lotw_configured: bool,
+}
+
+// NOTE: Upload functionality is intentionally NOT implemented.
+// We must ensure no test data is ever submitted to LoTW.
+// Only GET operations (downloading confirmations) are enabled.
+
+#[command]
+pub async fn sync_lotw_download(
+    state: tauri::State<'_, AppState>,
+    username: String,
+    password: String,
+    since_date: Option<String>,
+) -> Result<LotwDownloadResult, String> {
+    log::info!("Starting LoTW confirmation download");
+    
+    use crate::lotw::{LotwClient, LotwQueryOptions};
+    
+    // Create client with credentials
+    let client = LotwClient::new(username, password);
+    
+    // Build query options
+    let options = LotwQueryOptions {
+        qso_qslsince: since_date,
+        qso_qsldetail: true,
+        qso_withown: true,
+        ..Default::default()
+    };
+    
+    // Download confirmations from LoTW
+    let result = client.download_confirmations(&options).await
+        .map_err(|e| e.to_string())?;
+    
+    log::info!("Downloaded {} bytes from LoTW", result.adif_content.len());
+    
+    // Parse the ADIF content
+    use crate::adif::parse_adif;
+    let adif_file = parse_adif(&result.adif_content)
+        .map_err(|e| format!("Failed to parse LoTW response: {}", e))?;
+    
+    log::info!("Parsed {} QSL records from LoTW", adif_file.records.len());
+    
+    // Now match confirmations to local QSOs
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let mut matched = 0;
+    let mut unmatched = 0;
+    let mut errors: Vec<String> = Vec::new();
+    
+    for record in &adif_file.records {
+        let call = match record.call() {
+            Some(c) => c.to_string(),
+            None => {
+                errors.push("Record missing CALL field".to_string());
+                continue;
+            }
+        };
+        
+        let band = record.band().map(|s| s.to_uppercase()).unwrap_or_default();
+        let mode = record.mode().map(|s| s.to_uppercase()).unwrap_or_default();
+        let qso_date = record.qso_date().map(|s| s.to_string()).unwrap_or_default();
+        
+        // Try to match by call, band, and date (mode may differ slightly)
+        let match_result = sqlx::query(
+            r#"SELECT id FROM qsos 
+               WHERE UPPER(call) = ? AND UPPER(band) = ? AND qso_date = ?
+               LIMIT 1"#
+        )
+        .bind(call.to_uppercase())
+        .bind(&band)
+        .bind(&qso_date)
+        .fetch_optional(pool)
+        .await;
+        
+        match match_result {
+            Ok(Some(row)) => {
+                let id: i64 = row.get("id");
+                
+                // Extract QSL details from LoTW record
+                let qsl_date = record.get("QSLRDATE").map(|s| s.to_string());
+                let dxcc: Option<i32> = record.get("DXCC").and_then(|s| s.parse().ok());
+                let state = record.get("STATE").map(|s| s.to_string());
+                let cnty = record.get("CNTY").map(|s| s.to_string());
+                let gridsquare = record.get("GRIDSQUARE").map(|s| s.to_string());
+                let cqz: Option<i32> = record.get("CQZ").and_then(|s| s.parse().ok());
+                let ituz: Option<i32> = record.get("ITUZ").and_then(|s| s.parse().ok());
+                let country = record.get("COUNTRY").map(|s| s.to_string());
+                
+                // Update the QSO with LoTW confirmation data
+                sqlx::query(
+                    r#"UPDATE qsos SET 
+                       lotw_qsl_rcvd = 'Y',
+                       lotw_qsl_date = ?,
+                       dxcc = COALESCE(?, dxcc),
+                       country = COALESCE(?, country),
+                       state = COALESCE(?, state),
+                       cnty = ?,
+                       gridsquare = COALESCE(?, gridsquare),
+                       cqz = COALESCE(?, cqz),
+                       ituz = COALESCE(?, ituz),
+                       updated_at = datetime('now')
+                       WHERE id = ?"#
+                )
+                .bind(&qsl_date)
+                .bind(dxcc)
+                .bind(&country)
+                .bind(&state)
+                .bind(&cnty)
+                .bind(&gridsquare)
+                .bind(cqz)
+                .bind(ituz)
+                .bind(id)
+                .execute(pool)
+                .await
+                .map_err(|e| format!("Failed to update QSO {}: {}", id, e))?;
+                
+                matched += 1;
+                log::debug!("Matched LoTW QSL: {} on {} {}", call, band, qso_date);
+            }
+            Ok(None) => {
+                unmatched += 1;
+                log::debug!("No local QSO for LoTW QSL: {} on {} {}", call, band, qso_date);
+            }
+            Err(e) => {
+                errors.push(format!("DB error matching {}: {}", call, e));
+            }
+        }
+    }
+    
+    log::info!("LoTW sync complete: {} matched, {} unmatched", matched, unmatched);
+    
+    Ok(LotwDownloadResult {
+        total_records: adif_file.records.len() as i32,
+        matched,
+        unmatched,
+        errors,
+        last_qsl: result.last_qsl,
+    })
+}
+
+#[derive(Debug, Serialize)]
+pub struct LotwDownloadResult {
+    pub total_records: i32,
+    pub matched: i32,
+    pub unmatched: i32,
+    pub errors: Vec<String>,
+    pub last_qsl: Option<String>,
 }
 
 #[command]
-pub async fn sync_lotw_upload() -> Result<i32, String> {
-    log::info!("Starting LoTW upload");
-    // TODO: Export pending QSOs, sign with TQSL, upload
-    Ok(0)
-}
-
-#[command]
-pub async fn sync_lotw_download() -> Result<i32, String> {
-    log::info!("Starting LoTW download");
-    // TODO: Download confirmations from LoTW
-    Ok(0)
-}
-
-#[command]
-pub async fn get_sync_status() -> Result<SyncStatus, String> {
+pub async fn get_sync_status(
+    state: tauri::State<'_, AppState>,
+) -> Result<SyncStatus, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    // Count QSOs not yet confirmed by LoTW
+    let pending: i64 = sqlx::query(
+        "SELECT COUNT(*) as cnt FROM qsos WHERE lotw_qsl_rcvd IS NULL OR lotw_qsl_rcvd != 'Y'"
+    )
+    .fetch_one(pool)
+    .await
+    .map(|r| r.get("cnt"))
+    .unwrap_or(0);
+    
+    // Get last sync dates from settings (if available)
+    let last_download = sqlx::query(
+        "SELECT value FROM settings WHERE key = 'lotw_last_download'"
+    )
+    .fetch_optional(pool)
+    .await
+    .ok()
+    .flatten()
+    .map(|r| r.get::<String, _>("value"));
+    
+    // Check if LoTW credentials are configured
+    let has_creds = sqlx::query(
+        "SELECT COUNT(*) as cnt FROM settings WHERE key = 'lotw_username' AND value IS NOT NULL AND value != ''"
+    )
+    .fetch_one(pool)
+    .await
+    .map(|r| r.get::<i64, _>("cnt") > 0)
+    .unwrap_or(false);
+    
     Ok(SyncStatus {
-        pending_uploads: 0,
-        last_upload: None,
-        last_download: None,
+        pending_uploads: pending as i32,
+        last_upload: None, // Upload not implemented
+        last_download,
         is_syncing: false,
+        lotw_configured: has_creds,
     })
 }
 

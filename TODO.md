@@ -1,8 +1,11 @@
 # GoQSO - Development Roadmap
 
-## Current Status: Phase 1 Core Complete
+## Current Status: Phase 1 & 2 In Progress
 
 Core architecture complete: Tauri 2.x + React + SQLite hybrid schema. WSJT-X UDP integration working with live FT8 decodes and auto-logging. Badge system and QSO history panel implemented.
+
+**ADIF module complete** - Full parser, writer, and 180+ mode registry.
+**LoTW client complete** - HTTP client for downloading confirmations from LoTW API.
 
 ---
 
@@ -33,35 +36,51 @@ Core architecture complete: Tauri 2.x + React + SQLite hybrid schema. WSJT-X UDP
 - [x] Keyboard shortcuts (/, Escape)
 - [x] UX design doc vs DXKeeper
 
+### ADIF Support (Phase 1 - Complete)
+- [x] ADIF parser (`<FIELD:length>value` format)
+- [x] Header section handling (`<EOH>`)
+- [x] QSO record parsing (`<EOR>`)
+- [x] ADIF writer for export
+- [x] Mode registry (180+ ADIF 3.1.4 modes)
+- [x] Mode grouping (DATA, PHONE, CW, IMAGE)
+- [x] Import command with duplicate detection
+- [x] Export command
+- [x] CNTY (county) field in schema
+
+### LoTW Integration - Read Only (Phase 2a - Complete)
+- [x] LoTW HTTP client module (`lotw/client.rs`)
+- [x] Download confirmations endpoint (`lotwreport.adi`)
+- [x] Download DXCC credits endpoint (`qslcards.php`)
+- [x] LoTW user activity check (CSV)
+- [x] Parse LoTW ADIF format
+- [x] Match confirmations to local QSOs
+- [x] Update lotw_qsl_rcvd/lotw_qsl_date fields
+- [x] get_sync_status command
+- [x] sync_lotw_download command (with credentials)
+
 ---
 
-## 🔴 Critical Gaps (vs DXKeeper)
+## 🔴 Critical Gaps (Remaining)
 
-### 1. ADIF Import/Export
-**Why Critical**: Can't migrate from other loggers, can't backup data
-- [ ] Parse ADIF file format
-- [ ] Import command with field mapping
-- [ ] Export to ADIF (full log or filtered)
-- [ ] Handle all 180+ modes (see Modes.txt)
+### 1. LoTW Upload (BLOCKED - Must Test First)
+**IMPORTANT**: Upload functionality is intentionally NOT implemented yet.
+We must never submit test data to LoTW. Only real QSO data can be uploaded.
+- [ ] Queue QSOs for upload
+- [ ] Integration with TQSL for signing
+- [ ] Track upload status (pending/uploaded/failed)
+- [ ] Batch upload support
 
-### 2. LoTW Integration
-**Why Critical**: DXCC/WAS confirmation is the whole point
-- [ ] Import LoTW confirmations from .adi file (like lotwreport.adi)
-- [ ] Match to local QSOs by call/band/mode/date/time
-- [ ] Update confirmation status in database
-- [ ] Show confirmation badges in log (L=LoTW confirmed)
-- [ ] Upload QSOs to LoTW (requires tqsl.exe integration)
-- [ ] Track upload queue status
-
-### 3. Award Progress Dashboard
+### 2. Award Progress Dashboard
 **Why Critical**: Visual motivation is the killer feature
-- [ ] DXCC progress: X/340 worked, Y confirmed (by band/mode)
-- [ ] WAS progress: X/50 worked, Y confirmed
+- [x] get_dxcc_progress command (worked/confirmed counts)
+- [x] get_was_progress command (state lists)
+- [ ] DXCC progress UI: X/340 worked, Y confirmed (by band/mode)
+- [ ] WAS progress UI: X/50 worked, Y confirmed
 - [ ] VUCC progress: grid squares on 6m+
-- [ ] USA-CA progress: counties (requires CNTY field)
+- [ ] USA-CA progress: counties
 - [ ] Progress bars with targets
 
-### 4. QSO Map Visualization
+### 3. QSO Map Visualization
 **Why Critical**: Visual gratification, better than QSOmap.org
 - [ ] World map with QSO pins
 - [ ] Color coding: worked vs confirmed
@@ -72,32 +91,42 @@ Core architecture complete: Tauri 2.x + React + SQLite hybrid schema. WSJT-X UDP
 
 ---
 
-## Phase 1: ADIF & Mode Support (Current Focus)
+## LoTW API Reference
 
-### 1.1 Mode Registry
-All 180+ modes from ADIF spec already supported via TEXT field.
-- [ ] Mode validation/normalization on import
-- [ ] Mode grouping (DATA, PHONE, CW, IMAGE)
-- [ ] Submode handling (FT8 is MODE=FT8, SUBMODE optional)
+### Download Confirmations (GET)
+```
+https://lotw.arrl.org/lotwuser/lotwreport.adi
+  ?login=CALLSIGN
+  &password=PASSWORD
+  &qso_query=1
+  &qso_qsl=yes              # Get confirmations (QSL_RCVD=Y)
+  &qso_qslsince=YYYY-MM-DD  # Only new since date
+  &qso_qsldetail=yes        # Include location details
+  &qso_withown=yes          # Include station callsign
+```
 
-### 1.2 ADIF Parser (Rust)
-- [ ] Parse `<FIELD:length>value` format
-- [ ] Handle header section before `<EOH>`
-- [ ] Parse QSO records ending with `<EOR>`
-- [ ] Strip comments (text after //)
-- [ ] Map ADIF fields to our schema
+**Response fields:**
+- Header: `APP_LoTW_LASTQSL`, `APP_LoTW_NUMREC`
+- QSO: CALL, BAND, MODE, QSO_DATE, TIME_ON, QSL_RCVD, QSLRDATE
+- Detail: DXCC, COUNTRY, STATE, CNTY, CQZ, ITUZ, GRIDSQUARE
+- Award: CREDIT_GRANTED, APP_LoTW_2xQSL
 
-### 1.3 ADIF Importer
-- [ ] File picker dialog
-- [ ] Preview import (show count, date range)
-- [ ] Duplicate detection (skip/update options)
-- [ ] Progress indicator for large files
-- [ ] Import report (added/skipped/errors)
+### Download DXCC Credits (GET)
+```
+https://lotw.arrl.org/lotwuser/logbook/qslcards.php
+  ?login=CALLSIGN
+  &password=PASSWORD
+```
 
-### 1.4 ADIF Exporter
-- [ ] Export all QSOs
-- [ ] Export filtered subset
-- [ ] Include all standard ADIF fields
+### User Activity List (Public GET)
+```
+https://lotw.arrl.org/lotw-user-activity.csv
+```
+Format: `CALLSIGN,YYYY-MM-DD,HH:MM:SS` (last upload date)
+
+---
+
+## Phase 1: ADIF & Mode Support ✅ COMPLETE
 - [ ] Format for LoTW upload compatibility
 
 ---
