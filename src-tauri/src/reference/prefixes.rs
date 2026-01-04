@@ -358,6 +358,20 @@ pub const PREFIX_RULES: &[PrefixRule] = &[
     // Hong Kong (ITU: VR)
     PrefixRule { prefix: "VR", entity_id: 324, exact: false, priority: 10 },
     
+    // Philippines (ITU: DU-DZ, 4D-4I)
+    PrefixRule { prefix: "DU", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "DV", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "DW", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "DX", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "DY", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "DZ", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "4D", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "4E", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "4F", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "4G", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "4H", entity_id: 372, exact: false, priority: 10 },
+    PrefixRule { prefix: "4I", entity_id: 372, exact: false, priority: 10 },
+    
     // Thailand (ITU: HS, E2)
     PrefixRule { prefix: "HS", entity_id: 387, exact: false, priority: 10 },
     PrefixRule { prefix: "E2", entity_id: 387, exact: false, priority: 10 },

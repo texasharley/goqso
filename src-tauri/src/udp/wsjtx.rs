@@ -195,3 +195,223 @@ pub fn parse_qso_logged(data: &[u8]) -> Option<QsoLoggedMessage> {
         adif_propagation_mode,
     })
 }
+
+// ============================================================================
+// Decode Message (Type 2) - FT8/FT4 decodes from the waterfall
+// ============================================================================
+
+/// Decoded message from the waterfall
+#[derive(Debug, Clone)]
+pub struct DecodeMessage {
+    pub id: String,
+    pub is_new: bool,
+    pub time_ms: u32,
+    pub snr: i32,
+    pub delta_time: f64,
+    pub delta_freq: u32,
+    pub mode: String,
+    pub message: String,
+    pub low_confidence: bool,
+    pub off_air: bool,
+}
+
+/// Parse Decode message (type 2)
+pub fn parse_decode(data: &[u8]) -> Option<DecodeMessage> {
+    let mut offset = 12; // Skip magic, schema, type
+    
+    let id = read_qt_string(data, &mut offset)?;
+    
+    // New flag (bool)
+    if offset + 1 > data.len() {
+        return None;
+    }
+    let is_new = data[offset] != 0;
+    offset += 1;
+    
+    // Time (QTime - u32 milliseconds since midnight)
+    if offset + 4 > data.len() {
+        return None;
+    }
+    let time_ms = u32::from_be_bytes([data[offset], data[offset + 1], data[offset + 2], data[offset + 3]]);
+    offset += 4;
+    
+    // SNR (i32)
+    if offset + 4 > data.len() {
+        return None;
+    }
+    let snr = i32::from_be_bytes([data[offset], data[offset + 1], data[offset + 2], data[offset + 3]]);
+    offset += 4;
+    
+    // Delta time (f64)
+    if offset + 8 > data.len() {
+        return None;
+    }
+    let delta_time = f64::from_be_bytes([
+        data[offset], data[offset + 1], data[offset + 2], data[offset + 3],
+        data[offset + 4], data[offset + 5], data[offset + 6], data[offset + 7],
+    ]);
+    offset += 8;
+    
+    // Delta frequency (u32)
+    if offset + 4 > data.len() {
+        return None;
+    }
+    let delta_freq = u32::from_be_bytes([data[offset], data[offset + 1], data[offset + 2], data[offset + 3]]);
+    offset += 4;
+    
+    // Mode
+    let mode = read_qt_string(data, &mut offset)?;
+    
+    // Message text
+    let message = read_qt_string(data, &mut offset)?;
+    
+    // Low confidence flag
+    let low_confidence = if offset < data.len() {
+        let val = data[offset] != 0;
+        offset += 1;
+        val
+    } else {
+        false
+    };
+    
+    // Off air flag
+    let off_air = if offset < data.len() {
+        data[offset] != 0
+    } else {
+        false
+    };
+    
+    Some(DecodeMessage {
+        id,
+        is_new,
+        time_ms,
+        snr,
+        delta_time,
+        delta_freq,
+        mode,
+        message,
+        low_confidence,
+        off_air,
+    })
+}
+
+/// Extract callsign and grid from a decoded FT8 message
+/// FT8 messages have formats like:
+/// - "CQ W5ABC EM10"
+/// - "CQ DX W5ABC EM10"
+/// - "CQ WWA ZW5B GG54" (contest/activity)
+/// - "W5ABC KJ5KCZ -05"
+/// - "KJ5KCZ W5ABC R-10"
+/// - "W5ABC KJ5KCZ RR73"
+/// - "K7ACN/P WA3SEE 73" (portable)
+/// - "<W7UUU> W4/ZS2GK" (compound callsign)
+pub fn parse_ft8_message(message: &str) -> Option<(String, Option<String>, MessageType)> {
+    let parts: Vec<&str> = message.split_whitespace().collect();
+    
+    if parts.is_empty() {
+        return None;
+    }
+    
+    // CQ message: "CQ W5ABC EM10" or "CQ DX W5ABC EM10" or "CQ POTA W5ABC EM10"
+    if parts[0] == "CQ" {
+        // Find the first part after CQ that looks like a valid callsign
+        for i in 1..parts.len() {
+            let candidate = parts[i];
+            if is_valid_callsign(candidate) {
+                let call = candidate.to_string();
+                let grid = if parts.len() > i + 1 && is_grid(parts[i + 1]) {
+                    Some(parts[i + 1].to_string())
+                } else {
+                    None
+                };
+                return Some((call, grid, MessageType::Cq));
+            }
+            // If we hit a grid, stop looking
+            if is_grid(candidate) {
+                break;
+            }
+        }
+        return None; // Couldn't find a valid callsign after CQ
+    }
+    
+    // Handle compound callsigns with angle brackets: "<W7UUU> W4/ZS2GK"
+    let first = parts[0];
+    let their_call = if first.starts_with('<') && first.ends_with('>') {
+        // Strip angle brackets
+        first[1..first.len()-1].to_string()
+    } else {
+        first.to_string()
+    };
+    
+    // Validate the extracted callsign
+    if !is_valid_callsign(&their_call) {
+        return None;
+    }
+    
+    // Standard exchange: "THEM ME REPORT/GRID"
+    if parts.len() >= 2 {
+        // Determine message type from third part
+        let msg_type = if parts.len() > 2 {
+            let third = parts[2];
+            if third == "RR73" || third == "RRR" || third == "73" {
+                MessageType::End
+            } else if third.starts_with('R') && (third.len() == 3 || third.len() == 4) {
+                MessageType::Report  // R-05, R+10
+            } else if is_grid(third) {
+                MessageType::Grid
+            } else if third.starts_with('-') || third.starts_with('+') {
+                MessageType::Report
+            } else {
+                MessageType::Other
+            }
+        } else {
+            MessageType::Other
+        };
+        
+        let grid = if parts.len() > 2 && is_grid(parts[2]) {
+            Some(parts[2].to_string())
+        } else {
+            None
+        };
+        
+        return Some((their_call, grid, msg_type));
+    }
+    
+    None
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MessageType {
+    Cq,      // CQ call
+    Grid,    // Sending grid
+    Report,  // Sending signal report
+    End,     // RR73/RRR/73
+    Other,
+}
+
+fn is_grid(s: &str) -> bool {
+    if s.len() != 4 {
+        return false;
+    }
+    let chars: Vec<char> = s.chars().collect();
+    chars[0].is_ascii_uppercase() && chars[1].is_ascii_uppercase() &&
+    chars[2].is_ascii_digit() && chars[3].is_ascii_digit()
+}
+
+/// Basic validation that a string looks like a callsign
+/// Callsigns typically have letters and numbers, 3-10 chars
+fn is_valid_callsign(s: &str) -> bool {
+    let len = s.len();
+    if len < 3 || len > 10 {
+        return false;
+    }
+    
+    // Must contain at least one digit
+    let has_digit = s.chars().any(|c| c.is_ascii_digit());
+    // Must contain at least one letter
+    let has_letter = s.chars().any(|c| c.is_ascii_alphabetic());
+    // All chars must be alphanumeric or /
+    let all_valid = s.chars().all(|c| c.is_ascii_alphanumeric() || c == '/');
+    
+    has_digit && has_letter && all_valid
+}
