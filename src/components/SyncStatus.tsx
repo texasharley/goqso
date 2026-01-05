@@ -18,21 +18,30 @@ export function SyncStatus() {
     is_syncing: false,
     lotw_configured: false,
   });
+  const [_isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Poll sync status
+    // Only fetch once DB is ready, then poll less frequently
     const fetchStatus = async () => {
       try {
         const result = await invoke<SyncStatus>("get_sync_status");
         setStatus(result);
-      } catch (error) {
-        console.error("Failed to get sync status:", error);
+        setIsReady(true);
+      } catch {
+        // DB not ready yet, will retry
       }
     };
 
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 10000);
-    return () => clearInterval(interval);
+    // Initial fetch after short delay (let DB initialize)
+    const initialTimeout = setTimeout(fetchStatus, 1000);
+    
+    // Poll every 60s (not 10s) - sync status doesn't change often
+    const interval = setInterval(fetchStatus, 60000);
+    
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
   }, []);
 
   const handleSync = async () => {

@@ -21,6 +21,8 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .manage(AppState {
             db: Arc::new(Mutex::new(None)),
             udp_state: Arc::new(UdpListenerState::new()),
@@ -80,6 +82,7 @@ fn main() {
             commands::add_qso,
             commands::update_qso,
             commands::delete_qso,
+            commands::clear_all_qsos,
             commands::add_test_qsos,
             // ADIF Import/Export
             commands::import_adif,

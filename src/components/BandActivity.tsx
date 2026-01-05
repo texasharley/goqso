@@ -13,7 +13,9 @@ interface Decode {
   msgType: string;
   dxcc: number | null;
   country: string | null;
-  state: { code: string; name: string } | null;
+  continent: string | null;
+  cqz: number | null;
+  ituz: number | null;
   deltaFreq: number;
   isNeeded: boolean;
   needReason: string | null;
@@ -32,7 +34,9 @@ interface DecodeEvent {
   msg_type: string;
   dxcc: number | null;
   country: string | null;
-  state: { code: string; name: string } | null;
+  continent: string | null;
+  cqz: number | null;
+  ituz: number | null;
   low_confidence: boolean;
 }
 
@@ -52,7 +56,9 @@ export function BandActivity() {
   const [decodes, setDecodes] = useState<Decode[]>([]);
   const [workedCalls, setWorkedCalls] = useState<Set<string>>(new Set());
   const [workedDxcc, setWorkedDxcc] = useState<Set<number>>(new Set());
-  const [workedStates, setWorkedStates] = useState<Set<string>>(new Set());
+  // Note: We don't track worked states from decodes because STATE cannot be
+  // reliably derived from grid (portable operators may be in different states).
+  // WAS tracking is based on LoTW confirmations only.
   const [priorityOnly, setPriorityOnly] = useState(false);
   const [dbReady, setDbReady] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,13 +75,11 @@ export function BandActivity() {
       }
 
       try {
-        const qsos = await invoke<Array<{call: string, dxcc: number | null, state: string | null}>>("get_qsos", { limit: 10000, offset: 0 });
+        const qsos = await invoke<Array<{call: string, dxcc: number | null}>>("get_qsos", { limit: 10000, offset: 0 });
         const calls = new Set(qsos.map(q => q.call));
         const dxccs = new Set(qsos.filter(q => q.dxcc).map(q => q.dxcc as number));
-        const states = new Set(qsos.filter(q => q.state).map(q => q.state as string));
         setWorkedCalls(calls);
         setWorkedDxcc(dxccs);
-        setWorkedStates(states);
         setDbReady(true);
       } catch {
         // Silently ignore
@@ -111,25 +115,19 @@ export function BandActivity() {
       const isWorked = workedCalls.has(d.call);
       const isHomeCountry = d.dxcc === HOME_DXCC;
       const isDxccWorked = d.dxcc ? workedDxcc.has(d.dxcc) : true;
-      const isStateWorked = d.state ? workedStates.has(d.state.code) : true;
+      // Note: We don't check for "NEW STATE" from decodes because STATE cannot
+      // be reliably derived from grid (portable operators may be elsewhere).
+      // WAS needs detection will be added when we have better data sources.
       
       let needReason: string | null = null;
       let isNeeded = false;
       
-      if (isHomeCountry) {
-        // For home country stations, check WAS (state) instead of DXCC
-        if (d.state && !isStateWorked) {
-          needReason = `NEW STATE: ${d.state.code}`;
-          isNeeded = true;
-        }
-      } else {
-        // For DX stations, check DXCC
-        if (!isDxccWorked && d.dxcc) {
-          needReason = d.country ? `NEW COUNTRY: ${d.country}` : "NEW COUNTRY";
-          isNeeded = true;
-        }
+      // For DX stations, check if DXCC is needed
+      if (!isHomeCountry && !isDxccWorked && d.dxcc) {
+        needReason = d.country ? `NEW DXCC: ${d.country}` : "NEW DXCC";
+        isNeeded = true;
       }
-      // TODO: Add VUCC need checking
+      // TODO: Add VUCC need checking based on grid
       
       const decode: Decode = {
         id: `${d.time_ms}-${d.call}-${d.delta_freq}`,
@@ -141,7 +139,9 @@ export function BandActivity() {
         msgType: d.msg_type,
         dxcc: d.dxcc,
         country: d.country,
-        state: d.state,
+        continent: d.continent,
+        cqz: d.cqz,
+        ituz: d.ituz,
         deltaFreq: d.delta_freq,
         isNeeded,
         needReason,
@@ -160,11 +160,10 @@ export function BandActivity() {
     // Listen for new QSOs to update worked status
     const unlistenQso = listen("qso-logged", () => {
       // Refresh worked data
-      invoke<Array<{call: string, dxcc: number | null, state: string | null}>>("get_qsos", { limit: 10000, offset: 0 })
+      invoke<Array<{call: string, dxcc: number | null}>>("get_qsos", { limit: 10000, offset: 0 })
         .then((qsos) => {
           setWorkedCalls(new Set(qsos.map(q => q.call)));
           setWorkedDxcc(new Set(qsos.filter(q => q.dxcc).map(q => q.dxcc as number)));
-          setWorkedStates(new Set(qsos.filter(q => q.state).map(q => q.state as string)));
         });
     });
 
@@ -172,7 +171,7 @@ export function BandActivity() {
       unlistenDecode.then((f) => f());
       unlistenQso.then((f) => f());
     };
-  }, [workedCalls, workedDxcc, workedStates]);
+  }, [workedCalls, workedDxcc]);
 
   const filteredDecodes = priorityOnly 
     ? decodes.filter((d) => d.isNeeded || d.msgType === "Cq")
@@ -198,7 +197,8 @@ export function BandActivity() {
                 <div className="flex items-center gap-3">
                   <span className="font-mono font-bold text-lg text-sky-400">{d.call}</span>
                   <span className="text-sm text-muted-foreground">
-                    {d.dxcc === HOME_DXCC ? (d.state ? `${d.state.name}, US` : "US") : d.country}
+                    {d.country || "Unknown"}
+                    {d.continent && <span className="text-xs ml-1">({d.continent})</span>}
                   </span>
                   {d.grid && <span className="font-mono text-xs text-muted-foreground">{d.grid}</span>}
                 </div>
@@ -271,10 +271,8 @@ export function BandActivity() {
                     </span>
                   </td>
                   <td className="p-2 font-mono text-xs">{d.grid || "—"}</td>
-                  <td className="p-2 text-xs truncate max-w-[120px]" title={d.dxcc === HOME_DXCC ? (d.state ? `${d.state.name}, US` : "United States") : (d.country || undefined)}>
-                    {d.dxcc === HOME_DXCC 
-                      ? (d.state ? `${d.state.name}, US` : "US")
-                      : (d.country || "—")}
+                  <td className="p-2 text-xs truncate max-w-[120px]" title={d.country || undefined}>
+                    {d.country || "—"}
                   </td>
                   <td className="p-2">
                     {d.isNeeded ? (

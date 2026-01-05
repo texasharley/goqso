@@ -61,23 +61,10 @@ pub async fn start_udp_listener(
                 UdpMessage::Decode(decode) => {
                     // Parse the FT8 message to extract callsign info
                     if let Some((call, grid, msg_type)) = crate::udp::parse_ft8_message(&decode.message) {
-                        // Look up DXCC for the callsign
-                        let (dxcc, country) = crate::reference::lookup_call(&call);
-                        
-                        // For US stations (DXCC 291), also look up the state from grid
-                        let state = if dxcc == Some(291) {
-                            if let Some(g) = &grid {
-                                crate::reference::grid_to_state(g)
-                                    .map(|(code, name)| serde_json::json!({
-                                        "code": code,
-                                        "name": name
-                                    }))
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        };
+                        // Look up DXCC entity info for the callsign
+                        // Per ADIF spec: Callsign prefix gives DXCC, COUNTRY, CQZ, ITUZ, CONT
+                        // STATE is NOT derived from prefix (portable operators may be elsewhere)
+                        let lookup = crate::reference::lookup_call_full(&call);
                         
                         let _ = app_handle.emit("wsjtx-decode", serde_json::json!({
                             "time_ms": decode.time_ms,
@@ -88,10 +75,12 @@ pub async fn start_udp_listener(
                             "call": call,
                             "grid": grid,
                             "msg_type": format!("{:?}", msg_type),
-                            "dxcc": dxcc,
-                            "country": country,
+                            "dxcc": lookup.dxcc,
+                            "country": lookup.country,
+                            "continent": lookup.continent,
+                            "cqz": lookup.cqz,
+                            "ituz": lookup.ituz,
                             "low_confidence": decode.low_confidence,
-                            "state": state,
                         }));
                     }
                 }
@@ -210,6 +199,10 @@ fn freq_to_band(freq_mhz: f64) -> String {
 }
 
 /// Insert a QSO from WSJT-X into the database
+/// Per data population strategy (CLAUDE.md):
+/// - Tier 1: Callsign prefix → DXCC, COUNTRY, CQZ, ITUZ, CONT
+/// - STATE is NOT derived from prefix (portable operators may be elsewhere)
+/// - STATE will be filled later by LoTW sync (Tier 2)
 async fn insert_qso_from_wsjtx(pool: &Pool<Sqlite>, qso: &QsoLoggedMessage) -> Result<(), String> {
     let uuid = uuid::Uuid::new_v4().to_string();
     let freq_mhz = qso.freq_hz as f64 / 1_000_000.0;
@@ -218,11 +211,9 @@ async fn insert_qso_from_wsjtx(pool: &Pool<Sqlite>, qso: &QsoLoggedMessage) -> R
     let qso_date = now.format("%Y-%m-%d").to_string();
     let time_on = now.format("%H%M").to_string();
     
-    // Look up DXCC entity for the callsign
-    let (dxcc, country) = crate::reference::lookup_call(&qso.call);
-    
-    // Get continent from DXCC lookup
-    let continent = dxcc.and_then(|d| crate::reference::get_continent(d));
+    // Look up full DXCC entity info for the callsign
+    // This gives us DXCC, COUNTRY, CQZ, ITUZ, CONT from prefix
+    let lookup = crate::reference::lookup_call_full(&qso.call);
     
     // Build adif_fields JSON for extended data
     let adif_fields = serde_json::json!({
@@ -239,11 +230,11 @@ async fn insert_qso_from_wsjtx(pool: &Pool<Sqlite>, qso: &QsoLoggedMessage) -> R
         r#"
         INSERT INTO qsos (
             uuid, call, qso_date, time_on, time_off, band, mode, freq,
-            dxcc, country, continent, gridsquare,
+            dxcc, country, continent, cqz, ituz, gridsquare,
             rst_sent, rst_rcvd, station_callsign, my_gridsquare,
             adif_fields, source, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'WSJT-X', datetime('now'), datetime('now'))
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'WSJT-X', datetime('now'), datetime('now'))
         "#
     )
     .bind(&uuid)
@@ -254,9 +245,11 @@ async fn insert_qso_from_wsjtx(pool: &Pool<Sqlite>, qso: &QsoLoggedMessage) -> R
     .bind(&band)
     .bind(&qso.mode)
     .bind(freq_mhz)
-    .bind(dxcc)
-    .bind(&country)
-    .bind(&continent)
+    .bind(lookup.dxcc)
+    .bind(&lookup.country)
+    .bind(&lookup.continent)
+    .bind(lookup.cqz)
+    .bind(lookup.ituz)
     .bind(&qso.grid)
     .bind(&qso.report_sent)
     .bind(&qso.report_rcvd)
@@ -267,7 +260,7 @@ async fn insert_qso_from_wsjtx(pool: &Pool<Sqlite>, qso: &QsoLoggedMessage) -> R
     .await
     .map_err(|e| e.to_string())?;
     
-    log::info!("Inserted QSO: {} on {} ({} - {})", qso.call, band, dxcc.unwrap_or(0), country.unwrap_or_default());
+    log::info!("Inserted QSO: {} on {} ({} - {})", qso.call, band, lookup.dxcc.unwrap_or(0), lookup.country.clone().unwrap_or_default());
     Ok(())
 }
 
@@ -281,6 +274,7 @@ pub struct Qso {
     pub uuid: String,
     pub call: String,
     pub qso_date: String,
+    pub qso_date_off: Option<String>,
     pub time_on: String,
     pub time_off: Option<String>,
     pub band: String,
@@ -296,6 +290,7 @@ pub struct Qso {
     pub rst_sent: Option<String>,
     pub rst_rcvd: Option<String>,
     pub station_callsign: Option<String>,
+    pub operator: Option<String>,
     pub my_gridsquare: Option<String>,
     pub tx_pwr: Option<f64>,
     pub adif_fields: Option<String>,
@@ -303,6 +298,11 @@ pub struct Qso {
     pub source: String,
     pub created_at: String,
     pub updated_at: String,
+    // Confirmation status (from confirmations table)
+    #[serde(default)]
+    pub lotw_rcvd: Option<String>,     // Y if confirmed via LoTW
+    #[serde(default)]
+    pub eqsl_rcvd: Option<String>,     // Y if confirmed via eQSL
 }
 
 
@@ -331,15 +331,22 @@ pub async fn get_qsos(
     let db_guard = state.db.lock().await;
     let pool = db_guard.as_ref().ok_or("Database not initialized")?;
     
+    // Use LEFT JOINs to get confirmation status in a single query
+    // This is more performant than N+1 queries
     let rows = sqlx::query(
         r#"
         SELECT 
-            id, uuid, call, qso_date, time_on, time_off, band, mode, freq,
-            dxcc, country, continent, state, gridsquare, cqz, ituz,
-            rst_sent, rst_rcvd, station_callsign, my_gridsquare, tx_pwr,
-            adif_fields, user_data, source, created_at, updated_at
-        FROM qsos 
-        ORDER BY qso_date DESC, time_on DESC 
+            q.id, q.uuid, q.call, q.qso_date, q.qso_date_off, q.time_on, q.time_off, 
+            q.band, q.mode, q.freq,
+            q.dxcc, q.country, q.continent, q.state, q.gridsquare, q.cqz, q.ituz,
+            q.rst_sent, q.rst_rcvd, q.station_callsign, q.operator, q.my_gridsquare, q.tx_pwr,
+            q.adif_fields, q.user_data, q.source, q.created_at, q.updated_at,
+            lotw.qsl_rcvd as lotw_rcvd,
+            eqsl.qsl_rcvd as eqsl_rcvd
+        FROM qsos q
+        LEFT JOIN confirmations lotw ON q.id = lotw.qso_id AND lotw.source = 'LOTW'
+        LEFT JOIN confirmations eqsl ON q.id = eqsl.qso_id AND eqsl.source = 'EQSL'
+        ORDER BY q.qso_date DESC, q.time_on DESC 
         LIMIT ? OFFSET ?
         "#
     )
@@ -356,6 +363,7 @@ pub async fn get_qsos(
             uuid: row.get("uuid"),
             call: row.get("call"),
             qso_date: row.get("qso_date"),
+            qso_date_off: row.get("qso_date_off"),
             time_on: row.get("time_on"),
             time_off: row.get("time_off"),
             band: row.get("band"),
@@ -371,6 +379,7 @@ pub async fn get_qsos(
             rst_sent: row.get("rst_sent"),
             rst_rcvd: row.get("rst_rcvd"),
             station_callsign: row.get("station_callsign"),
+            operator: row.get("operator"),
             my_gridsquare: row.get("my_gridsquare"),
             tx_pwr: row.get("tx_pwr"),
             adif_fields: row.get("adif_fields"),
@@ -378,6 +387,8 @@ pub async fn get_qsos(
             source: row.get("source"),
             created_at: row.get("created_at"),
             updated_at: row.get("updated_at"),
+            lotw_rcvd: row.get("lotw_rcvd"),
+            eqsl_rcvd: row.get("eqsl_rcvd"),
         }
     }).collect();
     
@@ -433,6 +444,7 @@ pub async fn add_qso(
         uuid,
         call: qso.call,
         qso_date: qso.qso_date,
+        qso_date_off: None,
         time_on: qso.time_on,
         time_off: None,
         band: qso.band,
@@ -448,6 +460,7 @@ pub async fn add_qso(
         rst_sent: qso.rst_sent,
         rst_rcvd: qso.rst_rcvd,
         station_callsign: None,
+        operator: None,
         my_gridsquare: None,
         tx_pwr: None,
         adif_fields: None,
@@ -455,6 +468,8 @@ pub async fn add_qso(
         source,
         created_at: now.clone(),
         updated_at: now,
+        lotw_rcvd: None,
+        eqsl_rcvd: None,
     })
 }
 
@@ -475,6 +490,26 @@ pub async fn delete_qso(
         .map_err(|e| e.to_string())?;
     
     Ok(())
+}
+
+#[command]
+pub async fn clear_all_qsos(
+    state: tauri::State<'_, AppState>,
+) -> Result<i64, String> {
+    log::warn!("Clearing ALL QSOs from database");
+    
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let result = sqlx::query("DELETE FROM qsos")
+        .execute(pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    let deleted = result.rows_affected() as i64;
+    log::info!("Deleted {} QSOs", deleted);
+    
+    Ok(deleted)
 }
 
 // =============================================================================
@@ -885,7 +920,7 @@ pub async fn sync_lotw_download(
         
         match match_result {
             Ok(Some(row)) => {
-                let id: i64 = row.get("id");
+                let qso_id: i64 = row.get("id");
                 
                 // Extract QSL details from LoTW record
                 let qsl_date = record.get("QSLRDATE").map(|s| s.to_string());
@@ -896,34 +931,47 @@ pub async fn sync_lotw_download(
                 let cqz: Option<i32> = record.get("CQZ").and_then(|s| s.parse().ok());
                 let ituz: Option<i32> = record.get("ITUZ").and_then(|s| s.parse().ok());
                 let country = record.get("COUNTRY").map(|s| s.to_string());
+                let credit_granted = record.get("APP_LOTW_CREDIT_GRANTED").map(|s| s.to_string());
                 
-                // Update the QSO with LoTW confirmation data
+                // Insert or update confirmation record (using confirmations table)
+                sqlx::query(
+                    r#"INSERT INTO confirmations (qso_id, source, qsl_rcvd, qsl_rcvd_date, credit_granted, verified_at)
+                       VALUES (?, 'LOTW', 'Y', ?, ?, datetime('now'))
+                       ON CONFLICT(qso_id, source) DO UPDATE SET
+                         qsl_rcvd = 'Y',
+                         qsl_rcvd_date = COALESCE(excluded.qsl_rcvd_date, qsl_rcvd_date),
+                         credit_granted = COALESCE(excluded.credit_granted, credit_granted),
+                         verified_at = datetime('now')"#
+                )
+                .bind(qso_id)
+                .bind(&qsl_date)
+                .bind(&credit_granted)
+                .execute(pool)
+                .await
+                .map_err(|e| format!("Failed to insert confirmation: {}", e))?;
+                
+                // Update the QSO with LoTW-provided location data (if available)
                 sqlx::query(
                     r#"UPDATE qsos SET 
-                       lotw_qsl_rcvd = 'Y',
-                       lotw_qsl_date = ?,
                        dxcc = COALESCE(?, dxcc),
                        country = COALESCE(?, country),
                        state = COALESCE(?, state),
-                       cnty = ?,
                        gridsquare = COALESCE(?, gridsquare),
                        cqz = COALESCE(?, cqz),
                        ituz = COALESCE(?, ituz),
                        updated_at = datetime('now')
                        WHERE id = ?"#
                 )
-                .bind(&qsl_date)
                 .bind(dxcc)
                 .bind(&country)
                 .bind(&state)
-                .bind(&cnty)
                 .bind(&gridsquare)
                 .bind(cqz)
                 .bind(ituz)
-                .bind(id)
+                .bind(qso_id)
                 .execute(pool)
                 .await
-                .map_err(|e| format!("Failed to update QSO {}: {}", id, e))?;
+                .map_err(|e| format!("Failed to update QSO {}: {}", qso_id, e))?;
                 
                 matched += 1;
                 log::debug!("Matched LoTW QSL: {} on {} {}", call, band, qso_date);
@@ -965,40 +1013,28 @@ pub async fn get_sync_status(
     let db_guard = state.db.lock().await;
     let pool = db_guard.as_ref().ok_or("Database not initialized")?;
     
-    // Count QSOs not yet confirmed by LoTW
-    let pending: i64 = sqlx::query(
-        "SELECT COUNT(*) as cnt FROM qsos WHERE lotw_qsl_rcvd IS NULL OR lotw_qsl_rcvd != 'Y'"
+    // Count QSOs not yet confirmed by LoTW (no confirmation record with source='LOTW' and qsl_rcvd='Y')
+    // Combined single query for all sync status data
+    let row = sqlx::query(
+        "SELECT 
+            (SELECT COUNT(*) FROM qsos q 
+             WHERE NOT EXISTS (
+                SELECT 1 FROM confirmations c 
+                WHERE c.qso_id = q.id AND c.source = 'LOTW' AND c.qsl_rcvd = 'Y'
+             )) as pending,
+            (SELECT value FROM settings WHERE key = 'lotw_last_download') as last_download,
+            EXISTS(SELECT 1 FROM settings WHERE key = 'lotw_username' AND value IS NOT NULL AND value != '') as has_creds"
     )
     .fetch_one(pool)
     .await
-    .map(|r| r.get("cnt"))
-    .unwrap_or(0);
-    
-    // Get last sync dates from settings (if available)
-    let last_download = sqlx::query(
-        "SELECT value FROM settings WHERE key = 'lotw_last_download'"
-    )
-    .fetch_optional(pool)
-    .await
-    .ok()
-    .flatten()
-    .map(|r| r.get::<String, _>("value"));
-    
-    // Check if LoTW credentials are configured
-    let has_creds = sqlx::query(
-        "SELECT COUNT(*) as cnt FROM settings WHERE key = 'lotw_username' AND value IS NOT NULL AND value != ''"
-    )
-    .fetch_one(pool)
-    .await
-    .map(|r| r.get::<i64, _>("cnt") > 0)
-    .unwrap_or(false);
+    .map_err(|e| e.to_string())?;
     
     Ok(SyncStatus {
-        pending_uploads: pending as i32,
-        last_upload: None, // Upload not implemented
-        last_download,
+        pending_uploads: row.get::<i64, _>("pending") as i32,
+        last_upload: None,
+        last_download: row.try_get::<String, _>("last_download").ok(),
         is_syncing: false,
-        lotw_configured: has_creds,
+        lotw_configured: row.get::<bool, _>("has_creds"),
     })
 }
 
@@ -1063,15 +1099,48 @@ pub async fn lookup_callsign(call: String) -> Result<CallsignInfo, String> {
 // ============================================================================
 
 #[command]
-pub async fn get_setting(key: String) -> Result<Option<String>, String> {
-    // TODO: Query settings table
-    Ok(None)
+pub async fn get_setting(
+    state: tauri::State<'_, AppState>,
+    key: String
+) -> Result<Option<String>, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let result = sqlx::query_scalar::<_, String>(
+        "SELECT value FROM settings WHERE key = ?"
+    )
+    .bind(&key)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    
+    Ok(result)
 }
 
 #[command]
-pub async fn set_setting(key: String, value: String) -> Result<(), String> {
-    log::info!("Setting {} = {}", key, value);
-    // TODO: Update settings table
+pub async fn set_setting(
+    state: tauri::State<'_, AppState>,
+    key: String, 
+    value: String
+) -> Result<(), String> {
+    log::info!("Setting {} = {}", key, if key.contains("password") { "***" } else { &value });
+    
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    sqlx::query(
+        r#"INSERT INTO settings (key, value, updated_at) 
+           VALUES (?, ?, datetime('now'))
+           ON CONFLICT(key) DO UPDATE SET 
+             value = excluded.value,
+             updated_at = datetime('now')"#
+    )
+    .bind(&key)
+    .bind(&value)
+    .execute(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    
     Ok(())
 }
 
@@ -1149,13 +1218,16 @@ pub async fn import_adif(
             continue;
         }
         
-        // Check for duplicate
+        // Check for duplicate (same call, date, time, band, mode)
+        // Note: time_on is included because you can work the same station
+        // multiple times on the same day/band/mode (e.g., contest exchanges)
         if skip_duplicates {
             let exists: bool = sqlx::query_scalar(
-                "SELECT EXISTS(SELECT 1 FROM qsos WHERE call = ? AND qso_date = ? AND band = ? AND mode = ?)"
+                "SELECT EXISTS(SELECT 1 FROM qsos WHERE call = ? AND qso_date = ? AND time_on = ? AND band = ? AND mode = ?)"
             )
             .bind(&call)
             .bind(&qso_date)
+            .bind(&time_on)
             .bind(&band)
             .bind(&mode)
             .fetch_one(pool)
@@ -1172,9 +1244,9 @@ pub async fn import_adif(
         let mut adif_fields = serde_json::Map::new();
         for (key, value) in &record.fields {
             // Skip core fields we store in columns
-            let core_fields = ["CALL", "QSO_DATE", "TIME_ON", "TIME_OFF", "BAND", "MODE", "FREQ",
+            let core_fields = ["CALL", "QSO_DATE", "QSO_DATE_OFF", "TIME_ON", "TIME_OFF", "BAND", "MODE", "FREQ",
                               "DXCC", "COUNTRY", "STATE", "CNTY", "GRIDSQUARE", "CQZ", "ITUZ", "CONT",
-                              "RST_SENT", "RST_RCVD", "STATION_CALLSIGN", "MY_GRIDSQUARE", "TX_PWR"];
+                              "RST_SENT", "RST_RCVD", "STATION_CALLSIGN", "MY_GRIDSQUARE", "TX_PWR", "OPERATOR"];
             if !core_fields.contains(&key.as_str()) && !key.starts_with("APP_") {
                 adif_fields.insert(key.to_lowercase(), serde_json::Value::String(value.clone()));
             }
@@ -1183,22 +1255,27 @@ pub async fn import_adif(
         let uuid = uuid::Uuid::new_v4().to_string();
         let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
         
-        // Insert the QSO
+        // Insert the QSO with all available columns
         let insert_result = sqlx::query(
             r#"INSERT INTO qsos (
-                uuid, call, qso_date, time_on, time_off, band, mode, freq,
+                uuid, call, qso_date, qso_date_off, time_on, time_off, band, mode, submode, freq,
                 dxcc, country, state, cnty, gridsquare, continent, cqz, ituz,
-                rst_sent, rst_rcvd, station_callsign, my_gridsquare, tx_pwr,
+                rst_sent, rst_rcvd, station_callsign, operator, my_gridsquare, tx_pwr,
+                prop_mode, sat_name, iota, pota_ref, sota_ref, wwff_ref, pfx,
+                name, qth, comment, arrl_sect,
+                my_cnty, my_arrl_sect, my_sota_ref, my_pota_ref,
                 adif_fields, source, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#
         )
         .bind(&uuid)
         .bind(&call)
         .bind(&qso_date)
+        .bind(record.get("QSO_DATE_OFF"))
         .bind(&time_on)
         .bind(record.get("TIME_OFF"))
         .bind(&band)
         .bind(&mode)
+        .bind(record.get("SUBMODE"))
         .bind(record.freq())
         .bind(record.dxcc())
         .bind(record.country())
@@ -1211,8 +1288,24 @@ pub async fn import_adif(
         .bind(record.get("RST_SENT"))
         .bind(record.get("RST_RCVD"))
         .bind(record.get("STATION_CALLSIGN"))
+        .bind(record.get("OPERATOR"))
         .bind(record.get("MY_GRIDSQUARE"))
         .bind(record.get("TX_PWR").and_then(|s| s.parse::<f64>().ok()))
+        .bind(record.get("PROP_MODE"))
+        .bind(record.get("SAT_NAME"))
+        .bind(record.get("IOTA"))
+        .bind(record.get("POTA_REF"))
+        .bind(record.get("SOTA_REF"))
+        .bind(record.get("WWFF_REF"))
+        .bind(record.get("PFX"))
+        .bind(record.get("NAME"))
+        .bind(record.get("QTH"))
+        .bind(record.get("COMMENT"))
+        .bind(record.get("ARRL_SECT"))
+        .bind(record.get("MY_CNTY"))
+        .bind(record.get("MY_ARRL_SECT"))
+        .bind(record.get("MY_SOTA_REF"))
+        .bind(record.get("MY_POTA_REF"))
         .bind(serde_json::to_string(&adif_fields).unwrap_or_default())
         .bind("ADIF")
         .bind(&now)

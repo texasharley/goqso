@@ -6,6 +6,41 @@ Core architecture complete: Tauri 2.x + React + SQLite hybrid schema. WSJT-X UDP
 
 **ADIF module complete** - Full parser, writer, and 180+ mode registry.
 **LoTW client complete** - HTTP client for downloading confirmations from LoTW API.
+**Data population strategy implemented** - Tiered approach per ADIF 3.1.4 spec (see CLAUDE.md).
+
+---
+
+## 📋 Changelog
+
+### 2026-01-05: Data Population Strategy Implementation
+
+**Problem Solved**: STATE field was being incorrectly derived from Maidenhead grid squares, which is unreliable for portable operators (e.g., POTA activators operating from a different state than their license).
+
+**Changes Made**:
+
+1. **Backend (Rust)**:
+   - Added `lookup_call_full()` function returning DXCC, COUNTRY, CONT, CQZ, ITUZ from callsign prefix
+   - Updated `insert_qso_from_wsjtx()` to populate CQZ/ITUZ at QSO time
+   - Removed `grid_to_state()` call from decode events
+   - Deprecated `grid_to_state()` function with documentation explaining why
+
+2. **Frontend (React/TypeScript)**:
+   - Updated `BandActivity.tsx` to show continent instead of (unreliable) state
+   - Removed "NEW STATE" detection from live decodes (unreliable)
+   - Added `continent`, `cqz`, `ituz` fields to decode events
+
+3. **Data Strategy (Tiered)**:
+   - **Tier 1 (At QSO time)**: Callsign prefix → DXCC, COUNTRY, CQZ, ITUZ, CONT
+   - **Tier 2 (LoTW sync)**: STATE, CNTY filled from confirmations (authoritative)
+   - **Tier 3 (Future)**: POTA_REF parsing, QRZ API for non-LoTW stations
+
+**Why This Matters**:
+- WAS award requires LoTW-confirmed STATE anyway
+- Portable operators (POTA, SOTA) send grids from operating location, not license address
+- 4-char grids are ~100×200km and can span multiple states
+- LoTW is the authoritative source for award credit
+
+See `CLAUDE.md` section "Data Population Strategy" for full documentation.
 
 ---
 
@@ -17,13 +52,14 @@ Core architecture complete: Tauri 2.x + React + SQLite hybrid schema. WSJT-X UDP
 - [x] DXCC entities (340) and prefix rules
 - [x] US state data with grid-to-state mapping
 - [x] Dark theme with Tailwind CSS
+- [x] Tiered data population strategy (DXCC/CQZ/ITUZ at QSO time, STATE from LoTW)
 
 ### WSJT-X Integration
 - [x] UDP listener for WSJT-X (port 2237)
 - [x] Parse Heartbeat, Status, Decode, QsoLogged messages
 - [x] Band Activity display with live FT8 decodes
-- [x] Priority Queue (NEW COUNTRY / NEW STATE alerts)
-- [x] Auto-log QSOs from WSJT-X with DXCC enrichment
+- [x] Priority Queue (NEW DXCC alerts)
+- [x] Auto-log QSOs from WSJT-X with DXCC/CQZ/ITUZ enrichment
 - [x] Toast notifications on QSO logged
 
 ### QSO Logging UX

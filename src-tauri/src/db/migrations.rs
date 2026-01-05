@@ -227,7 +227,90 @@ CREATE TABLE IF NOT EXISTS reference_versions (
 );
 "#;
 
+/// Migration 002: Add missing columns to qsos table
+/// 
+/// The original schema was deployed without these columns that are needed for:
+/// - County tracking (WAS county hunting, LoTW sync)
+/// - POTA/SOTA/WWFF activations
+/// - Submode tracking (FT4 vs FT8, etc.)
+/// - Propagation mode (EME, SAT, etc.)
+/// - Operator name and QTH (common searches)
+/// - Comments
+/// 
+/// Design rationale:
+/// - cnty: Column (required for WAS county awards, LoTW returns it)
+/// - submode: Column (needed to distinguish FT4/FT8, LSB/USB)
+/// - prop_mode: Column (EME/SAT filtering for VUCC, WAZ EME endorsements)
+/// - pota_ref, sota_ref, wwff_ref: Columns (activation logging, becoming very popular)
+/// - iota: Column (IOTA awards program)
+/// - name, qth, comment: Columns (frequently searched/displayed)
+/// - pfx: Column (WPX prefix for WPX award)
+/// - sat_name: Column (satellite ops)
+pub const MIGRATION_002: &str = r#"
+-- Add missing county column (critical for WAS county hunting and LoTW)
+ALTER TABLE qsos ADD COLUMN cnty TEXT;
+
+-- Add submode (e.g., FT4 vs FT8, LSB vs USB)
+ALTER TABLE qsos ADD COLUMN submode TEXT;
+
+-- Add propagation mode (EME, SAT, ES, etc.)
+ALTER TABLE qsos ADD COLUMN prop_mode TEXT;
+
+-- Add satellite name
+ALTER TABLE qsos ADD COLUMN sat_name TEXT;
+
+-- Add special activity references (increasingly popular)
+ALTER TABLE qsos ADD COLUMN pota_ref TEXT;
+ALTER TABLE qsos ADD COLUMN sota_ref TEXT;
+ALTER TABLE qsos ADD COLUMN wwff_ref TEXT;
+ALTER TABLE qsos ADD COLUMN iota TEXT;
+
+-- Add WPX prefix
+ALTER TABLE qsos ADD COLUMN pfx TEXT;
+
+-- Add frequently searched/displayed fields
+ALTER TABLE qsos ADD COLUMN name TEXT;
+ALTER TABLE qsos ADD COLUMN qth TEXT;
+ALTER TABLE qsos ADD COLUMN comment TEXT;
+
+-- Add ARRL section (for Sweepstakes, Field Day)
+ALTER TABLE qsos ADD COLUMN arrl_sect TEXT;
+
+-- Add my county and my ARRL section for portable/rover ops
+ALTER TABLE qsos ADD COLUMN my_cnty TEXT;
+ALTER TABLE qsos ADD COLUMN my_arrl_sect TEXT;
+ALTER TABLE qsos ADD COLUMN my_sota_ref TEXT;
+ALTER TABLE qsos ADD COLUMN my_pota_ref TEXT;
+
+-- Index for county award hunting
+CREATE INDEX IF NOT EXISTS idx_qsos_cnty ON qsos(cnty);
+
+-- Index for activity references
+CREATE INDEX IF NOT EXISTS idx_qsos_pota ON qsos(pota_ref);
+CREATE INDEX IF NOT EXISTS idx_qsos_sota ON qsos(sota_ref);
+
+-- Index for propagation mode (EME/SAT filtering)
+CREATE INDEX IF NOT EXISTS idx_qsos_prop ON qsos(prop_mode);
+"#;
+
+/// Migration 003: Add qso_date_off and operator columns
+/// 
+/// qso_date_off: Some QSOs span midnight (especially EME, contest DXpeditions)
+///               Also returned by LoTW and expected in ADIF exports
+/// 
+/// operator: The person operating (distinct from station_callsign)
+///           Used for multi-op stations, club stations, guest ops
+///           Required for accurate LoTW signing
+pub const MIGRATION_003: &str = r#"
+-- Add QSO end date (for QSOs spanning midnight)
+ALTER TABLE qsos ADD COLUMN qso_date_off TEXT;
+
+-- Add operator callsign (distinct from station callsign)
+-- This is who is operating, not what callsign is being used
+ALTER TABLE qsos ADD COLUMN operator TEXT;
+"#;
+
 /// Run all migrations
 pub fn get_migrations() -> Vec<&'static str> {
-    vec![MIGRATION_001]
+    vec![MIGRATION_001, MIGRATION_002, MIGRATION_003]
 }

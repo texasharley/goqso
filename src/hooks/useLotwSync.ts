@@ -8,6 +8,7 @@ export function useLotwSync() {
     last_upload: null,
     last_download: null,
     is_syncing: false,
+    lotw_configured: false,
   });
   const [error, setError] = useState<string | null>(null);
 

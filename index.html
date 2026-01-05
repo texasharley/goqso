@@ -5,8 +5,57 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GoQSO</title>
+    <style>
+      /* Immediate loading styles before React mounts */
+      body {
+        margin: 0;
+        background: #18181b;
+        color: #fafafa;
+      }
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #18181b;
+        z-index: 9999;
+      }
+      #app-loader svg {
+        width: 64px;
+        height: 64px;
+        color: #0ea5e9;
+        margin-bottom: 16px;
+      }
+      #app-loader h1 {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0 0 16px 0;
+      }
+      #app-loader .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #3f3f46;
+        border-top-color: #0ea5e9;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
-  <body class="bg-background text-foreground">
+  <body>
+    <!-- Loading screen shown immediately before React mounts -->
+    <div id="app-loader">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+      </svg>
+      <h1>GoQSO</h1>
+      <div class="spinner"></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

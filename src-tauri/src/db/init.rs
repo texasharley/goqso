@@ -2,7 +2,7 @@
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite, Row};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
-use crate::db::migrations::MIGRATION_001;
+use crate::db::migrations::{MIGRATION_001, MIGRATION_002, MIGRATION_003};
 use crate::reference::{dxcc, prefixes};
 
 /// Get the database path in the app data directory
@@ -97,6 +97,98 @@ async fn run_migrations(pool: &Pool<Sqlite>) -> Result<(), String> {
         log::info!("Migration 001 applied successfully");
     }
     
+    // Check if migration 002 has been applied (adds missing columns)
+    let applied_002: bool = sqlx::query("SELECT COUNT(*) as count FROM _migrations WHERE name = 'migration_002'")
+        .fetch_one(pool)
+        .await
+        .map(|row| row.get::<i64, _>("count") > 0)
+        .unwrap_or(false);
+    
+    if !applied_002 {
+        log::info!("Applying migration_002 (adding missing columns)...");
+        
+        // Split migration into individual statements
+        for statement in MIGRATION_002.split(';') {
+            // Strip leading comments and whitespace
+            let mut stmt = statement.trim();
+            while stmt.starts_with("--") {
+                if let Some(idx) = stmt.find('\n') {
+                    stmt = stmt[idx + 1..].trim();
+                } else {
+                    stmt = "";
+                    break;
+                }
+            }
+            
+            if !stmt.is_empty() {
+                // For ALTER TABLE ADD COLUMN, ignore "duplicate column" errors
+                // This allows the migration to be idempotent
+                let result = sqlx::query(stmt).execute(pool).await;
+                if let Err(e) = result {
+                    let err_str = e.to_string();
+                    // SQLite error for duplicate column: "duplicate column name"
+                    if err_str.contains("duplicate column name") {
+                        log::debug!("Column already exists, skipping: {}", stmt);
+                    } else if err_str.contains("index") && err_str.contains("already exists") {
+                        log::debug!("Index already exists, skipping: {}", stmt);
+                    } else {
+                        return Err(format!("Migration 002 failed on statement: {}\nError: {}", stmt, e));
+                    }
+                }
+            }
+        }
+        
+        // Mark migration as applied
+        sqlx::query("INSERT INTO _migrations (name, applied_at) VALUES ('migration_002', datetime('now'))")
+            .execute(pool)
+            .await
+            .map_err(|e| format!("Failed to record migration: {}", e))?;
+        
+        log::info!("Migration 002 applied successfully");
+    }
+    
+    // Check if migration 003 has been applied (adds qso_date_off and operator)
+    let applied_003: bool = sqlx::query("SELECT COUNT(*) as count FROM _migrations WHERE name = 'migration_003'")
+        .fetch_one(pool)
+        .await
+        .map(|row| row.get::<i64, _>("count") > 0)
+        .unwrap_or(false);
+    
+    if !applied_003 {
+        log::info!("Applying migration_003 (adding qso_date_off and operator)...");
+        
+        for statement in MIGRATION_003.split(';') {
+            let mut stmt = statement.trim();
+            while stmt.starts_with("--") {
+                if let Some(idx) = stmt.find('\n') {
+                    stmt = stmt[idx + 1..].trim();
+                } else {
+                    stmt = "";
+                    break;
+                }
+            }
+            
+            if !stmt.is_empty() {
+                let result = sqlx::query(stmt).execute(pool).await;
+                if let Err(e) = result {
+                    let err_str = e.to_string();
+                    if err_str.contains("duplicate column name") {
+                        log::debug!("Column already exists, skipping: {}", stmt);
+                    } else {
+                        return Err(format!("Migration 003 failed on statement: {}\nError: {}", stmt, e));
+                    }
+                }
+            }
+        }
+        
+        sqlx::query("INSERT INTO _migrations (name, applied_at) VALUES ('migration_003', datetime('now'))")
+            .execute(pool)
+            .await
+            .map_err(|e| format!("Failed to record migration: {}", e))?;
+        
+        log::info!("Migration 003 applied successfully");
+    }
+    
     Ok(())
 }
 
@@ -116,7 +208,10 @@ async fn populate_reference_data(pool: &Pool<Sqlite>) -> Result<(), String> {
     
     log::info!("Populating reference data...");
     
-    // Insert DXCC entities
+    // Use a transaction for much faster bulk inserts
+    let mut tx = pool.begin().await.map_err(|e| format!("Failed to begin transaction: {}", e))?;
+    
+    // Insert DXCC entities in batches
     for entity in dxcc::DXCC_ENTITIES.iter() {
         sqlx::query(
             "INSERT OR IGNORE INTO dxcc_entities (entity_code, entity_name, cq_zone, itu_zone, continent, is_deleted) 
@@ -128,7 +223,7 @@ async fn populate_reference_data(pool: &Pool<Sqlite>) -> Result<(), String> {
         .bind(entity.itu_zone as i64)
         .bind(entity.continent)
         .bind(if entity.deleted { 1 } else { 0 })
-        .execute(pool)
+        .execute(&mut *tx)
         .await
         .map_err(|e| format!("Failed to insert DXCC entity {}: {}", entity.name, e))?;
     }
@@ -141,7 +236,7 @@ async fn populate_reference_data(pool: &Pool<Sqlite>) -> Result<(), String> {
         .bind(rule.prefix)
         .bind(rule.entity_id as i64)
         .bind(if rule.exact { 1 } else { 0 })
-        .execute(pool)
+        .execute(&mut *tx)
         .await
         .map_err(|e| format!("Failed to insert prefix {}: {}", rule.prefix, e))?;
     }
@@ -151,9 +246,12 @@ async fn populate_reference_data(pool: &Pool<Sqlite>) -> Result<(), String> {
         "INSERT OR REPLACE INTO reference_data_version (source, version, updated_at) 
          VALUES ('goqso_internal', '2025.01', datetime('now'))"
     )
-    .execute(pool)
+    .execute(&mut *tx)
     .await
     .map_err(|e| format!("Failed to update reference version: {}", e))?;
+    
+    // Commit the transaction
+    tx.commit().await.map_err(|e| format!("Failed to commit transaction: {}", e))?;
     
     log::info!("Reference data populated: {} entities, {} prefixes", 
         dxcc::DXCC_ENTITIES.len(), 

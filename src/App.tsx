@@ -1,12 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen, emit } from "@tauri-apps/api/event";
 import { Dashboard } from "./components/Dashboard";
-import { QsoLog } from "./components/QsoLog";
-import { AwardsMatrix } from "./components/AwardsMatrix";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { SyncStatus } from "./components/SyncStatus";
+import { AdifImport } from "./components/AdifImport";
+import { LotwSync } from "./components/LotwSync";
 import { ToastContainer, toast } from "./components/Toast";
-import { listen } from "@tauri-apps/api/event";
-import { Trophy, List, Target, Settings, Wifi, WifiOff } from "lucide-react";
+import { Trophy, List, Target, Settings, Wifi, WifiOff, FileUp, Cloud, Loader2 } from "lucide-react";
+
+// Lazy load heavy tab components for faster initial render
+const QsoLog = lazy(() => import("./components/QsoLog").then(m => ({ default: m.QsoLog })));
+const AwardsMatrix = lazy(() => import("./components/AwardsMatrix").then(m => ({ default: m.AwardsMatrix })));
 
 type Tab = "dashboard" | "log" | "awards";
 
@@ -20,6 +25,42 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [isOnline, _setIsOnline] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAdifImport, setShowAdifImport] = useState(false);
+  const [showLotwSync, setShowLotwSync] = useState(false);
+  const [dbReady, setDbReady] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  // Wait for database to be ready
+  useEffect(() => {
+    const checkDb = async () => {
+      try {
+        const ready = await invoke<boolean>("is_db_ready");
+        if (ready) {
+          setDbReady(true);
+        }
+      } catch {
+        // Not ready yet
+      }
+    };
+
+    // Listen for db-ready event
+    const unlisten = listen<{ success: boolean; error?: string }>("db-ready", (event) => {
+      if (event.payload.success) {
+        setDbReady(true);
+      } else {
+        setDbError(event.payload.error || "Database initialization failed");
+      }
+    });
+
+    // Poll in case event already fired
+    checkDb();
+    const interval = setInterval(checkDb, 200);
+
+    return () => {
+      unlisten.then(fn => fn());
+      clearInterval(interval);
+    };
+  }, []);
 
   // Listen for QSO logged events and show toast
   useEffect(() => {
@@ -37,6 +78,27 @@ function App() {
       unlisten.then(fn => fn());
     };
   }, []);
+
+  // Show loading screen while database initializes
+  if (!dbReady) {
+    return (
+      <div className="min-h-screen bg-zinc-900 text-zinc-100 flex flex-col items-center justify-center">
+        <Trophy className="h-16 w-16 text-sky-500 mb-4" />
+        <h1 className="text-2xl font-bold mb-4">GoQSO</h1>
+        {dbError ? (
+          <div className="text-red-400 text-center max-w-md">
+            <p className="font-medium">Database Error</p>
+            <p className="text-sm mt-2">{dbError}</p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-zinc-400">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Initializing database...</span>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-900 text-zinc-100">
@@ -65,8 +127,23 @@ function App() {
             )}
           </div>
           <button
+            onClick={() => setShowLotwSync(true)}
+            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+            title="LoTW Sync"
+          >
+            <Cloud className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setShowAdifImport(true)}
+            className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+            title="Import ADIF"
+          >
+            <FileUp className="h-5 w-5" />
+          </button>
+          <button
             onClick={() => setShowSettings(true)}
             className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+            title="Settings"
           >
             <Settings className="h-5 w-5" />
           </button>
@@ -99,13 +176,49 @@ function App() {
 
       {/* Main Content */}
       <main className="p-4">
-        {activeTab === "dashboard" && <Dashboard />}
-        {activeTab === "log" && <QsoLog />}
-        {activeTab === "awards" && <AwardsMatrix />}
+        <Suspense fallback={<div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-zinc-500" /></div>}>
+          {activeTab === "dashboard" && <Dashboard />}
+          {activeTab === "log" && <QsoLog />}
+          {activeTab === "awards" && <AwardsMatrix />}
+        </Suspense>
       </main>
 
       {/* Settings Modal */}
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      
+      {/* ADIF Import Modal */}
+      {showAdifImport && (
+        <AdifImport 
+          onClose={() => setShowAdifImport(false)} 
+          onImportComplete={(count) => {
+            toast({
+              type: "success",
+              title: `Imported ${count} QSOs`,
+              message: "Your log has been updated",
+              duration: 5000,
+            });
+            // Emit event to refresh QsoLog
+            emit("qsos-imported", { count });
+          }}
+        />
+      )}
+      
+      {/* LoTW Sync Modal */}
+      {showLotwSync && (
+        <LotwSync 
+          onClose={() => setShowLotwSync(false)} 
+          onSyncComplete={(matched) => {
+            toast({
+              type: "success",
+              title: `Synced ${matched} QSL confirmations`,
+              message: "LoTW data has been updated",
+              duration: 5000,
+            });
+            // Emit event to refresh QsoLog
+            emit("qsos-imported", { count: matched });
+          }}
+        />
+      )}
     </div>
   );
 }

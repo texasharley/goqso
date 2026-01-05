@@ -113,6 +113,9 @@ impl LotwClient {
     /// 
     /// This fetches records where QSL_RCVD="Y" - confirmed QSOs.
     /// Use `qso_qslsince` to get only new confirmations since a date.
+    /// 
+    /// IMPORTANT: If qso_qslsince is None, LoTW defaults to the last query date
+    /// stored on their server! To get ALL confirmations, pass a very old date.
     pub async fn download_confirmations(
         &self,
         options: &LotwQueryOptions,
@@ -121,6 +124,13 @@ impl LotwClient {
         opts.qso_qsl = Some("yes".to_string());
         opts.qso_qsldetail = true;  // Get location details for confirmed QSOs
         opts.qso_withown = true;    // Include our callsign
+        
+        // If no since date specified, use 1900-01-01 to get ALL confirmations
+        // (LoTW defaults to last query date on their server if omitted!)
+        if opts.qso_qslsince.is_none() {
+            opts.qso_qslsince = Some("1900-01-01".to_string());
+            log::info!("No since date specified, using 1900-01-01 to get all confirmations");
+        }
         
         self.query_report(&opts).await
     }
@@ -191,7 +201,11 @@ impl LotwClient {
             params.insert("qso_withown", "yes".to_string());
         }
 
-        log::info!("Querying LoTW report with {} parameters", params.len());
+        log::info!("Querying LoTW report with {} parameters: qso_qsl={:?}, qso_qslsince={:?}", 
+            params.len(),
+            options.qso_qsl,
+            options.qso_qslsince
+        );
         
         let response = self.http
             .get(LOTW_REPORT_URL)
@@ -201,8 +215,12 @@ impl LotwClient {
             .map_err(|e| LotwError::NetworkError(e.to_string()))?;
 
         let status = response.status();
+        log::info!("LoTW response status: {}", status);
+        
         let body = response.text().await
             .map_err(|e| LotwError::NetworkError(e.to_string()))?;
+        
+        log::info!("LoTW response size: {} bytes", body.len());
 
         // Check for HTML error response (no <EOH> means error)
         if !body.contains("<EOH>") && !body.contains("<eoh>") {

@@ -1,10 +1,56 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useQsoStore, Qso, parseAdifFields, CallsignHistory, QsoStatus } from "@/stores/qsoStore";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { Search, Download, Upload, Plus, ChevronUp, ChevronDown, X, FlaskConical, Star, Sparkles, RefreshCw, History, Trash2, Edit3 } from "lucide-react";
+import { Search, Download, Upload, Plus, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Star, Sparkles, RefreshCw, History, Trash2, Edit3, Settings2, Filter, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
-type SortField = "qso_date" | "call" | "band" | "mode" | "country";
+type SortField = "qso_date" | "call" | "band" | "mode" | "gridsquare" | "country";
+
+// All available columns with their configuration
+const ALL_COLUMNS = [
+  { key: "status", label: "Status", required: true, defaultVisible: true },
+  { key: "qso_date", label: "Start Time (UTC)", required: true, defaultVisible: true },
+  { key: "call", label: "Call", required: true, defaultVisible: true },
+  { key: "band", label: "Band", required: false, defaultVisible: true },
+  { key: "mode", label: "Mode", required: false, defaultVisible: true },
+  { key: "gridsquare", label: "Grid", required: false, defaultVisible: true },
+  { key: "rst", label: "RST (Sent/Rcvd)", required: false, defaultVisible: true },
+  { key: "country", label: "Entity", required: false, defaultVisible: true },
+  { key: "state", label: "State/Province", required: false, defaultVisible: false },
+  { key: "cont", label: "Continent", required: false, defaultVisible: false },
+  { key: "cqz", label: "CQ Zone", required: false, defaultVisible: false },
+  { key: "ituz", label: "ITU Zone", required: false, defaultVisible: false },
+  { key: "confirm", label: "Confirm", required: false, defaultVisible: true },
+] as const;
+
+type ColumnKey = typeof ALL_COLUMNS[number]["key"];
+
+// Available filter options
+const BAND_OPTIONS = ["160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m", "2m", "70cm"];
+const MODE_OPTIONS = ["FT8", "FT4", "CW", "SSB", "RTTY", "PSK31", "JS8"];
+const CONFIRM_OPTIONS = [
+  { key: "lotw", label: "LoTW Confirmed" },
+  { key: "eqsl", label: "eQSL Confirmed" },
+  { key: "unconfirmed", label: "Unconfirmed" },
+];
+
 type SortDir = "asc" | "desc";
 
 // Band sort order
@@ -13,15 +59,168 @@ const BAND_ORDER: Record<string, number> = {
   "17m": 7, "15m": 8, "12m": 9, "10m": 10, "6m": 11, "2m": 12, "70cm": 13
 };
 
+// Filter state interface
+interface FilterState {
+  bands: Set<string>;
+  modes: Set<string>;
+  confirmStatus: Set<string>;
+}
+
+// Sortable column item for drag-and-drop reordering
+interface SortableColumnItemProps {
+  id: ColumnKey;
+  onToggle: () => void;
+}
+
+function SortableColumnItem({ id, onToggle }: SortableColumnItemProps) {
+  const col = ALL_COLUMNS.find(c => c.key === id);
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ 
+    id, 
+    disabled: col?.required ?? false 
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  if (!col) return null;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+        col.required 
+          ? "bg-zinc-800/50 opacity-60" 
+          : isDragging
+            ? "bg-sky-600/30 border border-sky-500 z-50 shadow-lg"
+            : "bg-zinc-800 hover:bg-zinc-700"
+      }`}
+    >
+      {/* Drag handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className={`p-1 -m-1 touch-none ${col.required ? "cursor-not-allowed" : "cursor-grab active:cursor-grabbing"}`}
+      >
+        <GripVertical className={`h-4 w-4 ${col.required ? "text-zinc-600" : "text-zinc-400 hover:text-zinc-200"}`} />
+      </div>
+      <input
+        type="checkbox"
+        checked={true}
+        disabled={col.required}
+        onChange={onToggle}
+        className="rounded bg-zinc-700 border-zinc-600 text-sky-500 focus:ring-sky-500"
+      />
+      <span className={`text-sm flex-1 ${col.required ? "text-zinc-500" : "text-zinc-200"}`}>
+        {col.label}
+      </span>
+      {col.required && (
+        <span className="text-xs text-zinc-600">Required</span>
+      )}
+    </div>
+  );
+}
+
 export function QsoLog() {
   const { qsos, setQsos, isLoading, setLoading } = useQsoStore();
   const [searchTerm, setSearchTerm] = useState("");
-  const [bandFilter, setBandFilter] = useState<string>("all");
-  const [modeFilter, setModeFilter] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("qso_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [selectedQso, setSelectedQso] = useState<Qso | null>(null);
+  const [selectedQsoIndex, setSelectedQsoIndex] = useState<number | null>(null);
   const [qsoStatuses, setQsoStatuses] = useState<Map<number, QsoStatus>>(new Map());
+  
+  // Filter state - multi-select
+  const [filters, setFilters] = useState<FilterState>({
+    bands: new Set(),
+    modes: new Set(),
+    confirmStatus: new Set(),
+  });
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const filtersPanelRef = useRef<HTMLDivElement>(null);
+  
+  // Column configuration - ordered array of visible columns
+  const [columnOrder, setColumnOrder] = useState<ColumnKey[]>(() => {
+    return ALL_COLUMNS.filter(c => c.defaultVisible).map(c => c.key);
+  });
+  const [showColumnModal, setShowColumnModal] = useState(false);
+
+  const toggleFilter = (type: keyof FilterState, value: string) => {
+    setFilters(prev => {
+      const newSet = new Set(prev[type]);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return { ...prev, [type]: newSet };
+    });
+  };
+
+  const clearAllFilters = () => {
+    setFilters({ bands: new Set(), modes: new Set(), confirmStatus: new Set() });
+  };
+
+  const activeFilterCount = filters.bands.size + filters.modes.size + filters.confirmStatus.size;
+  
+  const toggleColumnVisibility = (key: ColumnKey) => {
+    const col = ALL_COLUMNS.find(c => c.key === key);
+    if (col?.required) return; // Can't toggle required columns
+    
+    setColumnOrder(prev => {
+      if (prev.includes(key)) {
+        return prev.filter(k => k !== key);
+      } else {
+        return [...prev, key];
+      }
+    });
+  };
+
+  // dnd-kit sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // 5px movement required before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setColumnOrder((items) => {
+        const oldIndex = items.indexOf(active.id as ColumnKey);
+        const newIndex = items.indexOf(over.id as ColumnKey);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  // Close filters panel when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (filtersPanelRef.current && !filtersPanelRef.current.contains(event.target as Node)) {
+        setShowFiltersPanel(false);
+      }
+    }
+    if (showFiltersPanel) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showFiltersPanel]);
 
   // Load QSOs on mount
   useEffect(() => {
@@ -80,10 +279,20 @@ export function QsoLog() {
     }
   }, [qsos]);
 
-  // Listen for new QSOs from WSJT-X
+  // Listen for new QSOs from WSJT-X or ADIF import
   useEffect(() => {
-    const unlisten = listen("qso-logged", async () => {
+    const unlistenLogged = listen("qso-logged", async () => {
       // Reload QSOs to get the newly inserted one with full data
+      try {
+        const data = await invoke<Qso[]>("get_qsos", { limit: 1000, offset: 0 });
+        setQsos(data);
+      } catch (e) {
+        console.error("Failed to refresh QSOs:", e);
+      }
+    });
+    
+    const unlistenImported = listen("qsos-imported", async () => {
+      // Reload QSOs after ADIF import
       try {
         const data = await invoke<Qso[]>("get_qsos", { limit: 1000, offset: 0 });
         setQsos(data);
@@ -93,7 +302,8 @@ export function QsoLog() {
     });
 
     return () => {
-      unlisten.then(fn => fn());
+      unlistenLogged.then(fn => fn());
+      unlistenImported.then(fn => fn());
     };
   }, [setQsos]);
 
@@ -107,7 +317,7 @@ export function QsoLog() {
         e.preventDefault();
         document.getElementById("qso-search")?.focus();
       } else if (e.key === "Escape") {
-        setSelectedQso(null);
+        setSelectedQsoIndex(null);
         setSearchTerm("");
       }
     };
@@ -119,6 +329,7 @@ export function QsoLog() {
   // Filter and sort QSOs
   const filteredQsos = useMemo(() => {
     let result = qsos.filter((qso) => {
+      // Text search
       const term = searchTerm.toLowerCase();
       if (term) {
         const matchCall = qso.call.toLowerCase().includes(term);
@@ -130,8 +341,27 @@ export function QsoLog() {
         const matchComments = adif.comments?.toLowerCase().includes(term);
         if (!matchCall && !matchCountry && !matchGrid && !matchState && !matchName && !matchComments) return false;
       }
-      if (bandFilter !== "all" && qso.band !== bandFilter) return false;
-      if (modeFilter !== "all" && qso.mode !== modeFilter) return false;
+      
+      // Band filter (multi-select)
+      if (filters.bands.size > 0 && !filters.bands.has(qso.band)) return false;
+      
+      // Mode filter (multi-select)
+      if (filters.modes.size > 0 && !filters.modes.has(qso.mode)) return false;
+      
+      // Confirmation status filter
+      if (filters.confirmStatus.size > 0) {
+        const isLotwConfirmed = qso.lotw_rcvd === "Y";
+        const isEqslConfirmed = qso.eqsl_rcvd === "Y";
+        const isUnconfirmed = !isLotwConfirmed && !isEqslConfirmed;
+        
+        const matchesConfirm = 
+          (filters.confirmStatus.has("lotw") && isLotwConfirmed) ||
+          (filters.confirmStatus.has("eqsl") && isEqslConfirmed) ||
+          (filters.confirmStatus.has("unconfirmed") && isUnconfirmed);
+        
+        if (!matchesConfirm) return false;
+      }
+      
       return true;
     });
 
@@ -151,6 +381,9 @@ export function QsoLog() {
         case "mode":
           cmp = a.mode.localeCompare(b.mode);
           break;
+        case "gridsquare":
+          cmp = (a.gridsquare || "").localeCompare(b.gridsquare || "");
+          break;
         case "country":
           cmp = (a.country || "").localeCompare(b.country || "");
           break;
@@ -159,7 +392,7 @@ export function QsoLog() {
     });
 
     return result;
-  }, [qsos, searchTerm, bandFilter, modeFilter, sortField, sortDir]);
+  }, [qsos, searchTerm, filters, sortField, sortDir]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -177,26 +410,6 @@ export function QsoLog() {
       <ChevronDown className="inline h-3 w-3 ml-1" />;
   };
 
-  const handleAddTestData = useCallback(async () => {
-    try {
-      let ready = false;
-      for (let i = 0; i < 30; i++) {
-        ready = await invoke<boolean>("is_db_ready");
-        if (ready) break;
-        await new Promise(r => setTimeout(r, 100));
-      }
-      if (!ready) {
-        console.error("Database not ready after 3 seconds");
-        return;
-      }
-      await invoke("add_test_qsos");
-      const data = await invoke<Qso[]>("get_qsos", { limit: 1000, offset: 0 });
-      setQsos(data);
-    } catch (e) {
-      console.error("Failed to add test QSOs:", e);
-    }
-  }, [setQsos]);
-
   const refreshQsos = useCallback(async () => {
     try {
       const data = await invoke<Qso[]>("get_qsos", { limit: 1000, offset: 0 });
@@ -209,19 +422,22 @@ export function QsoLog() {
   return (
     <div className="space-y-4">
       {/* QSO Detail Modal */}
-      {selectedQso && (
+      {selectedQsoIndex !== null && filteredQsos[selectedQsoIndex] && (
         <QsoDetailModal 
-          qso={selectedQso} 
-          onClose={() => setSelectedQso(null)}
+          qso={filteredQsos[selectedQsoIndex]} 
+          currentIndex={selectedQsoIndex}
+          totalCount={filteredQsos.length}
+          onClose={() => setSelectedQsoIndex(null)}
+          onNavigate={(newIndex) => setSelectedQsoIndex(newIndex)}
           onDelete={() => {
-            setSelectedQso(null);
+            setSelectedQsoIndex(null);
             refreshQsos();
           }}
         />
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
           <input
@@ -233,35 +449,114 @@ export function QsoLog() {
             className="w-full pl-10 pr-4 py-2 bg-zinc-800 text-zinc-100 rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
         </div>
-        <select
-          value={bandFilter}
-          onChange={(e) => setBandFilter(e.target.value)}
-          className="px-3 py-2 bg-zinc-800 text-zinc-100 rounded-lg border border-zinc-700"
+        
+        {/* Filters Button with Panel */}
+        <div className="relative" ref={filtersPanelRef}>
+          <button 
+            onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors border ${
+              activeFilterCount > 0 
+                ? "bg-sky-600/20 text-sky-400 border-sky-600/50 hover:bg-sky-600/30" 
+                : "bg-zinc-800 text-zinc-100 border-zinc-700 hover:bg-zinc-700"
+            }`}
+          >
+            <Filter className="h-4 w-4" />
+            <span>Filters</span>
+            {activeFilterCount > 0 && (
+              <span className="bg-sky-600 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+          
+          {showFiltersPanel && (
+            <div className="absolute left-0 mt-2 w-80 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-700">
+                <span className="text-sm font-medium text-zinc-200">Filters</span>
+                {activeFilterCount > 0 && (
+                  <button 
+                    onClick={clearAllFilters}
+                    className="text-xs text-sky-400 hover:text-sky-300"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              
+              <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
+                {/* Band Filter */}
+                <div>
+                  <div className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">Band</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {BAND_OPTIONS.map(band => (
+                      <button
+                        key={band}
+                        onClick={() => toggleFilter("bands", band)}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${
+                          filters.bands.has(band)
+                            ? "bg-sky-600 text-white"
+                            : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+                        }`}
+                      >
+                        {band}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Mode Filter */}
+                <div>
+                  <div className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">Mode</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {MODE_OPTIONS.map(mode => (
+                      <button
+                        key={mode}
+                        onClick={() => toggleFilter("modes", mode)}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${
+                          filters.modes.has(mode)
+                            ? "bg-sky-600 text-white"
+                            : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+                        }`}
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Confirmation Status */}
+                <div>
+                  <div className="text-xs font-medium text-zinc-400 uppercase tracking-wide mb-2">Confirmation</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {CONFIRM_OPTIONS.map(opt => (
+                      <button
+                        key={opt.key}
+                        onClick={() => toggleFilter("confirmStatus", opt.key)}
+                        className={`px-2 py-1 text-xs rounded transition-colors ${
+                          filters.confirmStatus.has(opt.key)
+                            ? "bg-sky-600 text-white"
+                            : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Columns Button */}
+        <button 
+          onClick={() => setShowColumnModal(true)}
+          className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg transition-colors border border-zinc-700"
         >
-          <option value="all">All Bands</option>
-          <option value="160m">160m</option>
-          <option value="80m">80m</option>
-          <option value="40m">40m</option>
-          <option value="30m">30m</option>
-          <option value="20m">20m</option>
-          <option value="17m">17m</option>
-          <option value="15m">15m</option>
-          <option value="12m">12m</option>
-          <option value="10m">10m</option>
-          <option value="6m">6m</option>
-          <option value="2m">2m</option>
-        </select>
-        <select
-          value={modeFilter}
-          onChange={(e) => setModeFilter(e.target.value)}
-          className="px-3 py-2 bg-zinc-800 text-zinc-100 rounded-lg border border-zinc-700"
-        >
-          <option value="all">All Modes</option>
-          <option value="FT8">FT8</option>
-          <option value="FT4">FT4</option>
-          <option value="CW">CW</option>
-          <option value="SSB">SSB</option>
-        </select>
+          <Settings2 className="h-4 w-4" />
+          <span>Columns</span>
+        </button>
+        
         <div className="flex gap-2">
           <button className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg transition-colors border border-zinc-700">
             <Upload className="h-4 w-4" />
@@ -275,64 +570,168 @@ export function QsoLog() {
             <Plus className="h-4 w-4" />
             <span>Add QSO</span>
           </button>
-          {/* Test data button - development only */}
-          <button 
-            onClick={handleAddTestData}
-            className="flex items-center gap-2 px-3 py-2 bg-amber-700 hover:bg-amber-600 text-white rounded-lg transition-colors"
-            title="Add test QSOs for development"
-          >
-            <FlaskConical className="h-4 w-4" />
-            <span>Test Data</span>
-          </button>
         </div>
       </div>
+      
+      {/* Active Filter Chips */}
+      {activeFilterCount > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {Array.from(filters.bands).map(band => (
+            <span key={band} className="inline-flex items-center gap-1 px-2 py-1 bg-zinc-800 text-zinc-300 rounded text-sm">
+              Band: {band}
+              <button onClick={() => toggleFilter("bands", band)} className="text-zinc-500 hover:text-zinc-300">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+          {Array.from(filters.modes).map(mode => (
+            <span key={mode} className="inline-flex items-center gap-1 px-2 py-1 bg-zinc-800 text-zinc-300 rounded text-sm">
+              Mode: {mode}
+              <button onClick={() => toggleFilter("modes", mode)} className="text-zinc-500 hover:text-zinc-300">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+          {Array.from(filters.confirmStatus).map(status => (
+            <span key={status} className="inline-flex items-center gap-1 px-2 py-1 bg-zinc-800 text-zinc-300 rounded text-sm">
+              {CONFIRM_OPTIONS.find(o => o.key === status)?.label}
+              <button onClick={() => toggleFilter("confirmStatus", status)} className="text-zinc-500 hover:text-zinc-300">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      
+      {/* Column Configuration Modal */}
+      {showColumnModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setShowColumnModal(false)}>
+          <div 
+            className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-md mx-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-700">
+              <h3 className="text-lg font-semibold text-zinc-100">Configure Columns</h3>
+              <button onClick={() => setShowColumnModal(false)} className="text-zinc-400 hover:text-zinc-200">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-5">
+              <p className="text-sm text-zinc-400 mb-4">
+                Select which columns to show. Drag to reorder (required columns are locked).
+              </p>
+              
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={columnOrder} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-1 max-h-[400px] overflow-y-auto">
+                    {columnOrder.map((key) => (
+                      <SortableColumnItem
+                        key={key}
+                        id={key}
+                        onToggle={() => toggleColumnVisibility(key)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+              
+              {/* Hidden columns */}
+              {ALL_COLUMNS.filter(c => !columnOrder.includes(c.key)).length > 0 && (
+                <div className="mt-4 pt-4 border-t border-zinc-700">
+                  <p className="text-xs text-zinc-500 mb-2">Hidden columns (click to add)</p>
+                  <div className="space-y-1">
+                    {ALL_COLUMNS.filter(c => !columnOrder.includes(c.key)).map(col => (
+                      <div
+                        key={col.key}
+                        onClick={() => toggleColumnVisibility(col.key)}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800/30 hover:bg-zinc-800 cursor-pointer"
+                      >
+                        <GripVertical className="h-4 w-4 text-zinc-700" />
+                        <input
+                          type="checkbox"
+                          checked={false}
+                          readOnly
+                          className="rounded bg-zinc-700 border-zinc-600 text-sky-500 focus:ring-sky-500 pointer-events-none"
+                        />
+                        <span className="text-sm flex-1 text-zinc-500">{col.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end gap-3 px-5 py-4 border-t border-zinc-700">
+              <button
+                onClick={() => {
+                  setColumnOrder(ALL_COLUMNS.filter(c => c.defaultVisible).map(c => c.key));
+                }}
+                className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+              >
+                Reset to Default
+              </button>
+              <button
+                onClick={() => setShowColumnModal(false)}
+                className="px-4 py-2 text-sm bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* QSO Table */}
       <div className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden">
         <table className="w-full">
           <thead className="bg-zinc-800/60">
             <tr>
-              <th className="w-12 px-2 py-3 text-center text-sm font-medium text-zinc-400">
-                <span title="Status badges">🏷️</span>
-              </th>
-              <th 
-                className="px-4 py-3 text-left text-sm font-medium text-zinc-400 cursor-pointer hover:text-zinc-200"
-                onClick={() => handleSort("qso_date")}
-              >
-                Date/Time <SortIcon field="qso_date" />
-              </th>
-              <th 
-                className="px-4 py-3 text-left text-sm font-medium text-zinc-400 cursor-pointer hover:text-zinc-200"
-                onClick={() => handleSort("call")}
-              >
-                Call <SortIcon field="call" />
-              </th>
-              <th 
-                className="px-4 py-3 text-left text-sm font-medium text-zinc-400 cursor-pointer hover:text-zinc-200"
-                onClick={() => handleSort("band")}
-              >
-                Band <SortIcon field="band" />
-              </th>
-              <th 
-                className="px-4 py-3 text-left text-sm font-medium text-zinc-400 cursor-pointer hover:text-zinc-200"
-                onClick={() => handleSort("mode")}
-              >
-                Mode <SortIcon field="mode" />
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">RST</th>
-              <th 
-                className="px-4 py-3 text-left text-sm font-medium text-zinc-400 cursor-pointer hover:text-zinc-200"
-                onClick={() => handleSort("country")}
-              >
-                Entity <SortIcon field="country" />
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-zinc-400">Confirm</th>
+              {columnOrder.map(key => {
+                const col = ALL_COLUMNS.find(c => c.key === key);
+                if (!col) return null;
+                
+                // Sortable columns
+                const sortableColumns: Record<string, SortField> = {
+                  qso_date: "qso_date",
+                  call: "call",
+                  band: "band",
+                  mode: "mode",
+                  gridsquare: "gridsquare",
+                  country: "country",
+                };
+                const sortField = sortableColumns[key];
+                
+                if (key === "status") {
+                  return (
+                    <th key={key} className="w-12 px-2 py-3 text-center text-sm font-medium text-zinc-400">
+                      <span title="Status badges">🏷️</span>
+                    </th>
+                  );
+                }
+                
+                return (
+                  <th 
+                    key={key}
+                    className={`px-4 py-3 text-left text-sm font-medium text-zinc-400 ${
+                      sortField ? "cursor-pointer hover:text-zinc-200" : ""
+                    }`}
+                    onClick={sortField ? () => handleSort(sortField) : undefined}
+                  >
+                    {col.label} {sortField && <SortIcon field={sortField} />}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
             {filteredQsos.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-zinc-500">
+                <td colSpan={columnOrder.length} className="px-4 py-12 text-center text-zinc-500">
                   {isLoading ? (
                     <span>Loading...</span>
                   ) : qsos.length === 0 ? (
@@ -347,41 +746,73 @@ export function QsoLog() {
                 </td>
               </tr>
             ) : (
-              filteredQsos.map((qso) => {
+              filteredQsos.map((qso, index) => {
                 const status = qsoStatuses.get(qso.id);
                 return (
                   <tr 
                     key={qso.id} 
                     className="border-t border-zinc-800 hover:bg-zinc-800/50 cursor-pointer"
-                    onClick={() => setSelectedQso(qso)}
+                    onClick={() => setSelectedQsoIndex(index)}
                   >
-                    <td className="px-2 py-3 text-center">
-                      <QsoBadges status={status} />
-                    </td>
-                    <td className="px-4 py-3 text-sm text-zinc-300">
-                      {formatDate(qso.qso_date)} {formatTime(qso.time_on)}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-sky-400">
-                      <span className="flex items-center gap-1">
-                        {qso.call}
-                        {status?.has_previous_qso && (
-                          <span title={`Worked ${status.previous_qso_count + 1} times`}>
-                            <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                          </span>
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-zinc-300">{qso.band}</td>
-                    <td className="px-4 py-3 text-sm text-zinc-300">{qso.mode}</td>
-                    <td className="px-4 py-3 text-sm text-zinc-400">
-                      {qso.rst_sent || "-"}/{qso.rst_rcvd || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-zinc-300">
-                      {formatEntity(qso)}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      <ConfirmationBadges />
-                    </td>
+                    {columnOrder.map(key => {
+                      switch (key) {
+                        case "status":
+                          return (
+                            <td key={key} className="px-2 py-3 text-center">
+                              <QsoBadges status={status} />
+                            </td>
+                          );
+                        case "qso_date":
+                          return (
+                            <td key={key} className="px-4 py-3 text-sm text-zinc-300">
+                              {formatDate(qso.qso_date)} {formatTime(qso.time_on)}
+                            </td>
+                          );
+                        case "call":
+                          return (
+                            <td key={key} className="px-4 py-3 text-sm font-medium text-sky-400">
+                              <span className="flex items-center gap-1">
+                                {qso.call}
+                                {status?.has_previous_qso && (
+                                  <span title={`Worked ${status.previous_qso_count + 1} times`}>
+                                    <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                                  </span>
+                                )}
+                              </span>
+                            </td>
+                          );
+                        case "band":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-300">{qso.band}</td>;
+                        case "mode":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-300">{qso.mode}</td>;
+                        case "gridsquare":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-400">{qso.gridsquare || "-"}</td>;
+                        case "rst":
+                          return (
+                            <td key={key} className="px-4 py-3 text-sm text-zinc-400">
+                              {qso.rst_sent || "-"}/{qso.rst_rcvd || "-"}
+                            </td>
+                          );
+                        case "country":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-300">{formatEntity(qso)}</td>;
+                        case "state":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-400">{qso.state || "-"}</td>;
+                        case "cont":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-400">{qso.continent || "-"}</td>;
+                        case "cqz":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-400">{qso.cqz || "-"}</td>;
+                        case "ituz":
+                          return <td key={key} className="px-4 py-3 text-sm text-zinc-400">{qso.ituz || "-"}</td>;
+                        case "confirm":
+                          return (
+                            <td key={key} className="px-4 py-3 text-sm">
+                              <ConfirmationBadges lotw={qso.lotw_rcvd} eqsl={qso.eqsl_rcvd} />
+                            </td>
+                          );
+                        default:
+                          return null;
+                      }
+                    })}
                   </tr>
                 );
               })
@@ -439,12 +870,29 @@ function QsoBadges({ status }: { status?: QsoStatus }) {
   );
 }
 
-function ConfirmationBadges() {
-  // For now, placeholder - will be enhanced when we add confirmation tracking
+interface ConfirmationBadgesProps {
+  lotw?: string;
+  eqsl?: string;
+}
+
+function ConfirmationBadges({ lotw, eqsl }: ConfirmationBadgesProps) {
+  const lotwConfirmed = lotw === "Y";
+  const eqslConfirmed = eqsl === "Y";
+  
   return (
-    <span className="flex items-center gap-1 text-xs">
-      <span className="text-zinc-600" title="LoTW: Not uploaded">L</span>
-      <span className="text-zinc-600" title="eQSL: Not sent">e</span>
+    <span className="flex items-center gap-1 text-xs font-medium">
+      <span 
+        className={lotwConfirmed ? "text-green-500" : "text-zinc-600"} 
+        title={lotwConfirmed ? "✓ Confirmed on LoTW" : "Not confirmed on LoTW"}
+      >
+        L
+      </span>
+      <span 
+        className={eqslConfirmed ? "text-green-500" : "text-zinc-600"} 
+        title={eqslConfirmed ? "✓ Confirmed on eQSL" : "Not confirmed on eQSL"}
+      >
+        e
+      </span>
     </span>
   );
 }
@@ -468,11 +916,12 @@ function formatTime(time: string): string {
 }
 
 function formatEntity(qso: { country?: string; state?: string; gridsquare?: string }): string {
-  if (qso.state && qso.country === "United States") {
-    return `${qso.state}, US`;
-  }
-  if (qso.country) return qso.country;
-  if (qso.gridsquare) return qso.gridsquare;
+  // Per ADIF 3.1.4 spec:
+  // - COUNTRY field = DXCC entity name (e.g., "UNITED STATES OF AMERICA")
+  // - STATE field = Primary Administrative Subdivision code (e.g., "MN")
+  // Entity column shows just the country name, State/Province column shows state
+  const country = qso.country?.trim();
+  if (country) return country;
   return "-";
 }
 
@@ -482,15 +931,37 @@ function formatEntity(qso: { country?: string; state?: string; gridsquare?: stri
 
 interface QsoDetailModalProps {
   qso: Qso;
+  currentIndex: number;
+  totalCount: number;
   onClose: () => void;
+  onNavigate: (index: number) => void;
   onDelete: () => void;
 }
 
-function QsoDetailModal({ qso, onClose, onDelete }: QsoDetailModalProps) {
+function QsoDetailModal({ qso, currentIndex, totalCount, onClose, onNavigate, onDelete }: QsoDetailModalProps) {
   const adif = parseAdifFields(qso);
   const [history, setHistory] = useState<CallsignHistory | null>(null);
   const [status, setStatus] = useState<QsoStatus | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const canGoPrev = currentIndex > 0;
+  const canGoNext = currentIndex < totalCount - 1;
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" && canGoPrev) {
+        onNavigate(currentIndex - 1);
+      } else if (e.key === "ArrowRight" && canGoNext) {
+        onNavigate(currentIndex + 1);
+      } else if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentIndex, canGoPrev, canGoNext, onNavigate, onClose]);
 
   // Load callsign history
   useEffect(() => {
@@ -707,15 +1178,29 @@ function QsoDetailModal({ qso, onClose, onDelete }: QsoDetailModalProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-zinc-400">LoTW</span>
-                    <span className="text-zinc-600">Not uploaded</span>
+                    {qso.lotw_rcvd === "Y" ? (
+                      <span className="text-green-500 flex items-center gap-1">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        Confirmed
+                      </span>
+                    ) : (
+                      <span className="text-zinc-600">Not confirmed</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-zinc-400">eQSL</span>
-                    <span className="text-zinc-600">Not sent</span>
+                    {qso.eqsl_rcvd === "Y" ? (
+                      <span className="text-green-500 flex items-center gap-1">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        Confirmed
+                      </span>
+                    ) : (
+                      <span className="text-zinc-600">Not confirmed</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400">QRZ</span>
-                    <span className="text-zinc-600">Not sent</span>
+                    <span className="text-zinc-400">Paper QSL</span>
+                    <span className="text-zinc-600">—</span>
                   </div>
                 </div>
               </section>
@@ -786,6 +1271,40 @@ function QsoDetailModal({ qso, onClose, onDelete }: QsoDetailModalProps) {
               </button>
             )}
           </div>
+
+          {/* Navigation controls */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => canGoPrev && onNavigate(currentIndex - 1)}
+                disabled={!canGoPrev}
+                className={`p-2 rounded-lg transition-colors ${
+                  canGoPrev 
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-100' 
+                    : 'bg-zinc-900 text-zinc-600 cursor-not-allowed'
+                }`}
+                title="Previous QSO (←)"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <span className="text-sm text-zinc-400 min-w-[80px] text-center">
+                {currentIndex + 1} of {totalCount}
+              </span>
+              <button
+                onClick={() => canGoNext && onNavigate(currentIndex + 1)}
+                disabled={!canGoNext}
+                className={`p-2 rounded-lg transition-colors ${
+                  canGoNext 
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-100' 
+                    : 'bg-zinc-900 text-zinc-600 cursor-not-allowed'
+                }`}
+                title="Next QSO (→)"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
           <div className="flex gap-3">
             <button
               onClick={onClose}

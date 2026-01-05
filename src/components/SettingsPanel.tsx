@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { X, Folder } from "lucide-react";
+import { X, Folder, Trash2 } from "lucide-react";
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -157,6 +157,31 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                   className="w-full mt-1 px-3 py-2 bg-background rounded border border-border"
                   placeholder="EM48"
                 />
+              </div>
+            </div>
+          </section>
+
+          {/* Danger Zone */}
+          <section>
+            <h3 className="font-medium mb-3 text-red-500">Danger Zone</h3>
+            <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Clear All QSOs</p>
+                  <p className="text-xs text-muted-foreground">Delete all QSO records from the database</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (confirm("Are you sure you want to delete ALL QSOs? This cannot be undone.")) {
+                      const count = await invoke<number>("clear_all_qsos");
+                      alert(`Deleted ${count} QSOs`);
+                    }
+                  }}
+                  className="px-3 py-1 text-sm bg-red-600 hover:bg-red-500 text-white rounded flex items-center gap-1"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Clear
+                </button>
               </div>
             </div>
           </section>

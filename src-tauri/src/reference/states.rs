@@ -83,8 +83,19 @@ pub fn get_state_by_name(name: &str) -> Option<&'static UsState> {
 pub const WAS_TOTAL: usize = 50;
 
 /// Approximate state from Maidenhead grid square
-/// This is an approximation based on grid center points
+/// 
+/// **DEPRECATED**: Do not use for data population!
+/// 
+/// Per ADIF 3.1.4 and our data population strategy (CLAUDE.md):
+/// - 4-char grids are ~100×200km and can span multiple states
+/// - Portable operators (POTA, SOTA) operate from different states than their license
+/// - LoTW confirmation is the authoritative source for STATE data
+/// 
+/// This function is kept only for UI display hints (e.g., showing approximate
+/// location on a map) but should NEVER be used to populate the STATE database field.
+/// 
 /// Returns (state_code, state_name) if determinable
+#[deprecated(note = "Do not use for STATE field population - use LoTW confirmation instead")]
 pub fn grid_to_state(grid: &str) -> Option<(&'static str, &'static str)> {
     if grid.len() < 4 {
         return None;

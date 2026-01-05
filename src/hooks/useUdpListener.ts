@@ -15,7 +15,9 @@ interface QsoLoggedPayload {
   rst_rcvd: string;
   dxcc?: number;
   country?: string;
-  state?: string;
+  continent?: string;
+  cqz?: number;
+  ituz?: number;
 }
 
 export function useUdpListener() {
@@ -26,7 +28,10 @@ export function useUdpListener() {
     const unlisten = listen<QsoLoggedPayload>("qso-logged", (event) => {
       console.log("QSO logged:", event.payload);
       
+      const now = new Date().toISOString();
+      
       // Add to store (will also be persisted by backend)
+      // Note: STATE is not populated here - it comes from LoTW confirmation
       addQso({
         id: Date.now(), // Temporary ID until we get the real one
         uuid: crypto.randomUUID(),
@@ -41,10 +46,12 @@ export function useUdpListener() {
         rst_rcvd: event.payload.rst_rcvd,
         dxcc: event.payload.dxcc,
         country: event.payload.country,
-        state: event.payload.state,
+        continent: event.payload.continent,
+        cqz: event.payload.cqz,
+        ituz: event.payload.ituz,
         source: "wsjt-x",
-        lotw_status: "pending",
-        created_at: new Date().toISOString(),
+        created_at: now,
+        updated_at: now,
       });
     });
 

@@ -7,6 +7,7 @@ export interface Qso {
   // Core fields
   call: string;
   qso_date: string;
+  qso_date_off?: string;
   time_on: string;
   time_off?: string;
   band: string;
@@ -28,6 +29,7 @@ export interface Qso {
   
   // My station
   station_callsign?: string;
+  operator?: string;
   my_gridsquare?: string;
   tx_pwr?: number;
   
@@ -39,6 +41,10 @@ export interface Qso {
   source: string;
   created_at: string;
   updated_at: string;
+  
+  // Confirmation status (from confirmations table via JOIN)
+  lotw_rcvd?: string;   // "Y" if confirmed via LoTW
+  eqsl_rcvd?: string;   // "Y" if confirmed via eQSL
 }
 
 // Parsed ADIF fields from the JSON blob

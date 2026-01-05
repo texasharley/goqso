@@ -55,23 +55,48 @@ pub const EXPORT_FIELDS: &[&str] = &[
 pub fn qso_to_adif(qso: &serde_json::Value) -> HashMap<String, String> {
     let mut map = HashMap::new();
     
-    // Direct field mappings
+    // Direct field mappings (db_field -> ADIF_FIELD)
     let mappings = [
+        // Core
         ("call", "CALL"),
         ("qso_date", "QSO_DATE"),
+        ("qso_date_off", "QSO_DATE_OFF"),
         ("time_on", "TIME_ON"),
         ("time_off", "TIME_OFF"),
         ("band", "BAND"),
         ("mode", "MODE"),
+        ("submode", "SUBMODE"),
+        // Signal
         ("rst_sent", "RST_SENT"),
         ("rst_rcvd", "RST_RCVD"),
+        // Location
         ("country", "COUNTRY"),
         ("state", "STATE"),
         ("cnty", "CNTY"),
         ("gridsquare", "GRIDSQUARE"),
         ("continent", "CONT"),
+        // Propagation
+        ("prop_mode", "PROP_MODE"),
+        ("sat_name", "SAT_NAME"),
+        // Activity references
+        ("iota", "IOTA"),
+        ("pota_ref", "POTA_REF"),
+        ("sota_ref", "SOTA_REF"),
+        ("wwff_ref", "WWFF_REF"),
+        ("pfx", "PFX"),
+        // Operator info
+        ("name", "NAME"),
+        ("qth", "QTH"),
+        ("comment", "COMMENT"),
+        ("arrl_sect", "ARRL_SECT"),
+        // My station
         ("station_callsign", "STATION_CALLSIGN"),
+        ("operator", "OPERATOR"),
         ("my_gridsquare", "MY_GRIDSQUARE"),
+        ("my_cnty", "MY_CNTY"),
+        ("my_arrl_sect", "MY_ARRL_SECT"),
+        ("my_sota_ref", "MY_SOTA_REF"),
+        ("my_pota_ref", "MY_POTA_REF"),
     ];
     
     for (db_field, adif_field) in mappings {
