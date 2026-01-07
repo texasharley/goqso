@@ -305,7 +305,11 @@ pub fn parse_decode(data: &[u8]) -> Option<DecodeMessage> {
 /// - "W5ABC KJ5KCZ RR73"
 /// - "K7ACN/P WA3SEE 73" (portable)
 /// - "<W7UUU> W4/ZS2GK" (compound callsign)
-pub fn parse_ft8_message(message: &str) -> Option<(String, Option<String>, MessageType)> {
+/// 
+/// Returns: (de_call, dx_call, grid, msg_type)
+/// - de_call: The station sending the message
+/// - dx_call: The station being called (None for CQ)
+pub fn parse_ft8_message(message: &str) -> Option<(String, Option<String>, Option<String>, MessageType)> {
     let parts: Vec<&str> = message.split_whitespace().collect();
     
     if parts.is_empty() {
@@ -324,7 +328,8 @@ pub fn parse_ft8_message(message: &str) -> Option<(String, Option<String>, Messa
                 } else {
                     None
                 };
-                return Some((call, grid, MessageType::Cq));
+                // For CQ: de_call is the caller, dx_call is None
+                return Some((call, None, grid, MessageType::Cq));
             }
             // If we hit a grid, stop looking
             if is_grid(candidate) {
@@ -336,7 +341,7 @@ pub fn parse_ft8_message(message: &str) -> Option<(String, Option<String>, Messa
     
     // Handle compound callsigns with angle brackets: "<W7UUU> W4/ZS2GK"
     let first = parts[0];
-    let their_call = if first.starts_with('<') && first.ends_with('>') {
+    let dx_call = if first.starts_with('<') && first.ends_with('>') {
         // Strip angle brackets
         first[1..first.len()-1].to_string()
     } else {
@@ -344,12 +349,25 @@ pub fn parse_ft8_message(message: &str) -> Option<(String, Option<String>, Messa
     };
     
     // Validate the extracted callsign
-    if !is_valid_callsign(&their_call) {
+    if !is_valid_callsign(&dx_call) {
         return None;
     }
     
-    // Standard exchange: "THEM ME REPORT/GRID"
+    // Standard exchange: "DX_CALL DE_CALL REPORT/GRID"
+    // Example: "N5JKK W9MDM EN61" means W9MDM is calling N5JKK
     if parts.len() >= 2 {
+        let de_call_str = parts[1];
+        // Handle compound callsigns
+        let de_call = if de_call_str.starts_with('<') && de_call_str.ends_with('>') {
+            de_call_str[1..de_call_str.len()-1].to_string()
+        } else {
+            de_call_str.to_string()
+        };
+        
+        if !is_valid_callsign(&de_call) {
+            return None;
+        }
+        
         // Determine message type from third part
         let msg_type = if parts.len() > 2 {
             let third = parts[2];
@@ -374,7 +392,8 @@ pub fn parse_ft8_message(message: &str) -> Option<(String, Option<String>, Messa
             None
         };
         
-        return Some((their_call, grid, msg_type));
+        // de_call is the sender, dx_call is who they're calling
+        return Some((de_call, Some(dx_call), grid, msg_type));
     }
     
     None
@@ -414,4 +433,76 @@ fn is_valid_callsign(s: &str) -> bool {
     let all_valid = s.chars().all(|c| c.is_ascii_alphanumeric() || c == '/');
     
     has_digit && has_letter && all_valid
+}
+
+// ============================================================================
+// Reply Message (Type 4) - Send a reply to initiate a QSO
+// ============================================================================
+
+/// Write a Qt-style string (length-prefixed UTF-8)
+fn write_qt_string(buf: &mut Vec<u8>, s: &str) {
+    let bytes = s.as_bytes();
+    let len = bytes.len() as u32;
+    buf.extend_from_slice(&len.to_be_bytes());
+    buf.extend_from_slice(bytes);
+}
+
+/// Build a Reply message (type 4) to send to WSJT-X
+/// This triggers WSJT-X to start a QSO with the specified station
+#[derive(Debug, Clone)]
+pub struct ReplyMessage {
+    pub id: String,           // Target WSJT-X instance ID
+    pub time_ms: u32,         // Time from decode (ms since midnight)
+    pub snr: i32,             // SNR from decode
+    pub delta_time: f64,      // Delta time from decode
+    pub delta_freq: u32,      // Delta frequency from decode
+    pub mode: String,         // Mode (e.g., "~" for FT8)
+    pub message: String,      // The decoded message text
+    pub low_confidence: bool, // Low confidence flag from decode
+    pub modifiers: u8,        // Keyboard modifiers (0x00 = none)
+}
+
+impl ReplyMessage {
+    /// Encode the Reply message into bytes for UDP transmission
+    pub fn encode(&self) -> Vec<u8> {
+        let mut buf = Vec::with_capacity(256);
+        
+        // Magic number
+        buf.extend_from_slice(&WSJTX_MAGIC.to_be_bytes());
+        
+        // Schema version (3)
+        buf.extend_from_slice(&3u32.to_be_bytes());
+        
+        // Message type (4 = Reply)
+        buf.extend_from_slice(&4u32.to_be_bytes());
+        
+        // Id (target unique key)
+        write_qt_string(&mut buf, &self.id);
+        
+        // Time (QTime - u32 milliseconds since midnight)
+        buf.extend_from_slice(&self.time_ms.to_be_bytes());
+        
+        // SNR (i32)
+        buf.extend_from_slice(&self.snr.to_be_bytes());
+        
+        // Delta time (f64 - serialized as double)
+        buf.extend_from_slice(&self.delta_time.to_be_bytes());
+        
+        // Delta frequency (u32)
+        buf.extend_from_slice(&self.delta_freq.to_be_bytes());
+        
+        // Mode
+        write_qt_string(&mut buf, &self.mode);
+        
+        // Message
+        write_qt_string(&mut buf, &self.message);
+        
+        // Low confidence (bool)
+        buf.push(if self.low_confidence { 1 } else { 0 });
+        
+        // Modifiers (u8)
+        buf.push(self.modifiers);
+        
+        buf
+    }
 }

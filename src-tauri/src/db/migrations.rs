@@ -310,7 +310,59 @@ ALTER TABLE qsos ADD COLUMN qso_date_off TEXT;
 ALTER TABLE qsos ADD COLUMN operator TEXT;
 "#;
 
+/// Migration 004: Add band_activity table for storing message history
+/// 
+/// Stores both TX and RX messages for:
+/// - Real-time QSO message display
+/// - Historical review of QSO exchanges
+/// - Future codec development/training
+/// 
+/// Auto-prunes messages older than 60 minutes to keep size manageable.
+pub const MIGRATION_004: &str = r#"
+-- =============================================================================
+-- Band Activity - Message history for TX/RX messages
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS band_activity (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    
+    -- Timing
+    time_utc        TEXT NOT NULL,          -- HHMMSS UTC
+    time_ms         INTEGER,                -- ms since midnight (from WSJT-X)
+    
+    -- Message
+    direction       TEXT NOT NULL,          -- 'tx' or 'rx'
+    message         TEXT NOT NULL,          -- The decoded/transmitted message
+    
+    -- Signal info (RX only)
+    snr             INTEGER,                -- Signal-to-noise ratio
+    delta_freq      INTEGER,                -- Frequency offset in Hz
+    
+    -- Call extraction (for filtering)
+    de_call         TEXT,                   -- Sending station
+    dx_call         TEXT,                   -- Target station (if any)
+    
+    -- Context
+    dial_freq       REAL,                   -- Dial frequency in Hz
+    mode            TEXT,                   -- FT8, FT4, etc.
+    
+    -- Link to QSO (filled in when QSO is logged)
+    qso_id          INTEGER REFERENCES qsos(id) ON DELETE SET NULL,
+    
+    -- Timestamp
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Index for recent activity queries (most common)
+CREATE INDEX IF NOT EXISTS idx_band_activity_time ON band_activity(created_at DESC);
+
+-- Index for filtering by call
+CREATE INDEX IF NOT EXISTS idx_band_activity_calls ON band_activity(de_call, dx_call);
+
+-- Index for linking to QSO
+CREATE INDEX IF NOT EXISTS idx_band_activity_qso ON band_activity(qso_id);
+"#;
+
 /// Run all migrations
 pub fn get_migrations() -> Vec<&'static str> {
-    vec![MIGRATION_001, MIGRATION_002, MIGRATION_003]
+    vec![MIGRATION_001, MIGRATION_002, MIGRATION_003, MIGRATION_004]
 }

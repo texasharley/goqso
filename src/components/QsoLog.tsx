@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useQsoStore, Qso, parseAdifFields, CallsignHistory, QsoStatus } from "@/stores/qsoStore";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen, emit } from "@tauri-apps/api/event";
 import { Search, Download, Upload, Plus, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X, Star, Sparkles, RefreshCw, History, Trash2, Edit3, Settings2, Filter, GripVertical } from "lucide-react";
 import {
   DndContext,
@@ -558,11 +558,17 @@ export function QsoLog() {
         </button>
         
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg transition-colors border border-zinc-700">
+          <button 
+            onClick={() => emit('open-adif-import')}
+            className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg transition-colors border border-zinc-700"
+          >
             <Upload className="h-4 w-4" />
             <span>Import</span>
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg transition-colors border border-zinc-700">
+          <button 
+            onClick={() => emit('open-adif-export')}
+            className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg transition-colors border border-zinc-700"
+          >
             <Download className="h-4 w-4" />
             <span>Export</span>
           </button>

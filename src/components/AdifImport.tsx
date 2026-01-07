@@ -28,7 +28,9 @@ export function AdifImport({ onClose, onImportComplete }: AdifImportProps) {
   const [error, setError] = useState<string | null>(null);
 
   const selectFile = useCallback(async () => {
+    console.log("[AdifImport] selectFile called");
     try {
+      console.log("[AdifImport] Opening file dialog...");
       const selected = await open({
         multiple: false,
         filters: [
@@ -36,8 +38,10 @@ export function AdifImport({ onClose, onImportComplete }: AdifImportProps) {
           { name: "All Files", extensions: ["*"] },
         ],
       });
+      console.log("[AdifImport] Dialog returned:", selected);
 
       if (selected && typeof selected === "string") {
+        console.log("[AdifImport] File selected:", selected);
         setFilePath(selected);
         setFileName(selected.split(/[\\/]/).pop() || "");
         setIsLoading(true);
@@ -45,19 +49,27 @@ export function AdifImport({ onClose, onImportComplete }: AdifImportProps) {
         setResult(null);
 
         try {
+          console.log("[AdifImport] Reading file content...");
           const content = await readTextFile(selected);
+          console.log("[AdifImport] File read success, length:", content.length);
           setFileContent(content);
 
           // Count records by counting <EOR> tags (case-insensitive)
           const eorMatches = content.match(/<eor>/gi);
-          setPreviewCount(eorMatches ? eorMatches.length : 0);
+          const count = eorMatches ? eorMatches.length : 0;
+          console.log("[AdifImport] Found", count, "QSO records");
+          setPreviewCount(count);
         } catch (err) {
+          console.error("[AdifImport] Failed to read file:", err);
           setError(`Failed to read file: ${err}`);
         } finally {
           setIsLoading(false);
         }
+      } else {
+        console.log("[AdifImport] No file selected or dialog cancelled");
       }
     } catch (err) {
+      console.error("[AdifImport] Failed to open dialog:", err);
       setError(`Failed to select file: ${err}`);
     }
   }, []);

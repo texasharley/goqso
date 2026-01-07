@@ -16,13 +16,15 @@ export async function deleteQso(id: number): Promise<void> {
 
 // ADIF Import/Export
 export interface ImportResult {
+  total_records: number;
   imported: number;
-  duplicates: number;
+  skipped: number;
   errors: number;
+  error_messages: string[];
 }
 
-export async function importAdif(path: string): Promise<ImportResult> {
-  return invoke("import_adif", { path });
+export async function importAdif(content: string, skipDuplicates: boolean = true): Promise<ImportResult> {
+  return invoke("import_adif", { content, skipDuplicates });
 }
 
 export async function exportAdif(path: string, qsoIds?: number[]): Promise<number> {
@@ -60,6 +62,16 @@ export async function getSyncStatus(): Promise<SyncStatus> {
 
 export async function detectTqslPath(): Promise<string | null> {
   return invoke("detect_tqsl_path");
+}
+
+export interface LotwUploadResult {
+  qsos_exported: number;
+  success: boolean;
+  message: string;
+}
+
+export async function uploadToLotw(tqslPath: string): Promise<LotwUploadResult> {
+  return invoke("upload_to_lotw", { tqslPath });
 }
 
 // Awards Progress

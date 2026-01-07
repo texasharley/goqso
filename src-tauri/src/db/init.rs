@@ -2,7 +2,7 @@
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite, Row};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
-use crate::db::migrations::{MIGRATION_001, MIGRATION_002, MIGRATION_003};
+use crate::db::migrations::{MIGRATION_001, MIGRATION_002, MIGRATION_003, MIGRATION_004};
 use crate::reference::{dxcc, prefixes};
 
 /// Get the database path in the app data directory
@@ -187,6 +187,48 @@ async fn run_migrations(pool: &Pool<Sqlite>) -> Result<(), String> {
             .map_err(|e| format!("Failed to record migration: {}", e))?;
         
         log::info!("Migration 003 applied successfully");
+    }
+    
+    // Check if migration 004 has been applied (adds band_activity table)
+    let applied_004: bool = sqlx::query("SELECT COUNT(*) as count FROM _migrations WHERE name = 'migration_004'")
+        .fetch_one(pool)
+        .await
+        .map(|row| row.get::<i64, _>("count") > 0)
+        .unwrap_or(false);
+    
+    if !applied_004 {
+        log::info!("Applying migration_004 (adding band_activity table)...");
+        
+        for statement in MIGRATION_004.split(';') {
+            let mut stmt = statement.trim();
+            while stmt.starts_with("--") {
+                if let Some(idx) = stmt.find('\n') {
+                    stmt = stmt[idx + 1..].trim();
+                } else {
+                    stmt = "";
+                    break;
+                }
+            }
+            
+            if !stmt.is_empty() {
+                let result = sqlx::query(stmt).execute(pool).await;
+                if let Err(e) = result {
+                    let err_str = e.to_string();
+                    if err_str.contains("already exists") {
+                        log::debug!("Table/index already exists, skipping: {}", stmt);
+                    } else {
+                        return Err(format!("Migration 004 failed on statement: {}\nError: {}", stmt, e));
+                    }
+                }
+            }
+        }
+        
+        sqlx::query("INSERT INTO _migrations (name, applied_at) VALUES ('migration_004', datetime('now'))")
+            .execute(pool)
+            .await
+            .map_err(|e| format!("Failed to record migration: {}", e))?;
+        
+        log::info!("Migration 004 applied successfully");
     }
     
     Ok(())

@@ -7,13 +7,13 @@ import { SyncStatus } from "./components/SyncStatus";
 import { AdifImport } from "./components/AdifImport";
 import { LotwSync } from "./components/LotwSync";
 import { ToastContainer, toast } from "./components/Toast";
-import { Trophy, List, Target, Settings, Wifi, WifiOff, FileUp, Cloud, Loader2 } from "lucide-react";
+import { Trophy, List, Target, Settings, Wifi, WifiOff, FileUp, Cloud, Loader2, Radio } from "lucide-react";
 
 // Lazy load heavy tab components for faster initial render
 const QsoLog = lazy(() => import("./components/QsoLog").then(m => ({ default: m.QsoLog })));
 const AwardsMatrix = lazy(() => import("./components/AwardsMatrix").then(m => ({ default: m.AwardsMatrix })));
 
-type Tab = "dashboard" | "log" | "awards";
+type Tab = "operate" | "log" | "awards";
 
 interface QsoEvent {
   call: string;
@@ -22,7 +22,7 @@ interface QsoEvent {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [activeTab, setActiveTab] = useState<Tab>("operate");
   const [isOnline, _setIsOnline] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [showAdifImport, setShowAdifImport] = useState(false);
@@ -72,6 +72,17 @@ function App() {
         message: `${band} ${mode}`,
         duration: 5000,
       });
+    });
+
+    return () => {
+      unlisten.then(fn => fn());
+    };
+  }, []);
+
+  // Listen for open-adif-import event from QsoLog
+  useEffect(() => {
+    const unlisten = listen("open-adif-import", () => {
+      setShowAdifImport(true);
     });
 
     return () => {
@@ -154,10 +165,10 @@ function App() {
       <nav className="border-b border-zinc-800 px-4">
         <div className="flex gap-1">
           <TabButton
-            active={activeTab === "dashboard"}
-            onClick={() => setActiveTab("dashboard")}
-            icon={<Trophy className="h-4 w-4" />}
-            label="Dashboard"
+            active={activeTab === "operate"}
+            onClick={() => setActiveTab("operate")}
+            icon={<Radio className="h-4 w-4" />}
+            label="Operate"
           />
           <TabButton
             active={activeTab === "log"}
@@ -177,7 +188,7 @@ function App() {
       {/* Main Content */}
       <main className="p-4">
         <Suspense fallback={<div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-zinc-500" /></div>}>
-          {activeTab === "dashboard" && <Dashboard />}
+          {activeTab === "operate" && <Dashboard />}
           {activeTab === "log" && <QsoLog />}
           {activeTab === "awards" && <AwardsMatrix />}
         </Suspense>

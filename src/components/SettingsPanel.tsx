@@ -1,9 +1,26 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { X, Folder, Trash2 } from "lucide-react";
+import { X, Folder, Trash2, Bug } from "lucide-react";
 
 interface SettingsPanelProps {
   onClose: () => void;
+}
+
+interface DiagnosticReport {
+  total_qsos: number;
+  confirmed_count: number;
+  pending_count: number;
+  by_source: [string, number][];
+  duplicate_candidates: string[];
+  qsos_not_in_lotw_window: {
+    call: string;
+    qso_date: string;
+    time_on: string;
+    band: string;
+    mode: string;
+    source: string | null;
+    has_lotw_confirmation: boolean;
+  }[];
 }
 
 export function SettingsPanel({ onClose }: SettingsPanelProps) {
@@ -164,7 +181,28 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
           {/* Danger Zone */}
           <section>
             <h3 className="font-medium mb-3 text-red-500">Danger Zone</h3>
-            <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4">
+            <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Run Diagnostics</p>
+                  <p className="text-xs text-muted-foreground">Check for data inconsistencies</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      const report = await invoke<DiagnosticReport>("get_qso_diagnostics");
+                      console.log("Diagnostic Report:", report);
+                      alert(`📊 Diagnostic Report\n\nTotal QSOs: ${report.total_qsos}\nConfirmed: ${report.confirmed_count}\nPending: ${report.pending_count}\n\nBy Source:\n${report.by_source.map(([s, c]) => `  ${s}: ${c}`).join('\n')}\n\nPotential Duplicates: ${report.duplicate_candidates.length}\n${report.duplicate_candidates.slice(0, 5).join('\n')}\n\n(Full report in console)`);
+                    } catch (e) {
+                      alert(`Error: ${e}`);
+                    }
+                  }}
+                  className="px-3 py-1 text-sm bg-amber-600 hover:bg-amber-500 text-white rounded flex items-center gap-1"
+                >
+                  <Bug className="h-3 w-3" />
+                  Diagnose
+                </button>
+              </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Clear All QSOs</p>

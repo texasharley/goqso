@@ -76,6 +76,7 @@ fn main() {
             // UDP Listener
             commands::start_udp_listener,
             commands::stop_udp_listener,
+            commands::call_station,
             commands::get_udp_status,
             // QSO Operations
             commands::get_qsos,
@@ -95,6 +96,7 @@ fn main() {
             commands::get_sync_status,
             commands::sync_lotw_download,
             commands::detect_tqsl_path,
+            commands::upload_to_lotw,
             // Awards Progress
             commands::get_dxcc_progress,
             commands::get_was_progress,
@@ -106,6 +108,11 @@ fn main() {
             // Database
             commands::is_db_ready,
             commands::get_db_stats,
+            // Band Activity
+            commands::get_recent_activity,
+            commands::prune_band_activity,
+            // Diagnostics
+            commands::get_qso_diagnostics,
         ])
         .run(tauri::generate_context!())
         .expect("error while running GoQSO");

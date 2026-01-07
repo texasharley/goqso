@@ -1,18 +1,20 @@
 // UDP Listener for WSJT-X
 // Listens on configurable port (default 2237) and parses WSJT-X messages
 
-use std::net::UdpSocket;
+use std::net::{UdpSocket, SocketAddr};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
-use super::wsjtx::{parse_message, parse_qso_logged, parse_decode, WsjtxMessageType, QsoLoggedMessage, DecodeMessage, read_qt_string};
+use super::wsjtx::{parse_message, parse_qso_logged, parse_decode, WsjtxMessageType, QsoLoggedMessage, DecodeMessage, read_qt_string, ReplyMessage};
 
 /// Listener state that can be shared across threads
 pub struct UdpListenerState {
     running: AtomicBool,
     port: std::sync::Mutex<u16>,
+    wsjtx_addr: std::sync::Mutex<Option<SocketAddr>>,
+    wsjtx_id: std::sync::Mutex<Option<String>>,
 }
 
 impl UdpListenerState {
@@ -20,6 +22,8 @@ impl UdpListenerState {
         Self {
             running: AtomicBool::new(false),
             port: std::sync::Mutex::new(2237),
+            wsjtx_addr: std::sync::Mutex::new(None),
+            wsjtx_id: std::sync::Mutex::new(None),
         }
     }
 
@@ -38,6 +42,19 @@ impl UdpListenerState {
     pub fn set_port(&self, port: u16) {
         *self.port.lock().unwrap() = port;
     }
+    
+    pub fn set_wsjtx_addr(&self, addr: SocketAddr, id: String) {
+        *self.wsjtx_addr.lock().unwrap() = Some(addr);
+        *self.wsjtx_id.lock().unwrap() = Some(id);
+    }
+    
+    pub fn get_wsjtx_addr(&self) -> Option<SocketAddr> {
+        *self.wsjtx_addr.lock().unwrap()
+    }
+    
+    pub fn get_wsjtx_id(&self) -> Option<String> {
+        self.wsjtx_id.lock().unwrap().clone()
+    }
 }
 
 impl Default for UdpListenerState {
@@ -51,8 +68,9 @@ impl Default for UdpListenerState {
 pub enum UdpMessage {
     QsoLogged(QsoLoggedMessage),
     Decode(DecodeMessage),
+    Clear { id: String, window: u8 },
     Heartbeat { id: String, max_schema: u32, version: String, revision: String },
-    Status { id: String, dial_freq: u64, mode: String, dx_call: String, report: String, tx_mode: String, tx_enabled: bool, transmitting: bool, decoding: bool },
+    Status { id: String, dial_freq: u64, mode: String, dx_call: String, report: String, tx_mode: String, tx_enabled: bool, transmitting: bool, decoding: bool, tx_message: String },
     Connected,
     Disconnected,
     Error(String),
@@ -108,15 +126,20 @@ pub fn start_listener(
                                 }
                             }
                             WsjtxMessageType::QsoLogged => {
+                                log::info!("Received QsoLogged message from WSJT-X");
                                 if let Some(qso) = parse_qso_logged(&buf[..len]) {
                                     log::info!("QSO Logged: {} on {} @ {} Hz", 
                                         qso.call, qso.mode, qso.freq_hz);
                                     let _ = sender.send(UdpMessage::QsoLogged(qso));
+                                } else {
+                                    log::error!("Failed to parse QsoLogged message");
                                 }
                             }
                             WsjtxMessageType::Heartbeat => {
                                 if let Some(hb) = parse_heartbeat(&buf[..len]) {
-                                    log::debug!("Heartbeat from WSJT-X: {}", hb.id);
+                                    log::debug!("Heartbeat from WSJT-X: {} at {}", hb.id, src);
+                                    // Store the WSJT-X address for sending replies
+                                    state.set_wsjtx_addr(src, hb.id.clone());
                                     let _ = sender.send(UdpMessage::Heartbeat {
                                         id: hb.id,
                                         max_schema: hb.max_schema,
@@ -127,8 +150,8 @@ pub fn start_listener(
                             }
                             WsjtxMessageType::Status => {
                                 if let Some(status) = parse_status(&buf[..len]) {
-                                    log::debug!("Status: {} mode={} freq={}", 
-                                        status.id, status.mode, status.dial_freq);
+                                    log::debug!("Status: {} mode={} freq={} tx_msg='{}'", 
+                                        status.id, status.mode, status.dial_freq, status.tx_message);
                                     let _ = sender.send(UdpMessage::Status {
                                         id: status.id,
                                         dial_freq: status.dial_freq,
@@ -139,11 +162,23 @@ pub fn start_listener(
                                         tx_enabled: status.tx_enabled,
                                         transmitting: status.transmitting,
                                         decoding: status.decoding,
+                                        tx_message: status.tx_message,
                                     });
                                 }
                             }
                             WsjtxMessageType::LoggedADIF => {
                                 log::info!("Received LoggedADIF message");
+                            }
+                            WsjtxMessageType::Clear => {
+                                // Clear message sent at start of new decode period
+                                // Window: 0 = Band Activity, 1 = Rx Frequency
+                                if let Some(clear) = parse_clear(&buf[..len]) {
+                                    log::debug!("Clear window {} from {}", clear.window, clear.id);
+                                    let _ = sender.send(UdpMessage::Clear {
+                                        id: clear.id,
+                                        window: clear.window,
+                                    });
+                                }
                             }
                             _ => {
                                 log::trace!("Received {:?} message", msg_type);
@@ -224,6 +259,7 @@ struct StatusMessage {
     tx_enabled: bool,
     transmitting: bool,
     decoding: bool,
+    tx_message: String,
 }
 
 fn parse_status(data: &[u8]) -> Option<StatusMessage> {
@@ -258,12 +294,34 @@ fn parse_status(data: &[u8]) -> Option<StatusMessage> {
             tx_enabled: false,
             transmitting: false,
             decoding: false,
+            tx_message: String::new(),
         });
     }
     
     let tx_enabled = data[offset] != 0;
     let transmitting = data[offset + 1] != 0;
     let decoding = data[offset + 2] != 0;
+    offset += 3;
+    
+    // Skip rx_df (u32), tx_df (u32)
+    offset += 8;
+    
+    // Skip de_call, de_grid, dx_grid (strings)
+    let _ = read_qt_string(data, &mut offset);
+    let _ = read_qt_string(data, &mut offset);
+    let _ = read_qt_string(data, &mut offset);
+    
+    // Skip tx_watchdog (bool), sub_mode (string), fast_mode (bool)
+    offset += 1;
+    let _ = read_qt_string(data, &mut offset);
+    offset += 1;
+    
+    // Skip special_op_mode (u8), freq_tolerance (u32), tr_period (u32), config_name (string)
+    offset += 1 + 4 + 4;
+    let _ = read_qt_string(data, &mut offset);
+    
+    // Now we get tx_message!
+    let tx_message = read_qt_string(data, &mut offset).unwrap_or_default();
     
     Some(StatusMessage {
         id,
@@ -275,5 +333,51 @@ fn parse_status(data: &[u8]) -> Option<StatusMessage> {
         tx_enabled,
         transmitting,
         decoding,
+        tx_message,
     })
+}
+
+#[derive(Debug)]
+struct ClearMessage {
+    id: String,
+    window: u8,  // 0 = Band Activity, 1 = Rx Frequency
+}
+
+fn parse_clear(data: &[u8]) -> Option<ClearMessage> {
+    let mut offset = 12; // Skip magic, schema, type
+    
+    let id = read_qt_string(data, &mut offset)?;
+    
+    // Window (u8): 0 = Band Activity, 1 = Rx Frequency, 2 = Both (optional)
+    let window = if offset < data.len() {
+        data[offset]
+    } else {
+        0 // Default to Band Activity
+    };
+    
+    Some(ClearMessage { id, window })
+}
+
+/// Send a Reply message to WSJT-X to initiate a QSO
+pub fn send_reply(
+    state: &Arc<UdpListenerState>,
+    reply: ReplyMessage,
+) -> Result<(), String> {
+    let addr = state.get_wsjtx_addr()
+        .ok_or("WSJT-X address not known - wait for heartbeat")?;
+    
+    let port = state.get_port();
+    
+    // Create a socket to send from
+    let socket = UdpSocket::bind("0.0.0.0:0")
+        .map_err(|e| format!("Failed to bind send socket: {}", e))?;
+    
+    let data = reply.encode();
+    
+    log::info!("Sending Reply message to {} for: {}", addr, reply.message);
+    
+    socket.send_to(&data, addr)
+        .map_err(|e| format!("Failed to send Reply: {}", e))?;
+    
+    Ok(())
 }

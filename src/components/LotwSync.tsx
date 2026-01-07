@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { 
-  X, Cloud, Download, RefreshCw, CheckCircle2, AlertCircle, 
+  X, Cloud, Download, Upload, RefreshCw, CheckCircle2, AlertCircle, 
   Loader2, Key, Shield, FolderSearch, HelpCircle, ChevronUp,
   Link, PartyPopper, Clock
 } from "lucide-react";
@@ -17,6 +17,12 @@ interface LotwDownloadResult {
   unmatched: number;
   errors: string[];
   last_qsl: string | null;
+}
+
+interface LotwUploadResult {
+  qsos_exported: number;
+  success: boolean;
+  message: string;
 }
 
 interface TqslInfo {
@@ -55,6 +61,13 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
   const [syncResult, setSyncResult] = useState<LotwDownloadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   
+  // Upload state
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<LotwUploadResult | null>(null);
+  const [pendingUploads, setPendingUploads] = useState<number>(0);
+  const [totalQsos, setTotalQsos] = useState<number>(0);
+  const [qslsReceived, setQslsReceived] = useState<number>(0);
+  
   // Options
   const [sinceDate, setSinceDate] = useState<string>("");
   const [syncMode, setSyncMode] = useState<"all" | "new">("all"); // Default to all for first sync
@@ -92,6 +105,16 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
           } catch {
             // get_tqsl_callsigns may not exist yet
           }
+        }
+        
+        // Get sync status with counts
+        try {
+          const syncStatus = await invoke<{ pending_uploads: number; total_qsos: number; qsls_received: number }>("get_sync_status");
+          setPendingUploads(syncStatus.pending_uploads);
+          setTotalQsos(syncStatus.total_qsos);
+          setQslsReceived(syncStatus.qsls_received);
+        } catch {
+          // Ignore sync status errors
         }
       } catch (err) {
         console.error("Failed to load settings:", err);
@@ -155,6 +178,43 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
     }
   }, [username, password, saveCredentials, syncMode, sinceDate, onSyncComplete]);
 
+  const handleUpload = useCallback(async () => {
+    if (!tqslInfo.path) {
+      setError("TQSL is required to upload to LoTW. Please install TQSL first.");
+      return;
+    }
+    
+    setIsUploading(true);
+    setError(null);
+    setUploadResult(null);
+    
+    try {
+      const result = await invoke<LotwUploadResult>("upload_to_lotw", {
+        tqslPath: tqslInfo.path,
+      });
+      
+      setUploadResult(result);
+      
+      // Refresh pending count after upload
+      try {
+        const syncStatus = await invoke<{ pending_uploads: number; total_qsos: number; qsls_received: number }>("get_sync_status");
+        setPendingUploads(syncStatus.pending_uploads);
+        setTotalQsos(syncStatus.total_qsos);
+        setQslsReceived(syncStatus.qsls_received);
+      } catch {
+        // Ignore
+      }
+      
+      if (!result.success) {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError(`Upload failed: ${err}`);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [tqslInfo.path]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-zinc-900 rounded-lg border border-zinc-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
@@ -213,26 +273,94 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
 
         {/* Content */}
         <div className="p-4 space-y-4">
-          {/* TQSL Status */}
-          <div className="bg-zinc-800 rounded-lg p-3 flex items-center gap-3">
-            <Shield className={`h-5 w-5 ${tqslInfo.path ? "text-green-500" : "text-zinc-500"}`} />
-            <div className="flex-1">
-              <div className="text-sm font-medium flex items-center gap-2">
-                {tqslInfo.path ? "TQSL Detected" : "TQSL Not Found"}
-                <Tooltip text="TQSL is the software used to sign and upload your log to LoTW. You don't need it to download confirmations.">
-                  <HelpCircle className="h-3 w-3 text-zinc-500" />
-                </Tooltip>
+          {/* QSO/QSL Summary */}
+          <div className="bg-zinc-800 rounded-lg p-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-zinc-100">{totalQsos}</div>
+                <div className="text-xs text-zinc-400">Total QSOs</div>
               </div>
-              {tqslInfo.path && (
-                <div className="text-xs text-zinc-500 truncate">
-                  {tqslInfo.path}
+              <div>
+                <div className="text-2xl font-bold text-green-400">{qslsReceived}</div>
+                <div className="text-xs text-zinc-400">QSLs Received</div>
+              </div>
+              <div>
+                <div className={`text-2xl font-bold ${pendingUploads > 0 ? 'text-amber-400' : 'text-zinc-500'}`}>
+                  {pendingUploads}
                 </div>
+                <div className="text-xs text-zinc-400">Pending Upload</div>
+              </div>
+            </div>
+          </div>
+
+          {/* TQSL Status + Upload */}
+          <div className="bg-zinc-800 rounded-lg p-3 space-y-3">
+            <div className="flex items-center gap-3">
+              <Shield className={`h-5 w-5 ${tqslInfo.path ? "text-green-500" : "text-zinc-500"}`} />
+              <div className="flex-1">
+                <div className="text-sm font-medium flex items-center gap-2">
+                  {tqslInfo.path ? "TQSL Detected" : "TQSL Not Found"}
+                  <Tooltip text="TQSL is the software used to sign and upload your log to LoTW. You don't need it to download confirmations.">
+                    <HelpCircle className="h-3 w-3 text-zinc-500" />
+                  </Tooltip>
+                </div>
+                {tqslInfo.path && (
+                  <div className="text-xs text-zinc-500 truncate">
+                    {tqslInfo.path}
+                  </div>
+                )}
+              </div>
+              {!tqslInfo.path && (
+                <button className="text-xs text-sky-400 hover:text-sky-300">
+                  <FolderSearch className="h-4 w-4" />
+                </button>
               )}
             </div>
-            {!tqslInfo.path && (
-              <button className="text-xs text-sky-400 hover:text-sky-300">
-                <FolderSearch className="h-4 w-4" />
+            
+            {/* Upload Button */}
+            {tqslInfo.path && (
+              <button
+                onClick={handleUpload}
+                disabled={isUploading || isSyncing}
+                className="w-full px-4 py-2.5 text-sm bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading to LoTW...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Upload Pending QSOs to LoTW
+                  </>
+                )}
               </button>
+            )}
+            
+            {/* Upload Result */}
+            {uploadResult && (
+              <div className={`p-3 rounded-lg border ${
+                uploadResult.success 
+                  ? "bg-green-900/30 border-green-700" 
+                  : "bg-red-900/30 border-red-700"
+              }`}>
+                <div className="flex items-center gap-2 text-sm">
+                  {uploadResult.success ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                  )}
+                  <span className={uploadResult.success ? "text-green-300" : "text-red-300"}>
+                    {uploadResult.message}
+                  </span>
+                </div>
+                {uploadResult.qsos_exported > 0 && (
+                  <div className="text-xs text-zinc-400 mt-1 ml-6">
+                    {uploadResult.qsos_exported} QSO(s) processed
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

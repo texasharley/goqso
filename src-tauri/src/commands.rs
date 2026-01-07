@@ -9,6 +9,52 @@ use sqlx::{Pool, Sqlite, Row};
 use tokio::sync::Mutex as TokioMutex;
 
 // ============================================================================
+// Helper Functions
+// ============================================================================
+
+/// Format time from milliseconds since midnight UTC to HHMMSS
+fn format_time_from_ms(time_ms: u32) -> String {
+    let total_seconds = time_ms / 1000;
+    let hours = (total_seconds / 3600) % 24;
+    let minutes = (total_seconds % 3600) / 60;
+    let seconds = total_seconds % 60;
+    format!("{:02}{:02}{:02}", hours, minutes, seconds)
+}
+
+/// Get current UTC time as HHMMSS
+fn get_current_utc_time() -> String {
+    use chrono::Utc;
+    Utc::now().format("%H%M%S").to_string()
+}
+
+/// Parse TX message to extract de_call (sender) and dx_call (target)
+/// FT8 format: "TARGET SENDER REPORT" or "CQ SENDER GRID"
+fn parse_tx_message_calls(message: &str) -> (Option<String>, Option<String>) {
+    let parts: Vec<&str> = message.split_whitespace().collect();
+    if parts.is_empty() {
+        return (None, None);
+    }
+    
+    // CQ message: "CQ N5JKK EM26" - de=N5JKK, dx=None
+    if parts[0] == "CQ" {
+        if parts.len() >= 2 {
+            return (Some(parts[1].to_string()), None);
+        }
+        return (None, None);
+    }
+    
+    // Normal message: "W1ABC N5JKK -05" - we (N5JKK) are calling W1ABC
+    // de=N5JKK (us), dx=W1ABC (target)
+    if parts.len() >= 2 {
+        let dx_call = parts[0].to_string();
+        let de_call = parts[1].to_string();
+        return (Some(de_call), Some(dx_call));
+    }
+    
+    (None, None)
+}
+
+// ============================================================================
 // Application State
 // ============================================================================
 
@@ -56,23 +102,50 @@ pub async fn start_udp_listener(
     let db_arc = state.db.clone();
     
     tauri::async_runtime::spawn(async move {
+        // Track last TX message to avoid duplicates
+        let mut last_tx_msg = String::new();
+        
         while let Some(msg) = rx.recv().await {
             match msg {
                 UdpMessage::Decode(decode) => {
                     // Parse the FT8 message to extract callsign info
-                    if let Some((call, grid, msg_type)) = crate::udp::parse_ft8_message(&decode.message) {
-                        // Look up DXCC entity info for the callsign
+                    // de_call = sender, dx_call = station being called (None for CQ)
+                    if let Some((de_call, dx_call, grid, msg_type)) = crate::udp::parse_ft8_message(&decode.message) {
+                        // Look up DXCC entity info for the DE (sending) callsign
                         // Per ADIF spec: Callsign prefix gives DXCC, COUNTRY, CQZ, ITUZ, CONT
                         // STATE is NOT derived from prefix (portable operators may be elsewhere)
-                        let lookup = crate::reference::lookup_call_full(&call);
+                        let lookup = crate::reference::lookup_call_full(&de_call);
+                        
+                        // Save RX message to band_activity
+                        let db_guard = db_arc.lock().await;
+                        if let Some(pool) = db_guard.as_ref() {
+                            let time_utc = format_time_from_ms(decode.time_ms);
+                            let _ = save_band_activity(
+                                pool,
+                                &time_utc,
+                                Some(decode.time_ms as i64),
+                                "rx",
+                                &decode.message,
+                                Some(decode.snr),
+                                Some(decode.delta_freq as i32),
+                                Some(&de_call),
+                                dx_call.as_deref(),
+                                None, // dial_freq not in decode
+                                Some(&decode.mode),
+                            ).await;
+                        }
+                        drop(db_guard);
                         
                         let _ = app_handle.emit("wsjtx-decode", serde_json::json!({
                             "time_ms": decode.time_ms,
                             "snr": decode.snr,
+                            "delta_time": decode.delta_time,
                             "delta_freq": decode.delta_freq,
                             "mode": decode.mode,
                             "message": decode.message,
-                            "call": call,
+                            "de_call": de_call,
+                            "dx_call": dx_call,
+                            "call": de_call, // backwards compat - the station sending
                             "grid": grid,
                             "msg_type": format!("{:?}", msg_type),
                             "dxcc": lookup.dxcc,
@@ -92,11 +165,15 @@ pub async fn start_udp_listener(
                     if let Some(pool) = db_guard.as_ref() {
                         if let Err(e) = insert_qso_from_wsjtx(pool, &qso).await {
                             log::error!("Failed to insert QSO: {}", e);
+                        } else {
+                            log::info!("QSO inserted successfully: {}", qso.call);
                         }
+                    } else {
+                        log::warn!("Database not ready, QSO not saved: {}", qso.call);
                     }
                     drop(db_guard);
                     
-                    // Emit event to frontend
+                    // Emit event to frontend (always, even if db insert failed)
                     let _ = app_handle.emit("qso-logged", QsoEvent::from_wsjtx(&qso));
                 }
                 UdpMessage::Heartbeat { id, version, .. } => {
@@ -105,18 +182,60 @@ pub async fn start_udp_listener(
                         "version": version,
                     }));
                 }
-                UdpMessage::Status { id, dial_freq, mode, dx_call, tx_enabled, transmitting, .. } => {
+                UdpMessage::Status { id, dial_freq, mode, dx_call, report, tx_enabled, transmitting, tx_message, .. } => {
+                    // Save TX message to band_activity when transmitting starts
+                    if transmitting && !tx_message.is_empty() && tx_message != last_tx_msg {
+                        last_tx_msg = tx_message.clone();
+                        
+                        let db_guard = db_arc.lock().await;
+                        if let Some(pool) = db_guard.as_ref() {
+                            // Extract de_call (us) and dx_call from tx_message
+                            let (de_call, parsed_dx_call) = parse_tx_message_calls(&tx_message);
+                            let time_utc = get_current_utc_time();
+                            
+                            let _ = save_band_activity(
+                                pool,
+                                &time_utc,
+                                None,
+                                "tx",
+                                &tx_message,
+                                None, // No SNR for TX
+                                None, // No delta_freq for TX
+                                de_call.as_deref(),
+                                parsed_dx_call.as_deref(),
+                                Some(dial_freq as f64),
+                                Some(&mode),
+                            ).await;
+                        }
+                        drop(db_guard);
+                    }
+                    
+                    // Clear last_tx_msg when not transmitting (prepare for next TX)
+                    if !transmitting {
+                        last_tx_msg.clear();
+                    }
+                    
                     let _ = app_handle.emit("wsjtx-status", serde_json::json!({
                         "id": id,
                         "dial_freq": dial_freq,
                         "mode": mode,
                         "dx_call": dx_call,
+                        "report": report,
                         "tx_enabled": tx_enabled,
                         "transmitting": transmitting,
+                        "tx_message": tx_message,
                     }));
                 }
                 UdpMessage::Connected => {
                     let _ = app_handle.emit("udp-connected", ());
+                }
+                UdpMessage::Clear { id, window } => {
+                    // Clear message from WSJT-X - clear band activity
+                    log::debug!("Clear window {} from {}", window, id);
+                    let _ = app_handle.emit("wsjtx-clear", serde_json::json!({
+                        "id": id,
+                        "window": window,
+                    }));
                 }
                 UdpMessage::Disconnected => {
                     let _ = app_handle.emit("udp-disconnected", ());
@@ -137,6 +256,43 @@ pub async fn stop_udp_listener(state: tauri::State<'_, AppState>) -> Result<(), 
     state.udp_state.set_running(false);
     log::info!("Stopping UDP listener");
     Ok(())
+}
+
+/// Send a Reply message to WSJT-X to call a station
+/// This is equivalent to double-clicking on a decode in WSJT-X
+#[command]
+pub async fn call_station(
+    state: tauri::State<'_, AppState>,
+    time_ms: u32,
+    snr: i32,
+    delta_time: f64,
+    delta_freq: u32,
+    mode: String,
+    message: String,
+    low_confidence: bool,
+) -> Result<(), String> {
+    use crate::udp::listener::send_reply;
+    use crate::udp::wsjtx::ReplyMessage;
+    
+    // Get the WSJT-X instance ID
+    let id = state.udp_state.get_wsjtx_id()
+        .ok_or("WSJT-X not connected - no heartbeat received yet")?;
+    
+    let reply = ReplyMessage {
+        id,
+        time_ms,
+        snr,
+        delta_time,
+        delta_freq,
+        mode,
+        message: message.clone(),
+        low_confidence,
+        modifiers: 0x00, // No modifiers
+    };
+    
+    log::info!("Calling station from message: {}", message);
+    
+    send_reply(&state.udp_state, reply)
 }
 
 #[command]
@@ -408,14 +564,13 @@ pub async fn add_qso(
     let uuid = uuid::Uuid::new_v4().to_string();
     let source = qso.source.unwrap_or_else(|| "manual".to_string());
     
-    // Look up DXCC entity for the callsign
-    let (dxcc, country) = crate::reference::lookup_call(&qso.call);
-    let continent = dxcc.and_then(|d| crate::reference::get_continent(d));
+    // Look up DXCC entity for the callsign (full lookup includes continent, cqz, ituz)
+    let lookup = crate::reference::lookup_call_full(&qso.call);
     
     let result = sqlx::query(
         r#"
-        INSERT INTO qsos (uuid, call, qso_date, time_on, band, mode, freq, dxcc, country, continent, gridsquare, rst_sent, rst_rcvd, source, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+        INSERT INTO qsos (uuid, call, qso_date, time_on, band, mode, freq, dxcc, country, continent, cqz, ituz, gridsquare, rst_sent, rst_rcvd, source, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
         "#
     )
     .bind(&uuid)
@@ -425,9 +580,11 @@ pub async fn add_qso(
     .bind(&qso.band)
     .bind(&qso.mode)
     .bind(qso.freq)
-    .bind(dxcc)
-    .bind(&country)
-    .bind(&continent)
+    .bind(lookup.dxcc)
+    .bind(&lookup.country)
+    .bind(&lookup.continent)
+    .bind(lookup.cqz)
+    .bind(lookup.ituz)
     .bind(&qso.gridsquare)
     .bind(&qso.rst_sent)
     .bind(&qso.rst_rcvd)
@@ -437,6 +594,15 @@ pub async fn add_qso(
     .map_err(|e| e.to_string())?;
     
     let id = result.last_insert_rowid();
+    
+    // Add to sync queue for LoTW upload
+    let _ = sqlx::query(
+        "INSERT INTO sync_queue (qso_id, target, status, created_at) VALUES (?, 'LOTW', 'pending', datetime('now'))"
+    )
+    .bind(id)
+    .execute(pool)
+    .await;
+    
     let now = chrono::Utc::now().to_rfc3339();
     
     Ok(Qso {
@@ -450,13 +616,13 @@ pub async fn add_qso(
         band: qso.band,
         mode: qso.mode,
         freq: qso.freq,
-        dxcc,
-        country,
-        continent,
+        dxcc: lookup.dxcc,
+        country: lookup.country,
+        continent: lookup.continent,
         state: None,
         gridsquare: qso.gridsquare,
-        cqz: None,
-        ituz: None,
+        cqz: lookup.cqz,
+        ituz: lookup.ituz,
         rst_sent: qso.rst_sent,
         rst_rcvd: qso.rst_rcvd,
         station_callsign: None,
@@ -840,6 +1006,8 @@ pub async fn add_test_qsos(
 #[derive(Debug, Serialize)]
 pub struct SyncStatus {
     pub pending_uploads: i32,
+    pub total_qsos: i32,
+    pub qsls_received: i32,
     pub last_upload: Option<String>,
     pub last_download: Option<String>,
     pub is_syncing: bool,
@@ -905,16 +1073,21 @@ pub async fn sync_lotw_download(
         let band = record.band().map(|s| s.to_uppercase()).unwrap_or_default();
         let mode = record.mode().map(|s| s.to_uppercase()).unwrap_or_default();
         let qso_date = record.qso_date().map(|s| s.to_string()).unwrap_or_default();
+        let time_on = record.time_on().map(|s| s.to_string()).unwrap_or_default();
         
-        // Try to match by call, band, and date (mode may differ slightly)
+        // Match by call, band, date, and time_on prefix
+        // LoTW may send 4-char time (HHMM) while we store 6-char (HHMMSS)
+        // Use prefix matching: our time_on LIKE 'HHMM%'
         let match_result = sqlx::query(
             r#"SELECT id FROM qsos 
                WHERE UPPER(call) = ? AND UPPER(band) = ? AND qso_date = ?
+                 AND time_on LIKE ? || '%'
                LIMIT 1"#
         )
         .bind(call.to_uppercase())
         .bind(&band)
         .bind(&qso_date)
+        .bind(&time_on)
         .fetch_optional(pool)
         .await;
         
@@ -1013,16 +1186,19 @@ pub async fn get_sync_status(
     let db_guard = state.db.lock().await;
     let pool = db_guard.as_ref().ok_or("Database not initialized")?;
     
-    // Count QSOs not yet confirmed by LoTW (no confirmation record with source='LOTW' and qsl_rcvd='Y')
-    // Combined single query for all sync status data
+    // Count QSOs not yet UPLOADED to LoTW (no confirmation record with source='LOTW' and qsl_sent='Y')
+    // This is distinct from "pending confirmation" (sent but not yet confirmed)
     let row = sqlx::query(
         "SELECT 
+            (SELECT COUNT(*) FROM qsos) as total_qsos,
             (SELECT COUNT(*) FROM qsos q 
              WHERE NOT EXISTS (
                 SELECT 1 FROM confirmations c 
-                WHERE c.qso_id = q.id AND c.source = 'LOTW' AND c.qsl_rcvd = 'Y'
+                WHERE c.qso_id = q.id AND c.source = 'LOTW' AND c.qsl_sent = 'Y'
              )) as pending,
+            (SELECT COUNT(DISTINCT qso_id) FROM confirmations WHERE source = 'LOTW' AND qsl_rcvd = 'Y') as qsls_received,
             (SELECT value FROM settings WHERE key = 'lotw_last_download') as last_download,
+            (SELECT value FROM settings WHERE key = 'lotw_last_upload') as last_upload,
             EXISTS(SELECT 1 FROM settings WHERE key = 'lotw_username' AND value IS NOT NULL AND value != '') as has_creds"
     )
     .fetch_one(pool)
@@ -1031,7 +1207,9 @@ pub async fn get_sync_status(
     
     Ok(SyncStatus {
         pending_uploads: row.get::<i64, _>("pending") as i32,
-        last_upload: None,
+        total_qsos: row.get::<i64, _>("total_qsos") as i32,
+        qsls_received: row.get::<i64, _>("qsls_received") as i32,
+        last_upload: row.try_get::<String, _>("last_upload").ok(),
         last_download: row.try_get::<String, _>("last_download").ok(),
         is_syncing: false,
         lotw_configured: row.get::<bool, _>("has_creds"),
@@ -1060,6 +1238,181 @@ pub async fn detect_tqsl_path() -> Result<Option<String>, String> {
     
     log::warn!("TQSL not found in common locations");
     Ok(None)
+}
+
+// ============================================================================
+// LoTW Upload via TQSL
+// ============================================================================
+
+#[derive(Debug, Serialize)]
+pub struct LotwUploadResult {
+    pub qsos_exported: usize,
+    pub success: bool,
+    pub message: String,
+}
+
+/// Upload pending QSOs to LoTW using TQSL command-line interface.
+/// This exports unconfirmed QSOs as ADIF and calls TQSL to sign and upload.
+#[command]
+pub async fn upload_to_lotw(
+    state: tauri::State<'_, AppState>,
+    tqsl_path: String,
+) -> Result<LotwUploadResult, String> {
+    use std::io::Write;
+    
+    log::info!("Starting LoTW upload via TQSL");
+    
+    // Get database connection
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    // Query for QSOs that haven't been sent to LoTW yet
+    // A QSO is "pending upload" if it has no LOTW confirmation record with qsl_sent = 'Y'
+    // Note: source is stored as uppercase 'LOTW' in the database
+    let rows = sqlx::query(
+        r#"
+        SELECT q.* FROM qsos q
+        LEFT JOIN confirmations c ON q.id = c.qso_id AND c.source = 'LOTW'
+        WHERE c.id IS NULL OR c.qsl_sent IS NULL OR c.qsl_sent != 'Y'
+        ORDER BY q.qso_date DESC, q.time_on DESC
+        "#
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| format!("Failed to query pending QSOs: {}", e))?;
+    
+    if rows.is_empty() {
+        return Ok(LotwUploadResult {
+            qsos_exported: 0,
+            success: true,
+            message: "No pending QSOs to upload".to_string(),
+        });
+    }
+    
+    // Collect QSO IDs for marking as sent after upload
+    use sqlx::Row;
+    let qso_ids: Vec<i64> = rows.iter().map(|r| r.get::<i64, _>("id")).collect();
+    
+    // Convert rows to JSON for ADIF export
+    let qsos: Vec<serde_json::Value> = rows.iter().map(|r| row_to_json(r)).collect();
+    let qso_count = qsos.len();
+    
+    log::info!("Exporting {} QSOs for LoTW upload", qso_count);
+    
+    // Generate ADIF content
+    let records: Vec<std::collections::HashMap<String, String>> = qsos
+        .iter()
+        .map(|q| crate::adif::writer::qso_to_adif(q))
+        .collect();
+    
+    let adif_content = crate::adif::write_adif(&records, "GoQSO");
+    
+    // Write to temp file
+    let temp_dir = std::env::temp_dir();
+    let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
+    let temp_file = temp_dir.join(format!("goqso_upload_{}.adi", timestamp));
+    
+    let mut file = std::fs::File::create(&temp_file)
+        .map_err(|e| format!("Failed to create temp file: {}", e))?;
+    file.write_all(adif_content.as_bytes())
+        .map_err(|e| format!("Failed to write ADIF file: {}", e))?;
+    
+    log::info!("Wrote ADIF to: {}", temp_file.display());
+    
+    // Call TQSL to sign and upload
+    // Per https://lotw.arrl.org/lotw-help/cmdline/
+    // -d = suppress date-range dialog
+    // -u = upload to LoTW after signing
+    // -a compliant = skip duplicates/out-of-range, sign all valid QSOs
+    // -x = batch mode, exit when done (status to stderr)
+    // Note: If no -l specified, TQSL will prompt for Station Location
+    let output = std::process::Command::new(&tqsl_path)
+        .args(["-d", "-u", "-a", "compliant", "-x"])
+        .arg(&temp_file)
+        .output()
+        .map_err(|e| format!("Failed to execute TQSL: {}", e))?;
+    
+    // Clean up temp file
+    let _ = std::fs::remove_file(&temp_file);
+    
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    
+    log::info!("TQSL exit code: {:?}", output.status.code());
+    log::info!("TQSL stdout: {}", stdout);
+    log::info!("TQSL stderr: {}", stderr);
+    
+    // TQSL exit codes per https://lotw.arrl.org/lotw-help/cmdline/
+    // 0 = success: all QSOs submitted were signed and uploaded
+    // 1 = cancelled by user
+    // 2 = rejected by LoTW
+    // 3 = unexpected response from TQSL server
+    // 4 = TQSL error
+    // 5 = TQSLlib error
+    // 6 = unable to open input file
+    // 7 = unable to open output file
+    // 8 = no QSOs processed (all duplicates or out of date range)
+    // 9 = some QSOs processed, some ignored (duplicates/out of range)
+    // 10 = command syntax error
+    // 11 = LoTW connection error
+    
+    let success = matches!(output.status.code(), Some(0) | Some(9));
+    
+    // Mark QSOs as sent to LoTW if upload succeeded (code 0, 8, or 9)
+    // Code 8 means all were duplicates - they were already sent before
+    if matches!(output.status.code(), Some(0) | Some(8) | Some(9)) {
+        let today = chrono::Utc::now().format("%Y%m%d").to_string();
+        for qso_id in &qso_ids {
+            // Insert or update confirmation record with qsl_sent = 'Y'
+            sqlx::query(
+                r#"
+                INSERT INTO confirmations (qso_id, source, qsl_sent, qsl_sent_date)
+                VALUES (?, 'LOTW', 'Y', ?)
+                ON CONFLICT(qso_id, source) DO UPDATE SET
+                    qsl_sent = 'Y',
+                    qsl_sent_date = COALESCE(confirmations.qsl_sent_date, excluded.qsl_sent_date)
+                "#
+            )
+            .bind(qso_id)
+            .bind(&today)
+            .execute(pool)
+            .await
+            .map_err(|e| format!("Failed to mark QSO {} as sent: {}", qso_id, e))?;
+        }
+        log::info!("Marked {} QSOs as sent to LoTW", qso_ids.len());
+        
+        // Save last upload date
+        let now = chrono::Utc::now().to_rfc3339();
+        sqlx::query("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('lotw_last_upload', ?, ?)")
+            .bind(&now)
+            .bind(&now)
+            .execute(pool)
+            .await
+            .map_err(|e| format!("Failed to save last upload date: {}", e))?;
+    }
+    
+    let message = match output.status.code() {
+        Some(0) => format!("Successfully uploaded {} QSO(s) to LoTW", qso_count),
+        Some(9) => format!("Uploaded QSOs to LoTW - some duplicates skipped"),
+        Some(1) => "Upload cancelled by user".to_string(),
+        Some(2) => format!("Rejected by LoTW: {}", stderr),
+        Some(3) => format!("Unexpected response from LoTW server: {}", stderr),
+        Some(4) => format!("TQSL error: {}", stderr),
+        Some(5) => format!("TQSLlib error: {}", stderr),
+        Some(6) => "Unable to open input file".to_string(),
+        Some(7) => "Unable to open output file".to_string(),
+        Some(8) => "No QSOs uploaded (all were duplicates or out of date range)".to_string(),
+        Some(10) => format!("Command syntax error: {}", stderr),
+        Some(11) => "LoTW connection error - check your internet connection".to_string(),
+        Some(code) => format!("TQSL error (code {}): {}", code, stderr),
+        None => format!("TQSL process terminated unexpectedly: {}", stderr),
+    };
+    
+    Ok(LotwUploadResult {
+        qsos_exported: qso_count,
+        success,
+        message,
+    })
 }
 
 // ============================================================================
@@ -1645,4 +1998,205 @@ pub async fn get_was_progress(
         worked_states: worked_states.into_iter().map(|(s,)| s).collect(),
         confirmed_states: confirmed_states.into_iter().map(|(s,)| s).collect(),
     })
+}
+
+// ============================================================================
+// Diagnostic Commands
+// ============================================================================
+
+#[derive(Debug, Serialize)]
+pub struct QsoDiagnostic {
+    pub call: String,
+    pub qso_date: String,
+    pub time_on: String,
+    pub band: String,
+    pub mode: String,
+    pub source: Option<String>,
+    pub has_lotw_confirmation: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DiagnosticReport {
+    pub total_qsos: i64,
+    pub confirmed_count: i64,
+    pub pending_count: i64,
+    pub by_source: Vec<(String, i64)>,
+    pub duplicate_candidates: Vec<String>,
+    pub qsos_not_in_lotw_window: Vec<QsoDiagnostic>,
+}
+
+/// Get diagnostic information about QSO data for troubleshooting
+#[command]
+pub async fn get_qso_diagnostics(
+    state: tauri::State<'_, AppState>,
+) -> Result<DiagnosticReport, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    // Total QSOs
+    let total: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM qsos")
+        .fetch_one(pool).await.map_err(|e| e.to_string())?;
+    
+    // Confirmed count (has LoTW confirmation with qsl_rcvd='Y')
+    let confirmed: (i64,) = sqlx::query_as(
+        r#"SELECT COUNT(DISTINCT q.id) FROM qsos q
+           JOIN confirmations c ON c.qso_id = q.id
+           WHERE c.source = 'LOTW' AND c.qsl_rcvd = 'Y'"#
+    ).fetch_one(pool).await.map_err(|e| e.to_string())?;
+    
+    // QSOs by source
+    let by_source: Vec<(String, i64)> = sqlx::query_as(
+        "SELECT COALESCE(source, 'unknown') as src, COUNT(*) as cnt FROM qsos GROUP BY source ORDER BY cnt DESC"
+    ).fetch_all(pool).await.unwrap_or_default();
+    
+    // Find potential duplicates (same call+date+band but different times within 5 min)
+    let dupe_candidates: Vec<(String,)> = sqlx::query_as(
+        r#"SELECT DISTINCT a.call || ' on ' || a.qso_date || ' ' || a.band 
+           FROM qsos a 
+           JOIN qsos b ON a.call = b.call AND a.qso_date = b.qso_date AND a.band = b.band AND a.id != b.id
+           WHERE ABS(CAST(SUBSTR(a.time_on, 1, 2) * 60 + SUBSTR(a.time_on, 3, 2) AS INTEGER) - 
+                     CAST(SUBSTR(b.time_on, 1, 2) * 60 + SUBSTR(b.time_on, 3, 2) AS INTEGER)) < 5
+           LIMIT 20"#
+    ).fetch_all(pool).await.unwrap_or_default();
+    
+    // QSOs that might not be in LoTW (before Feb 2023 or different characteristics)
+    // LoTW shows oldest from 2023-02-04, so check for older QSOs
+    let not_in_lotw: Vec<QsoDiagnostic> = sqlx::query_as::<_, (String, String, String, String, String, Option<String>, bool)>(
+        r#"SELECT q.call, q.qso_date, q.time_on, q.band, q.mode, q.source,
+           EXISTS(SELECT 1 FROM confirmations c WHERE c.qso_id = q.id AND c.source = 'LOTW') as has_lotw
+           FROM qsos q
+           WHERE q.qso_date < '20230204' OR q.source = 'ADIF'
+           ORDER BY q.qso_date DESC
+           LIMIT 20"#
+    ).fetch_all(pool).await.unwrap_or_default()
+     .into_iter()
+     .map(|(call, date, time, band, mode, source, has_lotw)| QsoDiagnostic {
+         call, qso_date: date, time_on: time, band, mode, source, has_lotw_confirmation: has_lotw
+     })
+     .collect();
+    
+    Ok(DiagnosticReport {
+        total_qsos: total.0,
+        confirmed_count: confirmed.0,
+        pending_count: total.0 - confirmed.0,
+        by_source: by_source,
+        duplicate_candidates: dupe_candidates.into_iter().map(|(s,)| s).collect(),
+        qsos_not_in_lotw_window: not_in_lotw,
+    })
+}
+
+// ============================================================================
+// Band Activity Commands
+// ============================================================================
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BandActivityMessage {
+    pub id: i64,
+    pub time_utc: String,
+    pub time_ms: Option<i64>,
+    pub direction: String,
+    pub message: String,
+    pub snr: Option<i32>,
+    pub delta_freq: Option<i32>,
+    pub de_call: Option<String>,
+    pub dx_call: Option<String>,
+    pub dial_freq: Option<f64>,
+    pub mode: Option<String>,
+}
+
+/// Save a band activity message (TX or RX)
+pub async fn save_band_activity(
+    pool: &Pool<Sqlite>,
+    time_utc: &str,
+    time_ms: Option<i64>,
+    direction: &str,
+    message: &str,
+    snr: Option<i32>,
+    delta_freq: Option<i32>,
+    de_call: Option<&str>,
+    dx_call: Option<&str>,
+    dial_freq: Option<f64>,
+    mode: Option<&str>,
+) -> Result<(), String> {
+    sqlx::query(
+        r#"INSERT INTO band_activity 
+           (time_utc, time_ms, direction, message, snr, delta_freq, de_call, dx_call, dial_freq, mode)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"#
+    )
+    .bind(time_utc)
+    .bind(time_ms)
+    .bind(direction)
+    .bind(message)
+    .bind(snr)
+    .bind(delta_freq)
+    .bind(de_call)
+    .bind(dx_call)
+    .bind(dial_freq)
+    .bind(mode)
+    .execute(pool)
+    .await
+    .map_err(|e| format!("Failed to save band activity: {}", e))?;
+    
+    Ok(())
+}
+
+/// Get recent band activity messages
+#[command]
+pub async fn get_recent_activity(
+    state: tauri::State<'_, AppState>,
+    minutes: Option<i32>,
+) -> Result<Vec<BandActivityMessage>, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let mins = minutes.unwrap_or(60);
+    
+    let rows: Vec<(i64, String, Option<i64>, String, String, Option<i32>, Option<i32>, Option<String>, Option<String>, Option<f64>, Option<String>)> = sqlx::query_as(
+        r#"SELECT id, time_utc, time_ms, direction, message, snr, delta_freq, de_call, dx_call, dial_freq, mode
+           FROM band_activity
+           WHERE created_at > datetime('now', ? || ' minutes')
+           ORDER BY created_at ASC"#
+    )
+    .bind(format!("-{}", mins))
+    .fetch_all(pool)
+    .await
+    .map_err(|e| format!("Failed to get band activity: {}", e))?;
+    
+    Ok(rows.into_iter().map(|(id, time_utc, time_ms, direction, message, snr, delta_freq, de_call, dx_call, dial_freq, mode)| {
+        BandActivityMessage {
+            id,
+            time_utc,
+            time_ms,
+            direction,
+            message,
+            snr,
+            delta_freq,
+            de_call,
+            dx_call,
+            dial_freq,
+            mode,
+        }
+    }).collect())
+}
+
+/// Clear old band activity messages (older than specified minutes)
+#[command]
+pub async fn prune_band_activity(
+    state: tauri::State<'_, AppState>,
+    older_than_minutes: Option<i32>,
+) -> Result<i64, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    let mins = older_than_minutes.unwrap_or(60);
+    
+    let result = sqlx::query(
+        r#"DELETE FROM band_activity WHERE created_at < datetime('now', ? || ' minutes')"#
+    )
+    .bind(format!("-{}", mins))
+    .execute(pool)
+    .await
+    .map_err(|e| format!("Failed to prune band activity: {}", e))?;
+    
+    Ok(result.rows_affected() as i64)
 }

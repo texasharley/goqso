@@ -9,6 +9,70 @@ Always read .github/copilot-instructions.md before doing anything!!!
 
 **GoQSO** is an offline-first FT8 auto-logger with LoTW sync and ARRL awards tracking. It automates logging FT8 QSOs from WSJT-X with automatic DXCC/state lookup and LoTW integration.
 
+## Long-Term Vision: Standalone Radio Operation
+
+> **Goal**: Operate FT8 (and eventually other digital modes) directly from GoQSO without WSJT-X.
+
+**Current State**: WSJT-X provides FT8 encode/decode, audio I/O, and radio control. GoQSO provides superior logging, awards tracking, and LoTW integration.
+
+**Target State**: GoQSO handles everything - direct IC-7300 control, audio, digital mode codec, waterfall.
+
+### Gaps to Close (Priority Order)
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **1. Radio CAT Control** | ❌ | IC-7300 CI-V protocol over USB serial |
+| **2. Audio I/O** | ❌ | `cpal` crate for cross-platform audio |
+| **3. Waterfall Display** | ❌ | Real-time FFT, WebGL canvas |
+| **4. Digital Mode Codec** | ❌ | Pure Rust implementation (see below) |
+| **5. Period Timing** | ⚠️ | Basic timer exists, need tighter sync |
+
+### Digital Mode Codec (Pure Rust)
+
+> **Philosophy**: Build a native Rust signal processing engine - no C bindings to `ft8_lib` or `libwsjtx`.
+
+**Target Modes** (in priority order):
+1. **FT8** - Primary, most popular weak-signal mode
+2. **FT4** - Faster variant (7.5s periods)
+3. **JS8** - Keyboard-to-keyboard chat (JS8Call compatible)
+4. **WSPR** - Beacon/propagation monitoring
+5. **MSK144** - Meteor scatter
+
+**Architecture**:
+```
+src-tauri/src/codec/
+├── mod.rs           # Codec trait, mode registry
+├── ft8/             # FT8 encode/decode
+│   ├── encoder.rs   # Message → GFSK audio waveform
+│   ├── decoder.rs   # FFT → tone detection → LDPC → message
+│   └── ldpc.rs      # Low-density parity check
+├── common/          # Shared DSP primitives
+│   ├── fft.rs       # FFT (use rustfft crate)
+│   ├── gfsk.rs      # Gaussian FSK modulation
+│   └── sync.rs      # Costas array sync detection
+└── audio/           # Audio pipeline (future)
+```
+
+**Key Crates**:
+- `rustfft` - Fast Fourier Transform
+- `hound` - WAV file I/O for testing
+- `cpal` - Real-time audio capture/playback
+
+**Why Pure Rust?**
+1. Single binary, no DLL dependencies
+2. Memory safety in DSP code
+3. Cross-platform without build complexity
+4. Learn the algorithms deeply (educational value)
+5. Opportunity to optimize for modern CPUs
+
+### Design Principle
+
+When making architectural decisions, prefer approaches that:
+1. Keep audio/DSP logic in Rust (future codec integration)
+2. Abstract radio control behind traits (support multiple radios later)
+3. Maintain clean separation between UI and signal processing
+4. Build toward real-time audio pipeline capability
+
 ## Tech Stack
 
 - **Frontend**: React 18 + TypeScript + Tailwind CSS + Vite
@@ -46,6 +110,24 @@ goqso/
 Windows: %APPDATA%\com.goqso.app\goqso.db
 macOS:   ~/Library/Application Support/com.goqso.app/goqso.db
 Linux:   ~/.local/share/com.goqso.app/goqso.db
+```
+
+### Querying the Database (PowerShell)
+
+sqlite3 CLI installed via `winget install SQLite.SQLite`. Example queries:
+
+```powershell
+# Count all QSOs
+sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT COUNT(*) FROM qsos"
+
+# List confirmed QSOs
+sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT q.call, q.qso_date, q.time_on, q.band FROM qsos q JOIN confirmations c ON q.id = c.qso_id WHERE c.source = 'LOTW' AND c.qsl_rcvd = 'Y'"
+
+# Check specific callsign
+sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT * FROM qsos WHERE call = 'N1PRR'"
+
+# View table schema
+sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" ".schema qsos"
 ```
 
 ## Database Schema
@@ -159,6 +241,7 @@ Based on:
 
 ### LoTW Integration
 - `sync_lotw_download(username, password, since_date)` - Download confirmations
+- `upload_to_lotw(tqsl_path)` - Upload pending QSOs via TQSL CLI
 - `get_sync_status` - Get pending uploads, last sync dates
 - `detect_tqsl_path` - Find TQSL installation
 - `import_lotw_confirmations` - Process downloaded confirmations
@@ -175,10 +258,19 @@ Based on:
 
 ## LoTW API Integration
 
-### Endpoints (GET only - no uploads yet)
+### Download (GET)
 - `lotwreport.adi` - Download QSL confirmations
 - `qslcards.php` - Download DXCC credits
 - `lotw-user-activity.csv` - Check if callsign is LoTW user
+
+### Upload (via TQSL CLI)
+- Per https://lotw.arrl.org/lotw-help/cmdline/
+- Command: `tqsl.exe -d -u -a compliant -x <file.adi>`
+  - `-d` = suppress date-range dialog
+  - `-u` = upload to LoTW after signing
+  - `-a compliant` = skip duplicates/out-of-range, sign valid QSOs
+  - `-x` = batch mode, exit when done
+- Exit codes: 0=success, 9=partial (some duplicates), 8=all duplicates
 
 ### Client Location
 `src-tauri/src/lotw/client.rs` - LotwClient with reqwest

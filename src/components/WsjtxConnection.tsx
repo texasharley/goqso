@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { Radio, Wifi, WifiOff, Play, Square } from "lucide-react";
+import { PeriodTimer } from "./PeriodTimer";
 
 interface UdpStatus {
   running: boolean;
@@ -175,24 +176,37 @@ export function WsjtxConnection() {
 
       {/* WSJT-X Status */}
       {wsjtxStatus && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm border-t border-border pt-4">
-          <div>
-            <span className="text-muted-foreground">Frequency: </span>
-            <span className="font-mono">{formatFrequency(wsjtxStatus.dial_freq)}</span>
+        <div className="border-t border-border pt-4 space-y-3">
+          {/* Period Timer - prominent position */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <PeriodTimer 
+                isTransmitting={wsjtxStatus.transmitting} 
+                mode={wsjtxStatus.mode}
+              />
+            </div>
           </div>
-          <div>
-            <span className="text-muted-foreground">Mode: </span>
-            <span className="font-mono">{wsjtxStatus.mode}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">DX Call: </span>
-            <span className="font-mono">{wsjtxStatus.dx_call || "—"}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">TX: </span>
-            <span className={wsjtxStatus.transmitting ? "text-red-500 font-bold" : ""}>
-              {wsjtxStatus.transmitting ? "TRANSMITTING" : wsjtxStatus.tx_enabled ? "Enabled" : "Off"}
-            </span>
+          
+          {/* Status info row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Frequency: </span>
+              <span className="font-mono">{formatFrequency(wsjtxStatus.dial_freq)}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Mode: </span>
+              <span className="font-mono">{wsjtxStatus.mode}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">DX Call: </span>
+              <span className="font-mono">{wsjtxStatus.dx_call || "—"}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">TX: </span>
+              <span className={wsjtxStatus.transmitting ? "text-red-500 font-bold" : ""}>
+                {wsjtxStatus.transmitting ? "TRANSMITTING" : wsjtxStatus.tx_enabled ? "Enabled" : "Off"}
+              </span>
+            </div>
           </div>
         </div>
       )}
