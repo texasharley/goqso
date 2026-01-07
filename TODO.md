@@ -96,6 +96,116 @@ See `CLAUDE.md` section "Data Population Strategy" for full documentation.
 
 ---
 
+## 🔴 CURRENT SPRINT - Active QSO Bugs (v0.2.1)
+
+### Issue 1: RX Messages Not Showing in Active QSO Panel
+
+**Problem:** When in a QSO, messages FROM the other station (RX) are not appearing in the Active QSO message log, even though they ARE being decoded and shown in Band Activity.
+
+**Expected Behavior:** When KB9FIN sends "N5JKK KB9FIN -12", that message should appear in the Active QSO panel as an RX message.
+
+**Current State:** Only TX messages appear. The Active QSO panel shows our outgoing transmissions but not incoming replies.
+
+**Key Code Location:** `src/components/ActiveQso.tsx` - the `wsjtx-decode` listener (around line 300+)
+
+**Root Cause Analysis (based on TX fix):**
+
+The TX messages weren't appearing because of a flawed comparison check. The old code used:
+```tsx
+// OLD BROKEN CODE
+const lastTxRef = useRef<string>("");
+// ...
+if (isTransmitting && txMsg !== lastTxRef.current) {
+  lastTxRef.current = txMsg;
+  // Add message
+}
+```
+
+**Why it failed:** `lastTxRef` was NEVER cleared between TX cycles, so when the same message was transmitted again (e.g., repeated CQ calls), the comparison `txMsg !== lastTxRef.current` was FALSE and the message was never added.
+
+**The TX Fix (apply similar pattern to RX):**
+Changed to edge detection - detect when transmission STARTS (rising edge):
+```tsx
+// NEW WORKING CODE
+const wasTransmittingRef = useRef(false);
+// ...
+const txJustStarted = isTransmitting && !wasTransmittingRef.current;
+wasTransmittingRef.current = isTransmitting;
+
+if (txJustStarted && txMsg) {
+  // Add message - no comparison needed, just detect TX start
+}
+```
+
+**For RX Fix:** Check if there's similar filtering logic preventing RX messages from being added. The decode listener should:
+1. Check if the message is directed at us (`decode.dx_call === myCall`)
+2. Add it to messages array via `addMessage("rx", ...)`
+3. Verify no duplicate prevention is blocking valid messages
+4. Verify `myCall` is being set correctly from heartbeat
+
+**Debug Steps:**
+1. Add console.log in the decode listener to see if RX messages ARE being received
+2. Check the `addMessage()` function for any filtering (there's a dedupe check)
+3. Verify `myCall` is populated before decodes arrive
+4. Check if `decode.dx_call` matches `myCall` (case sensitivity?)
+
+---
+
+### Issue 2: QSO Not Being Auto-Logged
+
+**Problem:** When a QSO completes (RR73/73 exchange), the QSO is not being automatically logged to the database.
+
+**Expected Behavior:** After receiving RR73 or 73 from the other station, and having exchanged reports, the QSO should auto-log.
+
+**Root Cause:** Almost certainly caused by Issue #1 above. The auto-log logic depends on:
+```tsx
+// Auto-log when QSO complete
+useEffect(() => {
+  if (state.mode === "qso_complete" && !state.logged && state.dxCall && state.rstRcvd) {
+    logQso(state);
+  }
+}, [state.mode, state.logged, state.dxCall, state.rstRcvd, logQso]);
+```
+
+**Why it fails:**
+1. `state.mode` never transitions to `"qso_complete"` because RX messages aren't being processed
+2. `state.rstRcvd` is never populated (again, RX processing issue)
+3. Both conditions fail → no auto-log
+
+**The QSO Complete Detection (current code):**
+```tsx
+// Check for QSO complete (RR73/73)
+if (msg.includes("RR73") || msg.includes("RRR") || msg.match(/\b73\b/)) {
+  if (prev.rstRcvd || theirReport) {
+    newState.mode = "qso_complete";
+  }
+}
+```
+
+This requires `rstRcvd` to be set from processing RX messages correctly.
+
+**Fix Order:**
+1. Fix RX message display (Issue #1)
+2. Verify rstRcvd is being extracted via `extractReport()`
+3. Verify mode transitions to "qso_complete" on 73/RR73
+4. QSO should then auto-log
+
+---
+
+## Key Insight from TX Fix
+
+**Don't compare current message to previous message to decide whether to add it.**
+
+Instead, detect STATE TRANSITIONS (e.g., `transmitting: false→true`) and add the message at that moment.
+
+For RX, there's no "was receiving" state - each decode is a discrete event. The issue is likely:
+- Filtering that's too aggressive
+- `myCall` not set when decode arrives
+- Case mismatch in callsign comparison
+- The `addMessage` dedupe logic blocking valid messages
+
+---
+
 ## 🔴 Critical Gaps (Remaining)
 
 ### 1. LoTW Upload (BLOCKED - Must Test First)
