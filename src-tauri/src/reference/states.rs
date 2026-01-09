@@ -67,6 +67,55 @@ pub const US_STATES: &[UsState] = &[
     UsState { code: "WY", name: "Wyoming" },
 ];
 
+// =========================================================================
+// CANADIAN PROVINCES AND TERRITORIES
+// =========================================================================
+// Used for ARRL sections, RAC Canada Winter Contest, etc.
+// Province/Territory codes follow Canada Post standards
+
+/// Canadian Province/Territory information for ARRL section tracking
+#[derive(Debug, Clone)]
+pub struct CanadianProvince {
+    /// Two-letter Canada Post abbreviation
+    pub code: &'static str,
+    /// Full province/territory name
+    pub name: &'static str,
+}
+
+/// All 13 Canadian provinces and territories
+pub const CANADIAN_PROVINCES: &[CanadianProvince] = &[
+    // Provinces (10)
+    CanadianProvince { code: "AB", name: "Alberta" },
+    CanadianProvince { code: "BC", name: "British Columbia" },
+    CanadianProvince { code: "MB", name: "Manitoba" },
+    CanadianProvince { code: "NB", name: "New Brunswick" },
+    CanadianProvince { code: "NL", name: "Newfoundland and Labrador" },
+    CanadianProvince { code: "NS", name: "Nova Scotia" },
+    CanadianProvince { code: "ON", name: "Ontario" },
+    CanadianProvince { code: "PE", name: "Prince Edward Island" },
+    CanadianProvince { code: "QC", name: "Quebec" },
+    CanadianProvince { code: "SK", name: "Saskatchewan" },
+    // Territories (3)
+    CanadianProvince { code: "NT", name: "Northwest Territories" },
+    CanadianProvince { code: "NU", name: "Nunavut" },
+    CanadianProvince { code: "YT", name: "Yukon" },
+];
+
+/// Get a Canadian province by its two-letter code
+pub fn get_province(code: &str) -> Option<&'static CanadianProvince> {
+    let code_upper = code.to_uppercase();
+    CANADIAN_PROVINCES.iter().find(|p| p.code == code_upper)
+}
+
+/// Get a Canadian province by name (case-insensitive)
+pub fn get_province_by_name(name: &str) -> Option<&'static CanadianProvince> {
+    let name_lower = name.to_lowercase();
+    CANADIAN_PROVINCES.iter().find(|p| p.name.to_lowercase() == name_lower)
+}
+
+/// Total number of Canadian provinces/territories
+pub const CANADA_TOTAL: usize = 13;
+
 /// Get a state by its two-letter code
 pub fn get_state(code: &str) -> Option<&'static UsState> {
     let code_upper = code.to_uppercase();

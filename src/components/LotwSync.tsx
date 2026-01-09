@@ -11,10 +11,19 @@ interface LotwSyncProps {
   onSyncComplete: (matched: number) => void;
 }
 
+interface UnmatchedQso {
+  call: string;
+  qso_date: string;
+  time_on: string;
+  band: string;
+  mode: string;
+}
+
 interface LotwDownloadResult {
   total_records: number;
   matched: number;
   unmatched: number;
+  unmatched_qsos: UnmatchedQso[];
   errors: string[];
   last_qsl: string | null;
 }
@@ -69,7 +78,8 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
   const [qslsReceived, setQslsReceived] = useState<number>(0);
   
   // Options
-  const [sinceDate, setSinceDate] = useState<string>("");
+  const [sinceDate, setSinceDate] = useState<string>(""); // Full datetime string for API
+  const [lastSyncDisplay, setLastSyncDisplay] = useState<string>(""); // Formatted for display
   const [syncMode, setSyncMode] = useState<"all" | "new">("all"); // Default to all for first sync
   const [isFirstSync, setIsFirstSync] = useState(true);
   
@@ -88,7 +98,16 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
         if (savedUsername) setUsername(savedUsername);
         if (savedPassword) setPassword(savedPassword);
         if (lastSync) {
-          setSinceDate(lastSync.split(" ")[0]); // Just the date part
+          // Keep the FULL datetime for API - LoTW accepts "YYYY-MM-DD HH:MM:SS" format
+          // This ensures we only get NEW confirmations since the exact last sync time
+          setSinceDate(lastSync);
+          // Format nicely for display
+          try {
+            const dt = new Date(lastSync.replace(' ', 'T'));
+            setLastSyncDisplay(dt.toLocaleString());
+          } catch {
+            setLastSyncDisplay(lastSync);
+          }
           setSyncMode("new"); // Switch to incremental mode if we have previous sync
           setIsFirstSync(false);
         }
@@ -153,12 +172,35 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
       
       setSyncResult(result);
       
-      // Save the last sync date
+      // Save the last sync date and update state for next sync
+      // IMPORTANT: Add 1 second to the timestamp because LoTW's qso_qslsince is INCLUSIVE
+      // (returns records "on or after" the date). Without this, the same record keeps returning.
       if (result.last_qsl) {
+        // Parse the datetime, add 1 second, format back to LoTW format
+        let nextSinceDate = result.last_qsl;
+        try {
+          const dt = new Date(result.last_qsl.replace(' ', 'T'));
+          dt.setSeconds(dt.getSeconds() + 1);
+          // Format back to "YYYY-MM-DD HH:MM:SS" format that LoTW expects
+          const year = dt.getFullYear();
+          const month = String(dt.getMonth() + 1).padStart(2, '0');
+          const day = String(dt.getDate()).padStart(2, '0');
+          const hours = String(dt.getHours()).padStart(2, '0');
+          const minutes = String(dt.getMinutes()).padStart(2, '0');
+          const seconds = String(dt.getSeconds()).padStart(2, '0');
+          nextSinceDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          setLastSyncDisplay(dt.toLocaleString());
+        } catch {
+          setLastSyncDisplay(result.last_qsl);
+        }
+        
         await invoke("set_setting", { 
           key: "lotw_last_download", 
-          value: result.last_qsl 
+          value: nextSinceDate 
         });
+        // Update local state so next "Sync Again" uses new date
+        setSinceDate(nextSinceDate);
+        setIsFirstSync(false);
       }
       
       if (result.matched > 0) {
@@ -446,7 +488,7 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
             {!isFirstSync && syncMode === "new" && sinceDate && (
               <div className="text-xs text-zinc-500 flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                Looking for confirmations since {new Date(sinceDate).toLocaleDateString()}
+                Looking for confirmations since {lastSyncDisplay || sinceDate}
               </div>
             )}
             {!isFirstSync && syncMode === "all" && (
@@ -508,15 +550,27 @@ export function LotwSync({ onClose, onSyncComplete }: LotwSyncProps) {
                 </div>
                 
                 {syncResult.unmatched > 0 && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-yellow-500/80">
-                      <AlertCircle className="h-4 w-4" />
-                      <span>Not in your log</span>
-                      <Tooltip text="The other station confirmed these QSOs, but they're not in GoQSO. They may be from a different logging program.">
-                        <HelpCircle className="h-3 w-3 text-zinc-500" />
-                      </Tooltip>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-yellow-500/80">
+                        <AlertCircle className="h-4 w-4" />
+                        <span>Not in your log</span>
+                        <Tooltip text="The other station confirmed these QSOs, but they're not in GoQSO. They may be from a different logging program.">
+                          <HelpCircle className="h-3 w-3 text-zinc-500" />
+                        </Tooltip>
+                      </div>
+                      <span className="text-yellow-500/80">{syncResult.unmatched}</span>
                     </div>
-                    <span className="text-yellow-500/80">{syncResult.unmatched}</span>
+                    {/* Show unmatched QSO details */}
+                    {syncResult.unmatched_qsos && syncResult.unmatched_qsos.length > 0 && (
+                      <div className="ml-6 text-xs text-yellow-600/70 space-y-0.5 max-h-20 overflow-y-auto">
+                        {syncResult.unmatched_qsos.map((qso, i) => (
+                          <div key={i} className="font-mono">
+                            {qso.call} • {qso.qso_date} {qso.time_on} • {qso.band} {qso.mode}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

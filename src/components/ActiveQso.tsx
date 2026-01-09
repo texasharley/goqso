@@ -1,14 +1,31 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { Radio, CheckCircle2, Zap, ArrowUp, ArrowDown } from "lucide-react";
+import { Radio, CheckCircle2, Zap, MapPin, Globe } from "lucide-react";
 import { freqToBand } from "@/lib/utils";
+import { lookupCallsign } from "@/hooks/useFccSync";
+
+// US state abbreviation to full name mapping
+const US_STATES: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+  MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+  OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+  VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+  DC: "Washington DC", PR: "Puerto Rico", VI: "Virgin Islands", GU: "Guam",
+};
 
 interface WsjtxStatus {
   id: string;
   dial_freq: number;
   mode: string;
   dx_call: string;
+  de_call: string;  // Our callsign from WSJT-X settings
   report: string;
   tx_enabled: boolean;
   transmitting: boolean;
@@ -51,6 +68,10 @@ interface ActiveQsoState {
   dxGrid: string | null;
   dxCountry: string | null;
   dxDxcc: number | null;
+  dxContinent: string | null;
+  dxCqz: number | null;
+  dxItuz: number | null;
+  dxState: string | null; // US state from FCC database
   rstSent: string | null;
   rstRcvd: string | null;
   startTime: number | null;
@@ -98,6 +119,10 @@ const INITIAL_STATE: ActiveQsoState = {
   dxGrid: null,
   dxCountry: null,
   dxDxcc: null,
+  dxContinent: null,
+  dxCqz: null,
+  dxItuz: null,
+  dxState: null,
   rstSent: null,
   rstRcvd: null,
   startTime: null,
@@ -114,6 +139,30 @@ export default function ActiveQso() {
   const loggingRef = useRef(false);
   const wasTransmittingRef = useRef(false); // Track TX state transitions
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const myCallRef = useRef<string>(""); // Ref to track myCall for closures
+  const lastActivityRef = useRef<number>(Date.now()); // Track last activity time
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    myCallRef.current = myCall;
+  }, [myCall]);
+
+  // Stale data timeout - reset to idle after 2 minutes of no activity
+  useEffect(() => {
+    const checkStale = setInterval(() => {
+      const now = Date.now();
+      const timeSinceActivity = now - lastActivityRef.current;
+      const TWO_MINUTES = 2 * 60 * 1000;
+      
+      // If no activity for 2 minutes and not in a completed QSO state, reset
+      if (timeSinceActivity > TWO_MINUTES && state.mode !== "idle" && state.mode !== "qso_complete") {
+        console.log("[ActiveQso] Resetting stale data after 2 minutes of inactivity");
+        setState(INITIAL_STATE);
+      }
+    }, 10000); // Check every 10 seconds
+    
+    return () => clearInterval(checkStale);
+  }, [state.mode]);
 
   // NOTE: We do NOT load all band activity here.
   // Active QSO only shows: 1) My TX messages, 2) RX messages directed at me
@@ -123,6 +172,40 @@ export default function ActiveQso() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [state.messages]);
+
+  // Look up FCC data when DX call changes (for US state info)
+  useEffect(() => {
+    if (!state.dxCall) return;
+    
+    // Only look up US callsigns (start with A, K, N, W)
+    const firstChar = state.dxCall.charAt(0).toUpperCase();
+    if (!["A", "K", "N", "W"].includes(firstChar)) return;
+    
+    // Capture the call we're looking up to avoid stale closure issues
+    const callToLookup = state.dxCall;
+    let cancelled = false;
+    
+    lookupCallsign(callToLookup).then((fccInfo) => {
+      if (cancelled) return;
+      if (fccInfo?.state) {
+        setState((prev) => {
+          // Only update if still the same call AND state not already set
+          if (prev.dxCall === callToLookup) {
+            console.log(`[ActiveQso] FCC lookup: ${callToLookup} -> ${fccInfo.state}`);
+            return { ...prev, dxState: fccInfo.state };
+          }
+          return prev;
+        });
+      }
+    }).catch((err) => {
+      console.warn(`FCC lookup failed for ${callToLookup}:`, err);
+    });
+    
+    // Cleanup: cancel pending lookups when call changes
+    return () => {
+      cancelled = true;
+    };
+  }, [state.dxCall]);
 
   // Log the QSO
   const logQso = useCallback(async (qsoState: ActiveQsoState) => {
@@ -159,6 +242,9 @@ export default function ActiveQso() {
   // Add a message to the log
   const addMessage = useCallback(
     (direction: "tx" | "rx", message: string, snr?: number, timeMs?: number, freq?: number) => {
+      // Update last activity timestamp
+      lastActivityRef.current = Date.now();
+      
       // For RX (decode) messages, timeMs is ms since midnight UTC
       // For TX messages, timeMs is not provided so we use current UTC time
       const time = timeMs ? formatTimeFromMidnight(timeMs) : getCurrentUtcTime();
@@ -183,17 +269,24 @@ export default function ActiveQso() {
   );
 
   useEffect(() => {
-    // Listen for heartbeat to get our callsign
+    // Listen for heartbeat (just for connection status, not callsign)
     const unlistenHeartbeat = listen<{ id: string; version: string }>("wsjtx-heartbeat", (event) => {
-      if (event.payload.id && event.payload.id !== myCall) {
-        setMyCall(event.payload.id);
-      }
+      // Note: heartbeat id is the instance name (e.g., "WSJT-X"), NOT the callsign
+      // We get the actual callsign from the Status message de_call field
+      console.log(`[ActiveQso] Heartbeat from WSJT-X instance: "${event.payload.id}"`);
     });
 
     // Listen for WSJT-X status
     const unlistenStatus = listen<WsjtxStatus>("wsjtx-status", (event) => {
       const status = event.payload;
       setWsjtxStatus(status);
+
+      // Get our callsign from de_call field (this is our actual callsign!)
+      if (status.de_call && status.de_call !== myCallRef.current) {
+        console.log(`[ActiveQso] Setting myCall from status.de_call: "${status.de_call}"`);
+        setMyCall(status.de_call);
+        myCallRef.current = status.de_call;
+      }
 
       const txMsg = status.tx_message?.trim() || "";
       const isTxEnabled = status.tx_enabled;
@@ -208,6 +301,9 @@ export default function ActiveQso() {
       if (txJustStarted && txMsg) {
         console.log(`[ActiveQso] TX STARTED: "${txMsg}"`);
         
+        // Update last activity timestamp
+        lastActivityRef.current = Date.now();
+        
         const isCqMessage = txMsg.startsWith("CQ ");
         const newMessage: QsoMessage = {
           id: `tx-${Date.now()}`,
@@ -217,26 +313,30 @@ export default function ActiveQso() {
         };
         
         if (isCqMessage) {
-          // CQ transmission
+          // CQ transmission - reset all DX info, keep only CQ messages
           setState((prev) => {
             if (prev.logged && prev.mode === "qso_complete") return prev;
-            console.log(`[ActiveQso] Adding CQ message, prev messages: ${prev.messages.length}`);
+            console.log(`[ActiveQso] Adding CQ message, clearing previous QSO data`);
+            // When calling CQ, only keep recent CQ messages (last 5)
+            const cqMessages = prev.mode === "calling_cq" 
+              ? [...prev.messages.slice(-4), newMessage]
+              : [newMessage];
             return {
-              ...prev,
+              ...INITIAL_STATE,
               mode: "calling_cq",
               freq: status.dial_freq,
               radioMode: status.mode,
-              startTime: prev.startTime || Date.now(),
-              dxCall: "",
-              messages: [...prev.messages, newMessage],
+              startTime: Date.now(),
+              messages: cqMessages,
             };
           });
         } else {
           // QSO transmission - extract target call
           const parts = txMsg.split(" ");
           let targetCall = "";
+          const currentMyCall = myCallRef.current;
           if (parts.length >= 2) {
-            targetCall = parts[0] === myCall ? parts[1] : parts[0];
+            targetCall = parts[0] === currentMyCall ? parts[1] : parts[0];
           }
           
           if (targetCall) {
@@ -281,8 +381,9 @@ export default function ActiveQso() {
         let targetCall = "";
         if (txMsg && !isCqMessage) {
           const parts = txMsg.split(" ");
+          const currentMyCall = myCallRef.current;
           if (parts.length >= 2) {
-            targetCall = parts[0] === myCall ? parts[1] : parts[0];
+            targetCall = parts[0] === currentMyCall ? parts[1] : parts[0];
           }
         }
 
@@ -303,13 +404,15 @@ export default function ActiveQso() {
         // In QSO - update mode and target
         if (isTxEnabled && txMsg && !isCqMessage && targetCall) {
           if (prev.mode !== "in_qso" || prev.dxCall !== targetCall) {
+            // If switching to a new station, reset all DX info
+            const isNewStation = prev.dxCall !== targetCall && prev.dxCall !== "";
             return {
-              ...prev,
+              ...(isNewStation ? INITIAL_STATE : prev),
               mode: "in_qso",
               dxCall: targetCall,
               freq: status.dial_freq,
               radioMode: status.mode,
-              startTime: prev.startTime || Date.now(),
+              startTime: isNewStation ? Date.now() : (prev.startTime || Date.now()),
             };
           }
           return { ...prev, freq: status.dial_freq, radioMode: status.mode };
@@ -323,14 +426,30 @@ export default function ActiveQso() {
     const unlistenDecode = listen<DecodeEvent>("wsjtx-decode", (event) => {
       const decode = event.payload;
       const msg = decode.message.toUpperCase();
+      // Use ref to get the current myCall value (avoids stale closure)
+      const currentMyCall = myCallRef.current;
+      const myCallUpper = currentMyCall.toUpperCase();
+      const deCallUpper = (decode.de_call || "").toUpperCase();
+      const dxCallUpper = (decode.dx_call || "").toUpperCase();
 
-      // Skip our own transmissions - we handle those via Status.tx_message
-      if (myCall && decode.de_call === myCall) {
+      // Debug: Log all decodes to understand what's happening
+      console.log(`[ActiveQso] Decode: de_call="${decode.de_call}" dx_call="${decode.dx_call}" myCall="${currentMyCall}" msg="${decode.message}"`);
+
+      // Skip if we don't know our callsign yet
+      if (!myCallUpper) {
+        console.log(`[ActiveQso] Skipping decode - myCall not set yet`);
         return;
       }
 
-      // Check if this is directed at us
-      if (myCall && decode.dx_call === myCall) {
+      // Skip our own transmissions - we handle those via Status.tx_message
+      if (deCallUpper === myCallUpper) {
+        console.log(`[ActiveQso] Skipping our own TX: ${decode.message}`);
+        return;
+      }
+
+      // Check if this is directed at us (case-insensitive comparison)
+      if (dxCallUpper === myCallUpper) {
+        console.log(`[ActiveQso] ✓ RX message directed at us from ${decode.de_call}: "${decode.message}"`);
         // Someone is calling us
         addMessage("rx", decode.message, decode.snr, decode.time_ms, decode.delta_freq);
 
@@ -338,10 +457,11 @@ export default function ActiveQso() {
           if (prev.logged) return prev;
 
           // If we're in a QSO with this station, update state
-          if (prev.mode === "in_qso" && decode.de_call === prev.dxCall) {
+          const prevDxCallUpper = (prev.dxCall || "").toUpperCase();
+          if (prev.mode === "in_qso" && deCallUpper === prevDxCallUpper) {
             let newState = { ...prev };
 
-            // Update grid/country
+            // Update grid/country/location data
             if (decode.grid && !prev.dxGrid) {
               newState.dxGrid = decode.grid;
             }
@@ -350,6 +470,15 @@ export default function ActiveQso() {
             }
             if (decode.dxcc && !prev.dxDxcc) {
               newState.dxDxcc = decode.dxcc;
+            }
+            if (decode.continent && !prev.dxContinent) {
+              newState.dxContinent = decode.continent;
+            }
+            if (decode.cqz && !prev.dxCqz) {
+              newState.dxCqz = decode.cqz;
+            }
+            if (decode.ituz && !prev.dxItuz) {
+              newState.dxItuz = decode.ituz;
             }
 
             // Extract their report to us
@@ -368,11 +497,8 @@ export default function ActiveQso() {
             return newState;
           }
 
-          // If they're calling us and we're calling CQ, might want to respond
-          if (prev.mode === "calling_cq" && decode.de_call) {
-            // Just track their call for now
-            addMessage("rx", decode.message, decode.snr, decode.time_ms);
-          }
+          // If they're calling us and we're calling CQ, the message was already added above
+          // No need to add it again here
 
           return prev;
         });
@@ -391,7 +517,7 @@ export default function ActiveQso() {
       band: string;
     }>("qso-logged", (event) => {
       const qso = event.payload;
-      console.log("WSJT-X QSO logged event (backend saved to DB):", qso);
+      console.log("[ActiveQso] ✓ QSO LOGGED event received from backend:", qso);
       
       setState((prev) => ({
         ...prev,
@@ -410,7 +536,7 @@ export default function ActiveQso() {
       unlistenDecode.then((f) => f());
       unlistenQso.then((f) => f());
     };
-  }, [myCall, addMessage]);
+  }, [addMessage]); // Removed myCall - using myCallRef instead
 
   // Auto-log when QSO complete
   useEffect(() => {
@@ -442,95 +568,171 @@ export default function ActiveQso() {
     );
   }
 
-  // Determine status badge
-  const getStatusBadge = () => {
+  // Build location string for display
+  const getLocationDisplay = () => {
+    const parts: string[] = [];
+    
+    // For US stations, show state name prominently
+    if (state.dxState && US_STATES[state.dxState]) {
+      parts.push(US_STATES[state.dxState]);
+    }
+    
+    // Country (skip for US if we have state)
+    if (state.dxCountry && (!state.dxState || !state.dxCountry.includes("UNITED STATES"))) {
+      parts.push(state.dxCountry);
+    } else if (state.dxCountry && state.dxState) {
+      // For US, just add "USA" suffix
+      parts.push("USA");
+    }
+    
+    return parts.join(", ");
+  };
+
+  // Get mode-specific styling
+  const getModeStyles = () => {
     switch (state.mode) {
       case "calling_cq":
-        return (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-sm font-medium">
-            <Radio className="h-4 w-4 animate-pulse" />
-            Calling CQ
-          </div>
-        );
+        return {
+          border: "border-amber-500/30",
+          headerBg: "bg-amber-500/5",
+          icon: <Radio className="h-4 w-4 animate-pulse text-amber-400" />,
+          statusText: "Calling CQ",
+          statusColor: "text-amber-400",
+        };
       case "in_qso":
-        return (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm font-medium">
-            <Zap className="h-4 w-4" />
-            QSO with {state.dxCall}
-          </div>
-        );
+        return {
+          border: "border-emerald-500/30",
+          headerBg: "bg-emerald-500/5",
+          icon: <Zap className="h-4 w-4 text-emerald-400" />,
+          statusText: `Working ${state.dxCall}`,
+          statusColor: "text-emerald-400",
+        };
       case "qso_complete":
-        return (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm font-medium">
-            <CheckCircle2 className="h-4 w-4" />
-            QSO Complete{state.logged && " — Logged!"}
-          </div>
-        );
+        return {
+          border: "border-green-500/30",
+          headerBg: "bg-green-500/5",
+          icon: <CheckCircle2 className="h-4 w-4 text-green-400" />,
+          statusText: state.logged ? "QSO Logged!" : "QSO Complete",
+          statusColor: "text-green-400",
+        };
       default:
-        return null;
+        return {
+          border: "border-zinc-700/50",
+          headerBg: "bg-zinc-800/50",
+          icon: <Radio className="h-4 w-4 text-zinc-400" />,
+          statusText: "Standby",
+          statusColor: "text-zinc-400",
+        };
     }
   };
 
+  const modeStyles = getModeStyles();
+  const locationDisplay = getLocationDisplay();
+
   return (
-    <section className="bg-zinc-900/80 rounded-lg border border-zinc-700/50 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-700/50 bg-zinc-800/50">
-        <div className="flex items-center gap-3">
-          {getStatusBadge()}
-          {state.dxCountry && (
-            <span className="text-sm text-zinc-400">{state.dxCountry}</span>
+    <section className={`bg-zinc-900/80 rounded-lg border ${modeStyles.border} overflow-hidden transition-colors duration-300`}>
+      {/* Header - Status and QSO Info */}
+      <div className={`px-4 py-3 ${modeStyles.headerBg} border-b border-zinc-700/30`}>
+        <div className="flex items-center justify-between">
+          {/* Left: Status + Callsign */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {modeStyles.icon}
+              <span className={`text-sm font-medium ${modeStyles.statusColor}`}>
+                {modeStyles.statusText}
+              </span>
+            </div>
+          </div>
+
+          {/* Right: Signal Reports */}
+          {(state.rstRcvd || state.rstSent) && (
+            <div className="flex items-center gap-3">
+              {state.rstRcvd && (
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-800/80">
+                  <span className="text-xs text-zinc-500 uppercase">Rcvd</span>
+                  <span className="font-mono text-sm font-semibold text-green-400">{state.rstRcvd}</span>
+                </div>
+              )}
+              {state.rstSent && (
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-800/80">
+                  <span className="text-xs text-zinc-500 uppercase">Sent</span>
+                  <span className="font-mono text-sm font-semibold text-blue-400">{state.rstSent}</span>
+                </div>
+              )}
+            </div>
           )}
         </div>
-        <div className="flex items-center gap-4 text-sm text-zinc-500">
-          {state.dxGrid && (
-            <span className="font-mono">{state.dxGrid}</span>
-          )}
-          {state.rstRcvd && (
-            <span className="flex items-center gap-1">
-              <ArrowDown className="h-3 w-3 text-green-400" />
-              <span className="font-mono">{state.rstRcvd}</span>
-            </span>
-          )}
-          {state.rstSent && (
-            <span className="flex items-center gap-1">
-              <ArrowUp className="h-3 w-3 text-red-400" />
-              <span className="font-mono">{state.rstSent}</span>
-            </span>
-          )}
-        </div>
+
+        {/* Location Row - only show if in QSO/complete mode AND have location data */}
+        {state.mode !== "calling_cq" && state.mode !== "idle" && (locationDisplay || state.dxGrid || state.dxCqz || state.dxItuz) && (
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-700/20">
+            {/* Location */}
+            <div className="flex items-center gap-2 text-sm">
+              {locationDisplay && (
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <MapPin className="h-3.5 w-3.5 text-zinc-500" />
+                  <span>{locationDisplay}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Grid + Zones */}
+            <div className="flex items-center gap-3 text-xs text-zinc-500">
+              {state.dxGrid && (
+                <span className="font-mono text-zinc-400">{state.dxGrid}</span>
+              )}
+              {(state.dxCqz || state.dxItuz) && (
+                <div className="flex items-center gap-2">
+                  <Globe className="h-3 w-3" />
+                  {state.dxCqz && <span>CQ {state.dxCqz}</span>}
+                  {state.dxItuz && <span>ITU {state.dxItuz}</span>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* QSO Message Exchange - only TX and messages directed at me */}
-      <div className="max-h-32 overflow-y-auto p-2 space-y-0.5 font-mono text-sm">
+      {/* Message Exchange */}
+      <div className="max-h-32 overflow-y-auto p-2 space-y-0.5">
         {state.messages.length === 0 ? (
-          <div className="text-center text-zinc-600 py-4">
+          <div className="text-center text-zinc-600 py-4 text-sm">
             {state.mode === "calling_cq" ? "Transmitting CQ..." : "Waiting for activity..."}
           </div>
         ) : (
           state.messages.map((m) => (
             <div
               key={m.id}
-              className={`flex items-start gap-2 px-2 py-0.5 rounded ${
-                m.direction === "tx"
-                  ? "bg-red-950/30 text-red-300"
-                  : "bg-zinc-800/50 text-zinc-300"
-              }`}
+              className="flex items-start gap-2 px-2 py-1 rounded hover:bg-zinc-800/30 transition-colors"
             >
-              <span className="text-zinc-500 shrink-0">{m.time}</span>
-              <span
-                className={`shrink-0 w-6 text-center ${
-                  m.direction === "tx" ? "text-red-400" : "text-green-400"
-                }`}
-              >
-                {m.direction === "tx" ? "Tx" : "Rx"}
+              {/* Time */}
+              <span className="font-mono text-xs text-zinc-600 shrink-0 pt-0.5">
+                {m.time.slice(0, 2)}:{m.time.slice(2, 4)}:{m.time.slice(4, 6)}
               </span>
-              {m.snr !== undefined && (
-                <span className="shrink-0 w-8 text-right text-zinc-500">
-                  {m.snr > 0 ? "+" : ""}
-                  {m.snr}
+              
+              {/* Direction indicator - subtle colored dot */}
+              <span 
+                className={`shrink-0 w-1.5 h-1.5 rounded-full mt-1.5 ${
+                  m.direction === "tx" ? "bg-blue-400" : "bg-green-400"
+                }`}
+              />
+              
+              {/* SNR for RX messages */}
+              {m.direction === "rx" && m.snr !== undefined && (
+                <span className="font-mono text-xs text-zinc-500 shrink-0 w-6 text-right pt-0.5">
+                  {m.snr > 0 ? "+" : ""}{m.snr}
                 </span>
               )}
-              <span className="flex-1">{m.message}</span>
+              {m.direction === "tx" && (
+                <span className="shrink-0 w-6" /> // Spacer for alignment
+              )}
+              
+              {/* Message */}
+              <span className={`font-mono text-sm flex-1 ${
+                m.direction === "tx" ? "text-zinc-400" : "text-zinc-200"
+              }`}>
+                {m.message}
+              </span>
             </div>
           ))
         )}

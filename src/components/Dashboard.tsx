@@ -27,14 +27,14 @@ export function Dashboard() {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 gap-4 overflow-hidden">
       {/* WSJT-X Connection */}
       <WsjtxConnection />
 
       {/* Active QSO Panel - Shows in-progress QSO state */}
       <ActiveQso />
 
-      {/* Band Activity - Live FT8 Decodes */}
+      {/* Band Activity - Live FT8 Decodes - fills remaining space */}
       <BandActivity />
     </div>
   );

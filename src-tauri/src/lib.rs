@@ -9,3 +9,4 @@ pub mod lotw;
 pub mod reference;  // Authoritative DXCC/prefix data (replaces cty module)
 pub mod awards;
 pub mod qso_tracker; // State machine for auto-logging FT8/FT4 QSOs
+pub mod fcc;       // FCC amateur license database for offline callsign lookups

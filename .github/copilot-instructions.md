@@ -37,3 +37,14 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd c:\dev\qso-log
 ### Building
 - Dev: `npm run tauri dev`
 - Build: `npm run tauri build`
+
+### Database Access
+- The SQLite database is located at: `$env:APPDATA\com.goqso.app\goqso.db`
+- **sqlite3 CLI is installed** via `winget install SQLite.SQLite`
+- Example queries:
+  ```powershell
+  sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT COUNT(*) FROM qsos"
+  sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT * FROM qsos WHERE call = 'WM8Q'"
+  sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" ".schema qsos"
+  ```
+- For complex operations, use Tauri diagnostic commands or add temp commands in `commands.rs`

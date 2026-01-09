@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { Radio, Zap, Target, CheckCircle } from "lucide-react";
+import { lookupCallsigns, type FccLicenseInfo } from "@/hooks/useFccSync";
 
 interface Decode {
   id: string;
@@ -25,6 +26,9 @@ interface Decode {
   needReason: string | null;
   isWorked: boolean;
   isConfirmed: boolean;
+  // FCC-derived fields (for US calls)
+  state: string | null;
+  stateName: string | null;
 }
 
 interface DecodeEvent {
@@ -63,13 +67,60 @@ export function BandActivity() {
   const [decodes, setDecodes] = useState<Decode[]>([]);
   const [workedCalls, setWorkedCalls] = useState<Set<string>>(new Set());
   const [workedDxcc, setWorkedDxcc] = useState<Set<number>>(new Set());
-  // Note: We don't track worked states from decodes because STATE cannot be
-  // reliably derived from grid (portable operators may be in different states).
-  // WAS tracking is based on LoTW confirmations only.
+  const [workedStates, setWorkedStates] = useState<Set<string>>(new Set());
+  const [fccCache, setFccCache] = useState<Map<string, FccLicenseInfo | null>>(new Map());
+  const [fccReady, setFccReady] = useState(false);
   const [priorityOnly, setPriorityOnly] = useState(false);
   const [cqOnly, setCqOnly] = useState(false);
   const [dbReady, setDbReady] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // State abbreviation to full name mapping for display
+  const stateNames: Record<string, string> = {
+    AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+    CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+    HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+    KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+    MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+    MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+    NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+    OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+    SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+    VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+    DC: "District of Columbia",
+  };
+
+  // Check if FCC database is ready - poll until it is (background sync may be running)
+  useEffect(() => {
+    const checkFcc = async () => {
+      try {
+        const status = await invoke<{ record_count: number }>("get_fcc_sync_status");
+        if (status.record_count > 0) {
+          console.log(`[FCC] Database ready: ${status.record_count} records`);
+          setFccReady(true);
+          return true;
+        }
+      } catch (e) {
+        console.warn("[FCC] Status check failed:", e);
+      }
+      return false;
+    };
+    
+    // Check immediately
+    checkFcc();
+    
+    // Poll every 10 seconds until ready (background sync may still be running)
+    const interval = setInterval(async () => {
+      if (!fccReady) {
+        const ready = await checkFcc();
+        if (ready) {
+          clearInterval(interval);
+        }
+      }
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, [fccReady]);
 
   // Load worked callsigns from database
   useEffect(() => {
@@ -83,11 +134,14 @@ export function BandActivity() {
       }
 
       try {
-        const qsos = await invoke<Array<{call: string, dxcc: number | null}>>("get_qsos", { limit: 10000, offset: 0 });
+        const qsos = await invoke<Array<{call: string, dxcc: number | null, state: string | null}>>("get_qsos", { limit: 10000, offset: 0 });
         const calls = new Set(qsos.map(q => q.call));
         const dxccs = new Set(qsos.filter(q => q.dxcc).map(q => q.dxcc as number));
+        // Track confirmed states for WAS (only count confirmed QSOs with state)
+        const states = new Set(qsos.filter(q => q.state).map(q => q.state as string));
         setWorkedCalls(calls);
         setWorkedDxcc(dxccs);
+        setWorkedStates(states);
         setDbReady(true);
       } catch {
         // Silently ignore
@@ -116,7 +170,7 @@ export function BandActivity() {
   }, [dbReady]);
 
   useEffect(() => {
-    const unlistenDecode = listen<DecodeEvent>("wsjtx-decode", (event) => {
+    const unlistenDecode = listen<DecodeEvent>("wsjtx-decode", async (event) => {
       const d = event.payload;
       
       // Use de_call - the station that transmitted this message
@@ -126,9 +180,41 @@ export function BandActivity() {
       const isWorked = workedCalls.has(call);
       const isHomeCountry = d.dxcc === HOME_DXCC;
       const isDxccWorked = d.dxcc ? workedDxcc.has(d.dxcc) : true;
-      // Note: We don't check for "NEW STATE" from decodes because STATE cannot
-      // be reliably derived from grid (portable operators may be elsewhere).
-      // WAS needs detection will be added when we have better data sources.
+      
+      // Lookup FCC data for US calls
+      let state: string | null = null;
+      let stateName: string | null = null;
+      let isStateNeeded = false;
+      
+      if (isHomeCountry && fccReady) {
+        // Check cache first
+        if (fccCache.has(call)) {
+          const cached = fccCache.get(call);
+          if (cached?.state) {
+            state = cached.state;
+            stateName = stateNames[cached.state] || cached.state;
+            isStateNeeded = !workedStates.has(cached.state);
+          }
+        } else {
+          // Lookup from FCC database (async)
+          try {
+            const results = await lookupCallsigns([call]);
+            console.log(`[FCC] Lookup ${call}:`, results);
+            if (results.length > 0 && results[0].state) {
+              state = results[0].state;
+              stateName = stateNames[results[0].state] || results[0].state;
+              isStateNeeded = !workedStates.has(results[0].state);
+              setFccCache(prev => new Map(prev).set(call, results[0]));
+            } else {
+              setFccCache(prev => new Map(prev).set(call, null));
+            }
+          } catch (e) {
+            console.warn(`[FCC] Lookup failed for ${call}:`, e);
+          }
+        }
+      } else if (isHomeCountry && !fccReady) {
+        console.log(`[FCC] Not ready, skipping lookup for ${call}`);
+      }
       
       let needReason: string | null = null;
       let isNeeded = false;
@@ -138,7 +224,12 @@ export function BandActivity() {
         needReason = d.country ? `NEW DXCC: ${d.country}` : "NEW DXCC";
         isNeeded = true;
       }
-      // TODO: Add VUCC need checking based on grid
+      
+      // For US stations, check if STATE is needed
+      if (isHomeCountry && isStateNeeded && state) {
+        needReason = `NEW STATE: ${stateName || state}`;
+        isNeeded = true;
+      }
       
       const decode: Decode = {
         id: `${d.time_ms}-${call}-${d.delta_freq}`,
@@ -162,6 +253,8 @@ export function BandActivity() {
         needReason,
         isWorked,
         isConfirmed: false, // TODO: check LoTW confirmations
+        state,
+        stateName,
       };
 
       setDecodes((prev) => {
@@ -175,10 +268,11 @@ export function BandActivity() {
     // Listen for new QSOs to update worked status
     const unlistenQso = listen("qso-logged", () => {
       // Refresh worked data
-      invoke<Array<{call: string, dxcc: number | null}>>("get_qsos", { limit: 10000, offset: 0 })
+      invoke<Array<{call: string, dxcc: number | null, state: string | null}>>("get_qsos", { limit: 10000, offset: 0 })
         .then((qsos) => {
           setWorkedCalls(new Set(qsos.map(q => q.call)));
           setWorkedDxcc(new Set(qsos.filter(q => q.dxcc).map(q => q.dxcc as number)));
+          setWorkedStates(new Set(qsos.filter(q => q.state).map(q => q.state as string)));
         });
     });
 
@@ -196,7 +290,7 @@ export function BandActivity() {
       unlistenQso.then((f) => f());
       unlistenClear.then((f) => f());
     };
-  }, [workedCalls, workedDxcc]);
+  }, [workedCalls, workedDxcc, workedStates, fccReady, fccCache, stateNames]);
 
   const filteredDecodes = decodes.filter((d) => {
     if (priorityOnly && !(d.isNeeded || d.msgType === "Cq")) return false;
@@ -224,10 +318,10 @@ export function BandActivity() {
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="flex-1 flex flex-col min-h-0 gap-4 overflow-hidden">
       {/* Priority Queue - Stations You Need */}
       {priorityDecodes.length > 0 && (
-        <section className="bg-card rounded-lg border border-border p-4">
+        <section className="bg-card rounded-lg border border-border p-4 shrink-0">
           <div className="flex items-center gap-2 mb-3">
             <Target className="h-5 w-5 text-primary" />
             <h3 className="font-semibold">Priority Queue - Stations You Need!</h3>
@@ -241,8 +335,16 @@ export function BandActivity() {
                 <div className="flex items-center gap-3">
                   <span className="font-mono font-bold text-lg text-sky-400">{d.call}</span>
                   <span className="text-sm text-muted-foreground">
-                    {d.country || "Unknown"}
-                    {d.continent && <span className="text-xs ml-1">({d.continent})</span>}
+                    {d.state ? (
+                      // US station - show state
+                      <>{d.stateName || d.state}, USA</>
+                    ) : (
+                      // DX station - show country
+                      <>
+                        {d.country || "Unknown"}
+                        {d.continent && <span className="text-xs ml-1">({d.continent})</span>}
+                      </>
+                    )}
                   </span>
                   {d.grid && <span className="font-mono text-xs text-muted-foreground">{d.grid}</span>}
                 </div>
@@ -265,8 +367,8 @@ export function BandActivity() {
       )}
 
       {/* Band Activity */}
-      <section className="bg-card rounded-lg border border-border">
-        <div className="flex items-center justify-between p-4 border-b border-border">
+      <section className="flex-1 flex flex-col min-h-0 bg-card rounded-lg border border-border mb-4">
+        <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
           <div className="flex items-center gap-2">
             <Radio className="h-5 w-5 text-primary" />
             <h3 className="font-semibold">Band Activity</h3>
@@ -294,16 +396,17 @@ export function BandActivity() {
           </div>
         </div>
 
-        <div ref={containerRef} className="max-h-[400px] overflow-y-auto">
+        <div ref={containerRef} className="flex-1 overflow-y-auto">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 sticky top-0">
-              <tr>
+            <thead className="bg-card sticky top-0 z-10 shadow-sm">
+              <tr className="border-b border-border">
                 <th className="text-left p-2 font-medium w-16">Time</th>
                 <th className="text-left p-2 font-medium w-12">dB</th>
                 <th className="text-left p-2 font-medium w-16">Freq</th>
                 <th className="text-left p-2 font-medium">Callsign</th>
                 <th className="text-left p-2 font-medium">Grid</th>
                 <th className="text-left p-2 font-medium">Entity</th>
+                <th className="text-left p-2 font-medium w-12">State</th>
                 <th className="text-left p-2 font-medium">Need</th>
                 <th className="text-left p-2 font-medium">Message</th>
               </tr>
@@ -332,6 +435,9 @@ export function BandActivity() {
                   <td className="p-2 text-xs truncate max-w-[120px]" title={d.country || undefined}>
                     {d.country || "—"}
                   </td>
+                  <td className="p-2 font-mono text-xs" title={d.stateName || undefined}>
+                    {d.state || "—"}
+                  </td>
                   <td className="p-2">
                     {d.isNeeded ? (
                       <span className="flex items-center gap-1 text-yellow-400">
@@ -354,7 +460,7 @@ export function BandActivity() {
               ))}
               {filteredDecodes.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="p-8 text-center text-muted-foreground">
                     Waiting for FT8 decodes...
                   </td>
                 </tr>

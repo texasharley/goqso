@@ -112,7 +112,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-zinc-100">
+    <div className="h-screen flex flex-col bg-zinc-900 text-zinc-100 overflow-hidden">
       {/* Toast notifications */}
       <ToastContainer />
 
@@ -186,7 +186,7 @@ function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="p-4">
+      <main className={`flex-1 p-4 ${activeTab === "operate" ? "flex flex-col overflow-hidden" : "overflow-y-auto"}`}>
         <Suspense fallback={<div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-zinc-500" /></div>}>
           {activeTab === "operate" && <Dashboard />}
           {activeTab === "log" && <QsoLog />}

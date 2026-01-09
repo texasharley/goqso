@@ -14,6 +14,10 @@ export async function deleteQso(id: number): Promise<void> {
   return invoke("delete_qso", { id });
 }
 
+export async function removeDuplicateQsos(): Promise<number> {
+  return invoke("remove_duplicate_qsos");
+}
+
 // ADIF Import/Export
 export interface ImportResult {
   total_records: number;
@@ -85,6 +89,8 @@ export interface WasProgress {
   worked: number;
   confirmed: number;
   total: number;
+  worked_states: string[];
+  confirmed_states: string[];
 }
 
 export interface VuccProgress {

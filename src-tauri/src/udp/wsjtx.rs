@@ -120,32 +120,101 @@ pub fn read_qt_string(data: &[u8], offset: &mut usize) -> Option<String> {
     Some(s)
 }
 
+/// Read a QDateTime from the buffer
+/// Format: 
+///   - Julian Day Number (i64, but typically fits in 4 bytes when serialized as big-endian)
+///   - Time in milliseconds since midnight (u32) - but only if JD != 0x8000000000000000 (null)
+///   - TimeSpec (u8) - 0=Local, 1=UTC, 2=OffsetFromUTC, 3=TimeZone
+/// Note: WSJT-X uses a simplified format with fixed size
+fn read_qt_datetime(data: &[u8], offset: &mut usize) -> Option<String> {
+    // WSJT-X QDateTime serialization:
+    // 8 bytes: Julian Day (i64 big-endian, but WSJT-X only sends 8 bytes total)
+    // The format is actually more complex - let's handle what WSJT-X sends
+    
+    // Check for null date indicator
+    if *offset + 8 > data.len() {
+        log::warn!("QDateTime: not enough bytes for date, offset={}, len={}", *offset, data.len());
+        return None;
+    }
+    
+    // Read as raw bytes first to understand the format
+    let date_bytes = &data[*offset..*offset + 8];
+    log::debug!("QDateTime raw bytes: {:02x?}", date_bytes);
+    
+    // WSJT-X format: 8 bytes for JD + Time packed
+    // Actually: i64 Julian Day is stored as first 8 bytes
+    let jd = i64::from_be_bytes([
+        data[*offset], data[*offset + 1], data[*offset + 2], data[*offset + 3],
+        data[*offset + 4], data[*offset + 5], data[*offset + 6], data[*offset + 7],
+    ]);
+    *offset += 8;
+    
+    // Check for null date
+    if jd == i64::MIN {
+        // Skip time of day (4 bytes) and timespec (1 byte) for null dates
+        if *offset + 5 <= data.len() {
+            *offset += 5;
+        }
+        return Some(String::new());
+    }
+    
+    // Time of day in milliseconds (u32)
+    if *offset + 4 > data.len() {
+        log::warn!("QDateTime: not enough bytes for time");
+        return None;
+    }
+    let time_ms = u32::from_be_bytes([
+        data[*offset], data[*offset + 1], data[*offset + 2], data[*offset + 3],
+    ]);
+    *offset += 4;
+    
+    // TimeSpec (1 byte)
+    if *offset + 1 > data.len() {
+        log::warn!("QDateTime: not enough bytes for timespec");
+        return None;
+    }
+    let _timespec = data[*offset];
+    *offset += 1;
+    
+    // Convert Julian Day to calendar date
+    // Algorithm from https://en.wikipedia.org/wiki/Julian_day
+    let jd = jd as i32;
+    let f = jd + 1401 + (((4 * jd + 274277) / 146097) * 3) / 4 - 38;
+    let e = 4 * f + 3;
+    let g = (e % 1461) / 4;
+    let h = 5 * g + 2;
+    let day = (h % 153) / 5 + 1;
+    let month = (h / 153 + 2) % 12 + 1;
+    let year = e / 1461 - 4716 + (12 + 2 - month) / 12;
+    
+    let hours = time_ms / 3_600_000;
+    let mins = (time_ms % 3_600_000) / 60_000;
+    let secs = (time_ms % 60_000) / 1000;
+    
+    Some(format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02}", year, month, day, hours, mins, secs))
+}
+
 /// Parse QSO Logged message (type 5)
 pub fn parse_qso_logged(data: &[u8]) -> Option<QsoLoggedMessage> {
+    log::info!("Parsing QsoLogged message, {} bytes", data.len());
     let mut offset = 12; // Skip magic, schema, type
     
     let id = read_qt_string(data, &mut offset)?;
+    log::debug!("QsoLogged id={}, offset now {}", id, offset);
     
-    // DateTime off (QDateTime - 8 bytes: Julian day + milliseconds)
-    if offset + 8 > data.len() {
-        return None;
-    }
-    let _julian_day = u64::from_be_bytes([
-        data[offset], data[offset + 1], data[offset + 2], data[offset + 3],
-        data[offset + 4], data[offset + 5], data[offset + 6], data[offset + 7],
-    ]);
-    offset += 8;
-    // Skip time spec byte
-    if offset + 1 > data.len() {
-        return None;
-    }
-    offset += 1;
+    // DateTime off
+    let datetime_off = read_qt_datetime(data, &mut offset).unwrap_or_default();
+    log::debug!("QsoLogged datetime_off={}, offset now {}", datetime_off, offset);
     
     let call = read_qt_string(data, &mut offset)?;
+    log::debug!("QsoLogged call={}, offset now {}", call, offset);
+    
     let grid = read_qt_string(data, &mut offset)?;
+    log::debug!("QsoLogged grid={}, offset now {}", grid, offset);
     
     // Frequency (u64)
     if offset + 8 > data.len() {
+        log::error!("QsoLogged: not enough bytes for frequency");
         return None;
     }
     let freq_hz = u64::from_be_bytes([
@@ -153,6 +222,7 @@ pub fn parse_qso_logged(data: &[u8]) -> Option<QsoLoggedMessage> {
         data[offset + 4], data[offset + 5], data[offset + 6], data[offset + 7],
     ]);
     offset += 8;
+    log::debug!("QsoLogged freq_hz={}, offset now {}", freq_hz, offset);
     
     let mode = read_qt_string(data, &mut offset)?;
     let report_sent = read_qt_string(data, &mut offset)?;
@@ -160,33 +230,44 @@ pub fn parse_qso_logged(data: &[u8]) -> Option<QsoLoggedMessage> {
     let tx_power = read_qt_string(data, &mut offset)?;
     let comments = read_qt_string(data, &mut offset)?;
     let name = read_qt_string(data, &mut offset)?;
+    log::debug!("QsoLogged after strings, offset now {}", offset);
     
     // DateTime on
-    if offset + 9 > data.len() {
-        return None;
-    }
-    offset += 9;
+    let datetime_on = read_qt_datetime(data, &mut offset).unwrap_or_default();
+    log::debug!("QsoLogged datetime_on={}, offset now {}", datetime_on, offset);
     
-    let operator_call = read_qt_string(data, &mut offset)?;
-    let my_call = read_qt_string(data, &mut offset)?;
-    let my_grid = read_qt_string(data, &mut offset)?;
+    let operator_call = read_qt_string(data, &mut offset).unwrap_or_default();
+    let my_call = read_qt_string(data, &mut offset).unwrap_or_default();
+    let my_grid = read_qt_string(data, &mut offset).unwrap_or_default();
     let exchange_sent = read_qt_string(data, &mut offset).unwrap_or_default();
     let exchange_rcvd = read_qt_string(data, &mut offset).unwrap_or_default();
     let adif_propagation_mode = read_qt_string(data, &mut offset).unwrap_or_default();
     
+    log::info!("QsoLogged parsed successfully: call={} grid={} mode={}", call, grid, mode);
+    
+    // Validate grid - WSJT-X sometimes puts "RR73", "RRR", "73" in grid field when unknown
+    let validated_grid = if is_valid_grid(&grid) { grid } else { 
+        log::warn!("Invalid grid '{}' for {}, clearing it", grid, call);
+        String::new() 
+    };
+    
+    // Validate RST - should be signal report only (e.g., "-14", "+05"), not "73" suffix
+    let validated_report_sent = clean_rst(&report_sent);
+    let validated_report_rcvd = clean_rst(&report_rcvd);
+    
     Some(QsoLoggedMessage {
         id,
-        datetime_off: String::new(), // TODO: Parse properly
+        datetime_off,
         call,
-        grid,
+        grid: validated_grid,
         freq_hz,
         mode,
-        report_sent,
-        report_rcvd,
+        report_sent: validated_report_sent,
+        report_rcvd: validated_report_rcvd,
         tx_power,
         comments,
         name,
-        datetime_on: String::new(),
+        datetime_on,
         operator_call,
         my_call,
         my_grid,
@@ -194,6 +275,85 @@ pub fn parse_qso_logged(data: &[u8]) -> Option<QsoLoggedMessage> {
         exchange_rcvd,
         adif_propagation_mode,
     })
+}
+
+/// Check if a string is a valid Maidenhead grid square (2, 4, or 6 chars)
+fn is_valid_grid(s: &str) -> bool {
+    if s.is_empty() {
+        return true; // Empty is OK (unknown)
+    }
+    let len = s.len();
+    if len != 2 && len != 4 && len != 6 {
+        return false;
+    }
+    let bytes = s.as_bytes();
+    // First 2 chars: A-R (field)
+    if len >= 2 {
+        let c0 = bytes[0].to_ascii_uppercase();
+        let c1 = bytes[1].to_ascii_uppercase();
+        if !(b'A'..=b'R').contains(&c0) || !(b'A'..=b'R').contains(&c1) {
+            return false;
+        }
+    }
+    // Next 2 chars: 0-9 (square)
+    if len >= 4 {
+        if !bytes[2].is_ascii_digit() || !bytes[3].is_ascii_digit() {
+            return false;
+        }
+    }
+    // Last 2 chars: a-x (subsquare)
+    if len >= 6 {
+        let c4 = bytes[4].to_ascii_lowercase();
+        let c5 = bytes[5].to_ascii_lowercase();
+        if !(b'a'..=b'x').contains(&c4) || !(b'a'..=b'x').contains(&c5) {
+            return false;
+        }
+    }
+    true
+}
+
+/// Clean RST field - remove trailing "73" that WSJT-X sometimes appends
+fn clean_rst(rst: &str) -> String {
+    // RST should be a signal report like "-14", "+05", "599"
+    // Sometimes WSJT-X appends "73" making it "-1473" or adds space "-14 73"
+    let trimmed = rst.trim();
+    if trimmed.ends_with("73") && trimmed.len() > 2 {
+        // Check if it's like "-1473" (report + 73 without space)
+        let without_73 = &trimmed[..trimmed.len()-2];
+        // Valid FT8/FT4 reports are typically -30 to +30
+        if let Ok(n) = without_73.parse::<i32>() {
+            if (-30..=30).contains(&n) {
+                return without_73.to_string();
+            }
+        }
+    }
+    trimmed.to_string()
+}
+
+// ============================================================================
+// LoggedADIF Message (Type 12) - ADIF record when QSO is logged
+// ============================================================================
+
+/// LoggedADIF message - contains the full ADIF record as a string
+#[derive(Debug, Clone)]
+pub struct LoggedAdifMessage {
+    pub id: String,
+    pub adif: String,
+}
+
+/// Parse LoggedADIF message (type 12)
+pub fn parse_logged_adif(data: &[u8]) -> Option<LoggedAdifMessage> {
+    log::info!("Parsing LoggedADIF message, {} bytes", data.len());
+    let mut offset = 12; // Skip magic, schema, type
+    
+    let id = read_qt_string(data, &mut offset)?;
+    log::debug!("LoggedADIF id={}", id);
+    
+    let adif = read_qt_string(data, &mut offset)?;
+    log::info!("LoggedADIF received: {} chars of ADIF", adif.len());
+    log::debug!("LoggedADIF content: {}", adif);
+    
+    Some(LoggedAdifMessage { id, adif })
 }
 
 // ============================================================================

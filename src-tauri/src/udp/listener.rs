@@ -7,7 +7,109 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
-use super::wsjtx::{parse_message, parse_qso_logged, parse_decode, WsjtxMessageType, QsoLoggedMessage, DecodeMessage, read_qt_string, ReplyMessage};
+use super::wsjtx::{parse_message, parse_qso_logged, parse_logged_adif, parse_decode, WsjtxMessageType, QsoLoggedMessage, DecodeMessage, read_qt_string, ReplyMessage};
+
+/// Parse an ADIF record string into a QsoLoggedMessage
+/// ADIF format: <TAG:LENGTH>VALUE or <TAG:LENGTH:TYPE>VALUE
+fn parse_adif_to_qso(adif: &str) -> Option<QsoLoggedMessage> {
+    let mut fields = std::collections::HashMap::new();
+    let mut pos = 0;
+    let bytes = adif.as_bytes();
+    
+    while pos < bytes.len() {
+        // Find next '<'
+        while pos < bytes.len() && bytes[pos] != b'<' {
+            pos += 1;
+        }
+        if pos >= bytes.len() {
+            break;
+        }
+        pos += 1; // Skip '<'
+        
+        // Find field name (until ':' or '>')
+        let name_start = pos;
+        while pos < bytes.len() && bytes[pos] != b':' && bytes[pos] != b'>' {
+            pos += 1;
+        }
+        if pos >= bytes.len() {
+            break;
+        }
+        
+        let field_name = std::str::from_utf8(&bytes[name_start..pos]).ok()?.to_uppercase();
+        
+        if bytes[pos] == b'>' {
+            // No length specified (e.g., <EOR>)
+            pos += 1;
+            continue;
+        }
+        
+        pos += 1; // Skip ':'
+        
+        // Parse length
+        let len_start = pos;
+        while pos < bytes.len() && bytes[pos].is_ascii_digit() {
+            pos += 1;
+        }
+        let length: usize = std::str::from_utf8(&bytes[len_start..pos]).ok()?.parse().ok()?;
+        
+        // Skip optional type specifier and '>'
+        while pos < bytes.len() && bytes[pos] != b'>' {
+            pos += 1;
+        }
+        if pos >= bytes.len() {
+            break;
+        }
+        pos += 1; // Skip '>'
+        
+        // Extract value
+        if pos + length <= bytes.len() {
+            let value = std::str::from_utf8(&bytes[pos..pos + length]).ok()?;
+            fields.insert(field_name, value.to_string());
+            pos += length;
+        }
+    }
+    
+    log::debug!("Parsed ADIF fields: {:?}", fields);
+    
+    // Extract required fields
+    let call = fields.get("CALL")?.clone();
+    let grid = fields.get("GRIDSQUARE").cloned().unwrap_or_default();
+    let mode = fields.get("MODE").cloned().unwrap_or_default();
+    
+    // Frequency in Hz - ADIF FREQ is in MHz
+    let freq_hz = fields.get("FREQ")
+        .and_then(|f| f.parse::<f64>().ok())
+        .map(|f| (f * 1_000_000.0) as u64)
+        .unwrap_or(0);
+    
+    let report_sent = fields.get("RST_SENT").cloned().unwrap_or_default();
+    let report_rcvd = fields.get("RST_RCVD").cloned().unwrap_or_default();
+    let my_call = fields.get("STATION_CALLSIGN").or(fields.get("OPERATOR")).cloned().unwrap_or_default();
+    let my_grid = fields.get("MY_GRIDSQUARE").cloned().unwrap_or_default();
+    
+    log::info!("Parsed ADIF QSO: call={} grid={} freq={} mode={}", call, grid, freq_hz, mode);
+    
+    Some(QsoLoggedMessage {
+        id: String::new(),
+        datetime_off: fields.get("TIME_OFF").cloned().unwrap_or_default(),
+        call,
+        grid,
+        freq_hz,
+        mode,
+        report_sent,
+        report_rcvd,
+        tx_power: fields.get("TX_PWR").cloned().unwrap_or_default(),
+        comments: fields.get("COMMENT").cloned().unwrap_or_default(),
+        name: fields.get("NAME").cloned().unwrap_or_default(),
+        datetime_on: fields.get("TIME_ON").cloned().unwrap_or_default(),
+        operator_call: fields.get("OPERATOR").cloned().unwrap_or_default(),
+        my_call,
+        my_grid,
+        exchange_sent: String::new(),
+        exchange_rcvd: String::new(),
+        adif_propagation_mode: fields.get("PROP_MODE").cloned().unwrap_or_default(),
+    })
+}
 
 /// Listener state that can be shared across threads
 pub struct UdpListenerState {
@@ -70,7 +172,7 @@ pub enum UdpMessage {
     Decode(DecodeMessage),
     Clear { id: String, window: u8 },
     Heartbeat { id: String, max_schema: u32, version: String, revision: String },
-    Status { id: String, dial_freq: u64, mode: String, dx_call: String, report: String, tx_mode: String, tx_enabled: bool, transmitting: bool, decoding: bool, tx_message: String },
+    Status { id: String, dial_freq: u64, mode: String, dx_call: String, de_call: String, report: String, tx_mode: String, tx_enabled: bool, transmitting: bool, decoding: bool, tx_message: String },
     Connected,
     Disconnected,
     Error(String),
@@ -116,6 +218,7 @@ pub fn start_listener(
                     log::trace!("Received {} bytes from {}", len, src);
                     
                     if let Some(msg_type) = parse_message(&buf[..len]) {
+                        log::debug!("UDP message type: {:?} ({} bytes)", msg_type, len);
                         match msg_type {
                             WsjtxMessageType::Decode => {
                                 if let Some(decode) = parse_decode(&buf[..len]) {
@@ -126,7 +229,8 @@ pub fn start_listener(
                                 }
                             }
                             WsjtxMessageType::QsoLogged => {
-                                log::info!("Received QsoLogged message from WSJT-X");
+                                log::info!("Received QsoLogged message from WSJT-X ({} bytes)", len);
+                                log::debug!("QsoLogged raw bytes: {:02x?}", &buf[..len.min(200)]);
                                 if let Some(qso) = parse_qso_logged(&buf[..len]) {
                                     log::info!("QSO Logged: {} on {} @ {} Hz", 
                                         qso.call, qso.mode, qso.freq_hz);
@@ -150,13 +254,14 @@ pub fn start_listener(
                             }
                             WsjtxMessageType::Status => {
                                 if let Some(status) = parse_status(&buf[..len]) {
-                                    log::debug!("Status: {} mode={} freq={} tx_msg='{}'", 
-                                        status.id, status.mode, status.dial_freq, status.tx_message);
+                                    log::debug!("Status: {} de_call={} mode={} freq={} tx_msg='{}'", 
+                                        status.id, status.de_call, status.mode, status.dial_freq, status.tx_message);
                                     let _ = sender.send(UdpMessage::Status {
                                         id: status.id,
                                         dial_freq: status.dial_freq,
                                         mode: status.mode,
                                         dx_call: status.dx_call,
+                                        de_call: status.de_call,
                                         report: status.report,
                                         tx_mode: status.tx_mode,
                                         tx_enabled: status.tx_enabled,
@@ -167,7 +272,19 @@ pub fn start_listener(
                                 }
                             }
                             WsjtxMessageType::LoggedADIF => {
-                                log::info!("Received LoggedADIF message");
+                                log::info!("Received LoggedADIF message from WSJT-X ({} bytes)", len);
+                                if let Some(adif_msg) = parse_logged_adif(&buf[..len]) {
+                                    // Convert ADIF string to QsoLoggedMessage
+                                    if let Some(qso) = parse_adif_to_qso(&adif_msg.adif) {
+                                        log::info!("LoggedADIF QSO: {} on {} @ {} Hz", 
+                                            qso.call, qso.mode, qso.freq_hz);
+                                        let _ = sender.send(UdpMessage::QsoLogged(qso));
+                                    } else {
+                                        log::error!("Failed to parse ADIF content: {}", adif_msg.adif);
+                                    }
+                                } else {
+                                    log::error!("Failed to parse LoggedADIF message");
+                                }
                             }
                             WsjtxMessageType::Clear => {
                                 // Clear message sent at start of new decode period
@@ -254,6 +371,7 @@ struct StatusMessage {
     dial_freq: u64,
     mode: String,
     dx_call: String,
+    de_call: String,
     report: String,
     tx_mode: String,
     tx_enabled: bool,
@@ -289,6 +407,7 @@ fn parse_status(data: &[u8]) -> Option<StatusMessage> {
             dial_freq,
             mode,
             dx_call,
+            de_call: String::new(),
             report,
             tx_mode,
             tx_enabled: false,
@@ -306,10 +425,10 @@ fn parse_status(data: &[u8]) -> Option<StatusMessage> {
     // Skip rx_df (u32), tx_df (u32)
     offset += 8;
     
-    // Skip de_call, de_grid, dx_grid (strings)
-    let _ = read_qt_string(data, &mut offset);
-    let _ = read_qt_string(data, &mut offset);
-    let _ = read_qt_string(data, &mut offset);
+    // Read de_call (our callsign!), skip de_grid and dx_grid
+    let de_call = read_qt_string(data, &mut offset).unwrap_or_default();
+    let _ = read_qt_string(data, &mut offset); // de_grid
+    let _ = read_qt_string(data, &mut offset); // dx_grid
     
     // Skip tx_watchdog (bool), sub_mode (string), fast_mode (bool)
     offset += 1;
@@ -328,6 +447,7 @@ fn parse_status(data: &[u8]) -> Option<StatusMessage> {
         dial_freq,
         mode,
         dx_call,
+        de_call,
         report,
         tx_mode,
         tx_enabled,

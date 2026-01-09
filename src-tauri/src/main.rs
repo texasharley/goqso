@@ -5,7 +5,9 @@ mod adif;
 mod awards;
 mod commands;
 mod db;
+mod fcc;
 mod lotw;
+mod qso_tracker;
 mod reference;  // Authoritative DXCC/prefix data (replaces cty module)
 mod udp;
 
@@ -16,7 +18,10 @@ use commands::AppState;
 use udp::UdpListenerState;
 
 fn main() {
-    env_logger::init();
+    // Initialize logging - default to info level for our crate
+    env_logger::Builder::from_env(
+        env_logger::Env::default().default_filter_or("goqso=info,goqso::udp=debug")
+    ).init();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::new().build())
@@ -54,6 +59,12 @@ fn main() {
                             "success": true,
                             "stats": stats
                         }));
+                        
+                        // Start background FCC database sync
+                        let app_handle_fcc = app_handle.clone();
+                        tauri::async_runtime::spawn(async move {
+                            fcc::sync_fcc_if_needed(&app_handle_fcc).await;
+                        });
                     }
                     Err(e) => {
                         log::error!("Failed to initialize database: {}", e);
@@ -83,6 +94,7 @@ fn main() {
             commands::add_qso,
             commands::update_qso,
             commands::delete_qso,
+            commands::remove_duplicate_qsos,
             commands::clear_all_qsos,
             commands::add_test_qsos,
             // ADIF Import/Export
@@ -111,6 +123,11 @@ fn main() {
             // Band Activity
             commands::get_recent_activity,
             commands::prune_band_activity,
+            // FCC Database
+            commands::get_fcc_sync_status,
+            commands::sync_fcc_database,
+            commands::lookup_fcc_callsign,
+            commands::lookup_fcc_callsigns,
             // Diagnostics
             commands::get_qso_diagnostics,
         ])

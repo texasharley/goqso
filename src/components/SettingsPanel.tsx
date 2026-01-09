@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { X, Folder, Trash2, Bug } from "lucide-react";
+import { X, Folder, Trash2, Bug, Copy } from "lucide-react";
 
 interface SettingsPanelProps {
   onClose: () => void;
@@ -201,6 +201,30 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 >
                   <Bug className="h-3 w-3" />
                   Diagnose
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Remove Duplicate QSOs</p>
+                  <p className="text-xs text-muted-foreground">Find and delete duplicate entries</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      const count = await invoke<number>("remove_duplicate_qsos");
+                      if (count > 0) {
+                        alert(`Removed ${count} duplicate QSO(s)`);
+                      } else {
+                        alert("No duplicates found!");
+                      }
+                    } catch (e) {
+                      alert(`Error: ${e}`);
+                    }
+                  }}
+                  className="px-3 py-1 text-sm bg-amber-600 hover:bg-amber-500 text-white rounded flex items-center gap-1"
+                >
+                  <Copy className="h-3 w-3" />
+                  Remove Dupes
                 </button>
               </div>
               <div className="flex items-center justify-between">

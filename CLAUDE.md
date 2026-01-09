@@ -7,6 +7,12 @@
 ## Instructions for Claude:
 Always read .github/copilot-instructions.md before doing anything!!!
 
+### Database Access
+- The SQLite database is at: `$env:APPDATA\com.goqso.app\goqso.db`
+- **sqlite3 CLI is installed** via `winget install SQLite.SQLite`
+- See "Querying the Database (PowerShell)" section below for example queries
+- For complex operations, use existing Tauri commands or add temp commands in `commands.rs`
+
 **GoQSO** is an offline-first FT8 auto-logger with LoTW sync and ARRL awards tracking. It automates logging FT8 QSOs from WSJT-X with automatic DXCC/state lookup and LoTW integration.
 
 ## Long-Term Vision: Standalone Radio Operation
@@ -281,6 +287,33 @@ Based on:
 - Use curated DXCC data in `src-tauri/src/reference/`
 - Source from ARRL official lists and ITU allocations
 - LoTW confirmations are ground truth for DXCC credit
+
+### ⚠️ CRITICAL: DXCC Reference Data Single Source of Truth
+
+**ARRL is the authoritative source for DXCC entity IDs.** They grant the awards, so their entity numbering is canonical.
+
+**Our data flow:**
+1. **Official ARRL DXCC List** → Downloaded from https://www.arrl.org/files/file/DXCC/Current_Deleted.txt
+2. **`src-tauri/resources/dxcc_entities.json`** → Parsed from ARRL list, our SINGLE SOURCE OF TRUTH (402 entities as of Jan 2026)
+3. **`src-tauri/src/reference/dxcc.rs`** → Generated Rust code from JSON
+4. **`src-tauri/src/reference/prefixes.rs`** → Prefix-to-entity mappings (must match JSON entity IDs!)
+
+**When making ANY changes to DXCC/prefix data:**
+1. ALWAYS cross-reference `dxcc_entities.json` for correct entity_id values
+2. NEVER trust comments in code - verify against the JSON
+3. If there's a discrepancy, the JSON is authoritative
+4. Do NOT modify entity IDs without explicit user approval
+
+**Example verification:**
+```powershell
+# Check entity ID for a country in JSON
+Select-String -Path "src-tauri\resources\dxcc_entities.json" -Pattern '"Suriname"' -Context 3,3
+```
+
+**Common mistakes to avoid:**
+- Copying entity IDs from other sources (CTY.DAT, Club Log, etc.)
+- Trusting inline code comments without verification
+- Making "corrections" based on assumptions
 
 ## ADIF Parser
 

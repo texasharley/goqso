@@ -2,7 +2,7 @@
 use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite, Row};
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
-use crate::db::migrations::{MIGRATION_001, MIGRATION_002, MIGRATION_003, MIGRATION_004};
+use crate::db::migrations::{MIGRATION_001, MIGRATION_002, MIGRATION_003, MIGRATION_004, MIGRATION_005};
 use crate::reference::{dxcc, prefixes};
 
 /// Get the database path in the app data directory
@@ -231,6 +231,48 @@ async fn run_migrations(pool: &Pool<Sqlite>) -> Result<(), String> {
         log::info!("Migration 004 applied successfully");
     }
     
+    // Check if migration 005 has been applied (adds FCC database tables)
+    let applied_005: bool = sqlx::query("SELECT COUNT(*) as count FROM _migrations WHERE name = 'migration_005'")
+        .fetch_one(pool)
+        .await
+        .map(|row| row.get::<i64, _>("count") > 0)
+        .unwrap_or(false);
+    
+    if !applied_005 {
+        log::info!("Applying migration_005 (adding FCC database tables)...");
+        
+        for statement in MIGRATION_005.split(';') {
+            let mut stmt = statement.trim();
+            while stmt.starts_with("--") {
+                if let Some(idx) = stmt.find('\n') {
+                    stmt = stmt[idx + 1..].trim();
+                } else {
+                    stmt = "";
+                    break;
+                }
+            }
+            
+            if !stmt.is_empty() {
+                let result = sqlx::query(stmt).execute(pool).await;
+                if let Err(e) = result {
+                    let err_str = e.to_string();
+                    if err_str.contains("already exists") {
+                        log::debug!("Table/index already exists, skipping: {}", stmt);
+                    } else {
+                        return Err(format!("Migration 005 failed on statement: {}\nError: {}", stmt, e));
+                    }
+                }
+            }
+        }
+        
+        sqlx::query("INSERT INTO _migrations (name, applied_at) VALUES ('migration_005', datetime('now'))")
+            .execute(pool)
+            .await
+            .map_err(|e| format!("Failed to record migration: {}", e))?;
+        
+        log::info!("Migration 005 applied successfully");
+    }
+    
     Ok(())
 }
 
@@ -255,14 +297,18 @@ async fn populate_reference_data(pool: &Pool<Sqlite>) -> Result<(), String> {
     
     // Insert DXCC entities in batches
     for entity in dxcc::DXCC_ENTITIES.iter() {
+        // Use first zone from arrays for database (schema stores single zone)
+        let cq_zone = entity.cq_zones.first().copied().unwrap_or(0) as i64;
+        let itu_zone = entity.itu_zones.first().copied().unwrap_or(0) as i64;
+        
         sqlx::query(
             "INSERT OR IGNORE INTO dxcc_entities (entity_code, entity_name, cq_zone, itu_zone, continent, is_deleted) 
              VALUES (?, ?, ?, ?, ?, ?)"
         )
         .bind(entity.entity_id as i64)
         .bind(entity.name)
-        .bind(entity.cq_zone as i64)
-        .bind(entity.itu_zone as i64)
+        .bind(cq_zone)
+        .bind(itu_zone)
         .bind(entity.continent)
         .bind(if entity.deleted { 1 } else { 0 })
         .execute(&mut *tx)

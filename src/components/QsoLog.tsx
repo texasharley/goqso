@@ -153,6 +153,45 @@ export function QsoLog() {
     return ALL_COLUMNS.filter(c => c.defaultVisible).map(c => c.key);
   });
   const [showColumnModal, setShowColumnModal] = useState(false);
+  const [columnOrderLoaded, setColumnOrderLoaded] = useState(false);
+
+  // Load saved column order from settings
+  useEffect(() => {
+    const loadColumnOrder = async () => {
+      try {
+        const saved = await invoke<string | null>("get_setting", { key: "qso_log_columns" });
+        if (saved) {
+          const parsed = JSON.parse(saved) as ColumnKey[];
+          // Validate that all required columns are present
+          const required = ALL_COLUMNS.filter(c => c.required).map(c => c.key);
+          const hasAllRequired = required.every(r => parsed.includes(r));
+          // Validate all keys are valid
+          const allValid = parsed.every(k => ALL_COLUMNS.some(c => c.key === k));
+          if (hasAllRequired && allValid) {
+            setColumnOrder(parsed);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load column order:", e);
+      } finally {
+        setColumnOrderLoaded(true);
+      }
+    };
+    loadColumnOrder();
+  }, []);
+
+  // Save column order when it changes (after initial load)
+  useEffect(() => {
+    if (!columnOrderLoaded) return;
+    const saveColumnOrder = async () => {
+      try {
+        await invoke("set_setting", { key: "qso_log_columns", value: JSON.stringify(columnOrder) });
+      } catch (e) {
+        console.error("Failed to save column order:", e);
+      }
+    };
+    saveColumnOrder();
+  }, [columnOrder, columnOrderLoaded]);
 
   const toggleFilter = (type: keyof FilterState, value: string) => {
     setFilters(prev => {

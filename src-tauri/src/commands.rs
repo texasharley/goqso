@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tauri::{command, Emitter};
+use tauri::{command, Emitter, Manager};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
@@ -25,6 +25,254 @@ fn format_time_from_ms(time_ms: u32) -> String {
 fn get_current_utc_time() -> String {
     use chrono::Utc;
     Utc::now().format("%H%M%S").to_string()
+}
+
+/// Normalize time string to 6-character HHMMSS format (ADIF standard)
+/// 
+/// # Arguments
+/// * `time_str` - Time string in various formats:
+///   - HHMM (4 chars) → append "00" for seconds
+///   - HHMMSS (6 chars) → use as-is
+///   - "YYYY-MM-DD HH:MM:SS" (datetime) → extract time, remove colons
+///   - "HH:MM:SS" (with colons) → remove colons
+/// 
+/// # Returns
+/// * 6-character string in HHMMSS format
+/// 
+/// # Examples
+/// ```
+/// assert_eq!(normalize_time_to_hhmmss("1234"), "123400");
+/// assert_eq!(normalize_time_to_hhmmss("123456"), "123456");
+/// assert_eq!(normalize_time_to_hhmmss("2026-01-08 23:24:45"), "232445");
+/// assert_eq!(normalize_time_to_hhmmss("23:24:45"), "232445");
+/// ```
+pub fn normalize_time_to_hhmmss(time_str: &str) -> String {
+    let clean = time_str.trim();
+    
+    // Handle datetime format "YYYY-MM-DD HH:MM:SS" from QsoLogged message
+    if clean.contains('-') && clean.contains(':') && clean.contains(' ') {
+        // Extract time portion after the space
+        if let Some(time_part) = clean.split(' ').last() {
+            // Remove colons: "23:24:45" → "232445"
+            let no_colons = time_part.replace(':', "");
+            if no_colons.len() >= 6 {
+                return no_colons[..6].to_string();
+            } else if no_colons.len() >= 4 {
+                return format!("{:0<6}", no_colons);
+            }
+        }
+    }
+    
+    // Handle time with colons "HH:MM:SS" or "HH:MM"
+    if clean.contains(':') {
+        let no_colons = clean.replace(':', "");
+        if no_colons.len() >= 6 {
+            return no_colons[..6].to_string();
+        } else if no_colons.len() >= 4 {
+            return format!("{:0<6}", no_colons);
+        }
+    }
+    
+    // Standard HHMMSS or HHMM format
+    if clean.len() >= 6 {
+        clean[..6].to_string()
+    } else if clean.len() == 4 {
+        format!("{}00", clean)
+    } else if clean.len() == 5 {
+        format!("{}0", clean)
+    } else if clean.is_empty() {
+        "000000".to_string()
+    } else {
+        // Pad with zeros on the right
+        format!("{:0<6}", clean)
+    }
+}
+
+/// Extract HHMM (first 4 chars) from time string for duplicate comparison
+/// 
+/// # Arguments
+/// * `time_str` - Time string in HHMM, HHMMSS, or longer format
+/// 
+/// # Returns
+/// * 4-character string representing hours and minutes
+pub fn extract_hhmm(time_str: &str) -> String {
+    let clean = time_str.trim();
+    if clean.len() >= 4 {
+        clean[..4].to_string()
+    } else {
+        format!("{:0<4}", clean)
+    }
+}
+
+/// Convert time string to minutes since midnight for time difference calculations
+/// 
+/// # Arguments
+/// * `time_str` - Time string in HHMM or HHMMSS format
+/// 
+/// # Returns
+/// * Minutes since midnight (0-1439)
+pub fn time_to_minutes(time_str: &str) -> Option<u32> {
+    let clean = time_str.trim();
+    if clean.len() < 4 {
+        return None;
+    }
+    let hours: u32 = clean[..2].parse().ok()?;
+    let minutes: u32 = clean[2..4].parse().ok()?;
+    if hours > 23 || minutes > 59 {
+        return None;
+    }
+    Some(hours * 60 + minutes)
+}
+
+/// Calculate absolute time difference in minutes between two time strings
+/// Handles wraparound at midnight
+/// 
+/// # Arguments
+/// * `time1` - First time string in HHMM or HHMMSS format
+/// * `time2` - Second time string in HHMM or HHMMSS format
+/// 
+/// # Returns
+/// * Absolute difference in minutes, or None if times are invalid
+pub fn time_difference_minutes(time1: &str, time2: &str) -> Option<u32> {
+    let m1 = time_to_minutes(time1)?;
+    let m2 = time_to_minutes(time2)?;
+    let diff = if m1 > m2 { m1 - m2 } else { m2 - m1 };
+    // Handle midnight wraparound - if diff > 12 hours, use the other direction
+    Some(if diff > 720 { 1440 - diff } else { diff })
+}
+
+/// Normalize date string to 8-character YYYYMMDD format (ADIF standard)
+/// Removes any hyphens or separators
+/// 
+/// # Arguments
+/// * `date_str` - Date string in YYYYMMDD, YYYY-MM-DD, or other formats
+/// 
+/// # Returns
+/// * 8-character string in YYYYMMDD format
+pub fn normalize_date_to_yyyymmdd(date_str: &str) -> String {
+    // Remove any non-digit characters
+    let digits: String = date_str.chars().filter(|c| c.is_ascii_digit()).collect();
+    if digits.len() >= 8 {
+        digits[..8].to_string()
+    } else {
+        // Pad with zeros if too short
+        format!("{:0<8}", digits)
+    }
+}
+
+/// Validate ADIF date format (YYYYMMDD)
+/// 
+/// # Arguments
+/// * `date_str` - Date string to validate
+/// 
+/// # Returns
+/// * true if valid YYYYMMDD format with reasonable values
+pub fn is_valid_adif_date(date_str: &str) -> bool {
+    if date_str.len() != 8 {
+        return false;
+    }
+    if !date_str.chars().all(|c| c.is_ascii_digit()) {
+        return false;
+    }
+    let year: u32 = match date_str[..4].parse() {
+        Ok(y) => y,
+        Err(_) => return false,
+    };
+    let month: u32 = match date_str[4..6].parse() {
+        Ok(m) => m,
+        Err(_) => return false,
+    };
+    let day: u32 = match date_str[6..8].parse() {
+        Ok(d) => d,
+        Err(_) => return false,
+    };
+    // Basic validation
+    year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31
+}
+
+/// Validate ADIF time format (HHMM or HHMMSS)
+/// 
+/// # Arguments
+/// * `time_str` - Time string to validate
+/// 
+/// # Returns
+/// * true if valid HHMM or HHMMSS format with reasonable values
+pub fn is_valid_adif_time(time_str: &str) -> bool {
+    let len = time_str.len();
+    if len != 4 && len != 6 {
+        return false;
+    }
+    if !time_str.chars().all(|c| c.is_ascii_digit()) {
+        return false;
+    }
+    let hours: u32 = match time_str[..2].parse() {
+        Ok(h) => h,
+        Err(_) => return false,
+    };
+    let minutes: u32 = match time_str[2..4].parse() {
+        Ok(m) => m,
+        Err(_) => return false,
+    };
+    if hours > 23 || minutes > 59 {
+        return false;
+    }
+    if len == 6 {
+        let seconds: u32 = match time_str[4..6].parse() {
+            Ok(s) => s,
+            Err(_) => return false,
+        };
+        if seconds > 59 {
+            return false;
+        }
+    }
+    true
+}
+
+/// Check if two QSO records should be considered duplicates
+/// Uses fuzzy time matching (same HHMM) and case-insensitive band comparison
+/// 
+/// # Arguments
+/// * `call1`, `call2` - Callsigns
+/// * `date1`, `date2` - Dates in YYYYMMDD format
+/// * `time1`, `time2` - Times in HHMM or HHMMSS format
+/// * `band1`, `band2` - Bands (case-insensitive)
+/// * `mode1`, `mode2` - Modes
+/// 
+/// # Returns
+/// * true if the QSOs should be considered duplicates
+pub fn is_qso_duplicate(
+    call1: &str, call2: &str,
+    date1: &str, date2: &str,
+    time1: &str, time2: &str,
+    band1: &str, band2: &str,
+    mode1: &str, mode2: &str,
+) -> bool {
+    // Case-insensitive callsign comparison
+    if call1.to_uppercase() != call2.to_uppercase() {
+        return false;
+    }
+    
+    // Normalize and compare dates
+    let d1 = normalize_date_to_yyyymmdd(date1);
+    let d2 = normalize_date_to_yyyymmdd(date2);
+    if d1 != d2 {
+        return false;
+    }
+    
+    // Compare times using just HHMM (ignore seconds)
+    let t1 = extract_hhmm(time1);
+    let t2 = extract_hhmm(time2);
+    if t1 != t2 {
+        return false;
+    }
+    
+    // Case-insensitive band comparison
+    if band1.to_uppercase() != band2.to_uppercase() {
+        return false;
+    }
+    
+    // Case-insensitive mode comparison
+    mode1.to_uppercase() == mode2.to_uppercase()
 }
 
 /// Parse TX message to extract de_call (sender) and dx_call (target)
@@ -104,6 +352,10 @@ pub async fn start_udp_listener(
     tauri::async_runtime::spawn(async move {
         // Track last TX message to avoid duplicates
         let mut last_tx_msg = String::new();
+        // Track recently logged QSOs to prevent duplicate events
+        // WSJT-X may send both QsoLogged (type 5) and LoggedADIF (type 12) for the same QSO
+        let mut recent_qso_keys: std::collections::VecDeque<String> = std::collections::VecDeque::new();
+        const MAX_RECENT_QSOS: usize = 10;
         
         while let Some(msg) = rx.recv().await {
             match msg {
@@ -158,6 +410,28 @@ pub async fn start_udp_listener(
                     }
                 }
                 UdpMessage::QsoLogged(qso) => {
+                    // Create a unique key for this QSO to detect duplicates
+                    // WSJT-X may send both QsoLogged (type 5) and LoggedADIF (type 12) for the same QSO
+                    // Note: datetime_off format differs between the two:
+                    //   - QsoLogged: "2026-01-08 23:25:00" (full datetime)
+                    //   - LoggedADIF: "232500" (just time from ADIF TIME_OFF field)
+                    // So we use just callsign + frequency band as the key (within a short time window)
+                    // The deque acts as a short-term memory (~10 QSOs) to catch duplicates
+                    let freq_mhz = qso.freq_hz / 1_000_000; // Coarse frequency (band-level)
+                    let qso_key = format!("{}|{}", qso.call.to_uppercase(), freq_mhz);
+                    
+                    // Check if we've already processed this QSO recently
+                    if recent_qso_keys.contains(&qso_key) {
+                        log::info!("Skipping duplicate QSO event for: {} (already processed)", qso.call);
+                        continue;
+                    }
+                    
+                    // Track this QSO
+                    recent_qso_keys.push_back(qso_key);
+                    if recent_qso_keys.len() > MAX_RECENT_QSOS {
+                        recent_qso_keys.pop_front();
+                    }
+                    
                     log::info!("Received QSO from WSJT-X: {}", qso.call);
                     
                     // Insert into database
@@ -182,7 +456,7 @@ pub async fn start_udp_listener(
                         "version": version,
                     }));
                 }
-                UdpMessage::Status { id, dial_freq, mode, dx_call, report, tx_enabled, transmitting, tx_message, .. } => {
+                UdpMessage::Status { id, dial_freq, mode, dx_call, de_call, report, tx_enabled, transmitting, tx_message, .. } => {
                     // Save TX message to band_activity when transmitting starts
                     if transmitting && !tx_message.is_empty() && tx_message != last_tx_msg {
                         last_tx_msg = tx_message.clone();
@@ -190,7 +464,7 @@ pub async fn start_udp_listener(
                         let db_guard = db_arc.lock().await;
                         if let Some(pool) = db_guard.as_ref() {
                             // Extract de_call (us) and dx_call from tx_message
-                            let (de_call, parsed_dx_call) = parse_tx_message_calls(&tx_message);
+                            let (parsed_de_call, parsed_dx_call) = parse_tx_message_calls(&tx_message);
                             let time_utc = get_current_utc_time();
                             
                             let _ = save_band_activity(
@@ -201,7 +475,7 @@ pub async fn start_udp_listener(
                                 &tx_message,
                                 None, // No SNR for TX
                                 None, // No delta_freq for TX
-                                de_call.as_deref(),
+                                parsed_de_call.as_deref(),
                                 parsed_dx_call.as_deref(),
                                 Some(dial_freq as f64),
                                 Some(&mode),
@@ -220,6 +494,7 @@ pub async fn start_udp_listener(
                         "dial_freq": dial_freq,
                         "mode": mode,
                         "dx_call": dx_call,
+                        "de_call": de_call,
                         "report": report,
                         "tx_enabled": tx_enabled,
                         "transmitting": transmitting,
@@ -337,19 +612,19 @@ impl QsoEvent {
 
 fn freq_to_band(freq_mhz: f64) -> String {
     match freq_mhz {
-        f if f >= 1.8 && f < 2.0 => "160m".to_string(),
-        f if f >= 3.5 && f < 4.0 => "80m".to_string(),
-        f if f >= 5.0 && f < 5.5 => "60m".to_string(),
-        f if f >= 7.0 && f < 7.3 => "40m".to_string(),
-        f if f >= 10.1 && f < 10.15 => "30m".to_string(),
-        f if f >= 14.0 && f < 14.35 => "20m".to_string(),
-        f if f >= 18.068 && f < 18.168 => "17m".to_string(),
-        f if f >= 21.0 && f < 21.45 => "15m".to_string(),
-        f if f >= 24.89 && f < 24.99 => "12m".to_string(),
-        f if f >= 28.0 && f < 29.7 => "10m".to_string(),
-        f if f >= 50.0 && f < 54.0 => "6m".to_string(),
-        f if f >= 144.0 && f < 148.0 => "2m".to_string(),
-        f if f >= 420.0 && f < 450.0 => "70cm".to_string(),
+        f if f >= 1.8 && f < 2.0 => "160M".to_string(),
+        f if f >= 3.5 && f < 4.0 => "80M".to_string(),
+        f if f >= 5.0 && f < 5.5 => "60M".to_string(),
+        f if f >= 7.0 && f < 7.3 => "40M".to_string(),
+        f if f >= 10.1 && f < 10.15 => "30M".to_string(),
+        f if f >= 14.0 && f < 14.35 => "20M".to_string(),
+        f if f >= 18.068 && f < 18.168 => "17M".to_string(),
+        f if f >= 21.0 && f < 21.45 => "15M".to_string(),
+        f if f >= 24.89 && f < 24.99 => "12M".to_string(),
+        f if f >= 28.0 && f < 29.7 => "10M".to_string(),
+        f if f >= 50.0 && f < 54.0 => "6M".to_string(),
+        f if f >= 144.0 && f < 148.0 => "2M".to_string(),
+        f if f >= 420.0 && f < 450.0 => "70CM".to_string(),
         _ => format!("{:.3}MHz", freq_mhz),
     }
 }
@@ -360,12 +635,82 @@ fn freq_to_band(freq_mhz: f64) -> String {
 /// - STATE is NOT derived from prefix (portable operators may be elsewhere)
 /// - STATE will be filled later by LoTW sync (Tier 2)
 async fn insert_qso_from_wsjtx(pool: &Pool<Sqlite>, qso: &QsoLoggedMessage) -> Result<(), String> {
+    // Validate required fields
+    if qso.call.is_empty() {
+        log::warn!("Rejecting QSO: empty callsign");
+        return Err("Empty callsign".to_string());
+    }
+    if qso.mode.is_empty() {
+        log::warn!("Rejecting QSO for {}: empty mode", qso.call);
+        return Err("Empty mode".to_string());
+    }
+    if qso.freq_hz == 0 {
+        log::warn!("Rejecting QSO for {}: zero frequency", qso.call);
+        return Err("Zero frequency".to_string());
+    }
+    
     let uuid = uuid::Uuid::new_v4().to_string();
     let freq_mhz = qso.freq_hz as f64 / 1_000_000.0;
     let band = freq_to_band(freq_mhz);
     let now = chrono::Utc::now();
-    let qso_date = now.format("%Y-%m-%d").to_string();
-    let time_on = now.format("%H%M").to_string();
+    
+    // Extract date and time from WSJT-X datetime fields
+    // datetime_on format can be:
+    //   - "2026-01-08 23:24:45" (QsoLogged message type 5)
+    //   - "232445" (LoggedADIF message type 12 - just time)
+    // ADIF standard: YYYYMMDD for date, HHMMSS for time (6 chars)
+    
+    let (qso_date, time_on) = if !qso.datetime_on.is_empty() {
+        // Check if datetime_on contains a full datetime (has '-' and space)
+        if qso.datetime_on.contains('-') && qso.datetime_on.contains(' ') {
+            // Full datetime format: "2026-01-08 23:24:45"
+            let parts: Vec<&str> = qso.datetime_on.split(' ').collect();
+            if parts.len() >= 2 {
+                let date_part = parts[0].replace('-', ""); // "20260108"
+                let time_part = normalize_time_to_hhmmss(parts[1]); // "232445"
+                (date_part, time_part)
+            } else {
+                (now.format("%Y%m%d").to_string(), normalize_time_to_hhmmss(&qso.datetime_on))
+            }
+        } else {
+            // Just time format: "232445"
+            (now.format("%Y%m%d").to_string(), normalize_time_to_hhmmss(&qso.datetime_on))
+        }
+    } else {
+        (now.format("%Y%m%d").to_string(), now.format("%H%M%S").to_string())
+    };
+    
+    // Validate parsed date and time
+    if !is_valid_adif_date(&qso_date) {
+        log::error!("Rejecting QSO for {}: invalid date '{}' (parsed from '{}')", 
+            qso.call, qso_date, qso.datetime_on);
+        return Err(format!("Invalid date format: {}", qso_date));
+    }
+    if !is_valid_adif_time(&time_on) {
+        log::error!("Rejecting QSO for {}: invalid time '{}' (parsed from '{}')", 
+            qso.call, time_on, qso.datetime_on);
+        return Err(format!("Invalid time format: {}", time_on));
+    }
+    
+    // Check for duplicate: same call, date, time (HHMM), band, mode
+    // Use extract_hhmm for time comparison to handle 4 vs 6 char times
+    let time_hhmm = extract_hhmm(&time_on);
+    let exists: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM qsos WHERE call = ? AND qso_date = ? AND SUBSTR(time_on, 1, 4) = ? AND UPPER(band) = UPPER(?) AND mode = ?)"
+    )
+    .bind(&qso.call)
+    .bind(&qso_date)
+    .bind(&time_hhmm)
+    .bind(&band)
+    .bind(&qso.mode)
+    .fetch_one(pool)
+    .await
+    .unwrap_or(false);
+    
+    if exists {
+        log::info!("Skipping duplicate QSO from WSJT-X: {} on {} {} at {}", qso.call, band, qso.mode, time_on);
+        return Ok(());
+    }
     
     // Look up full DXCC entity info for the callsign
     // This gives us DXCC, COUNTRY, CQZ, ITUZ, CONT from prefix
@@ -656,6 +1001,59 @@ pub async fn delete_qso(
         .map_err(|e| e.to_string())?;
     
     Ok(())
+}
+
+/// Find and remove duplicate QSOs (same call, date, time, band, mode)
+/// Keeps the record with the BEST data (prefers: has grid, has entity, lowest id)
+#[command]
+pub async fn remove_duplicate_qsos(
+    state: tauri::State<'_, AppState>,
+) -> Result<i64, String> {
+    log::info!("Finding and removing duplicate QSOs");
+    
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    // Delete duplicates, keeping the one with best data
+    // Priority: has valid gridsquare > has dxcc/country > lowest id
+    // A valid grid is 4+ chars and doesn't contain "RR73", "RRR", "73"
+    let result = sqlx::query(
+        r#"
+        DELETE FROM qsos 
+        WHERE id NOT IN (
+            SELECT id FROM (
+                SELECT id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY call, qso_date, SUBSTR(time_on, 1, 4), LOWER(band), mode
+                        ORDER BY 
+                            -- Prefer records with valid gridsquare (not RR73, RRR, 73, or empty)
+                            CASE WHEN gridsquare IS NOT NULL 
+                                 AND LENGTH(gridsquare) >= 4 
+                                 AND gridsquare NOT IN ('RR73', 'RRR', '73')
+                                 THEN 0 ELSE 1 END,
+                            -- Prefer records with DXCC entity
+                            CASE WHEN dxcc IS NOT NULL THEN 0 ELSE 1 END,
+                            -- Prefer records with country name
+                            CASE WHEN country IS NOT NULL AND country != '' THEN 0 ELSE 1 END,
+                            -- Prefer records WITHOUT corrupted RST (no "73" in RST)
+                            CASE WHEN rst_sent LIKE '%73%' OR rst_rcvd LIKE '%73%' THEN 1 ELSE 0 END,
+                            -- Finally, prefer older records (lower id)
+                            id
+                    ) as rn
+                FROM qsos
+            )
+            WHERE rn = 1
+        )
+        "#
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| e.to_string())?;
+    
+    let deleted = result.rows_affected() as i64;
+    log::info!("Removed {} duplicate QSOs", deleted);
+    
+    Ok(deleted)
 }
 
 #[command]
@@ -962,8 +1360,8 @@ pub async fn add_test_qsos(
         let uuid = uuid::Uuid::new_v4().to_string();
         // Spread QSOs over the past few hours
         let qso_time = now - chrono::Duration::minutes((i as i64) * 15);
-        let qso_date = qso_time.format("%Y-%m-%d").to_string();
-        let time_on = qso_time.format("%H%M").to_string();
+        let qso_date = qso_time.format("%Y%m%d").to_string();  // ADIF standard: YYYYMMDD
+        let time_on = qso_time.format("%H%M%S").to_string();  // ADIF standard: HHMMSS
         
         sqlx::query(
             r#"
@@ -1025,7 +1423,7 @@ pub async fn sync_lotw_download(
     password: String,
     since_date: Option<String>,
 ) -> Result<LotwDownloadResult, String> {
-    log::info!("Starting LoTW confirmation download");
+    log::info!("Starting LoTW confirmation download, since_date={:?}", since_date);
     
     use crate::lotw::{LotwClient, LotwQueryOptions};
     
@@ -1033,18 +1431,22 @@ pub async fn sync_lotw_download(
     let client = LotwClient::new(username, password);
     
     // Build query options
+    // Note: LoTW accepts both "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS" formats
+    // Using the full datetime ensures we only get NEW confirmations since last sync
     let options = LotwQueryOptions {
-        qso_qslsince: since_date,
+        qso_qslsince: since_date.clone(),
         qso_qsldetail: true,
         qso_withown: true,
         ..Default::default()
     };
     
+    log::info!("LoTW query options: qso_qslsince={:?}", since_date);
+    
     // Download confirmations from LoTW
     let result = client.download_confirmations(&options).await
         .map_err(|e| e.to_string())?;
     
-    log::info!("Downloaded {} bytes from LoTW", result.adif_content.len());
+    log::info!("Downloaded {} bytes from LoTW, last_qsl={:?}", result.adif_content.len(), result.last_qsl);
     
     // Parse the ADIF content
     use crate::adif::parse_adif;
@@ -1060,6 +1462,7 @@ pub async fn sync_lotw_download(
     let mut matched = 0;
     let mut unmatched = 0;
     let mut errors: Vec<String> = Vec::new();
+    let mut unmatched_qsos: Vec<UnmatchedQso> = Vec::new();
     
     for record in &adif_file.records {
         let call = match record.call() {
@@ -1075,19 +1478,21 @@ pub async fn sync_lotw_download(
         let qso_date = record.qso_date().map(|s| s.to_string()).unwrap_or_default();
         let time_on = record.time_on().map(|s| s.to_string()).unwrap_or_default();
         
-        // Match by call, band, date, and time_on prefix
+        // Normalize time for matching - extract HHMM prefix for comparison
+        let time_prefix = extract_hhmm(&time_on);
+        
+        // Match by call, band, date, and time_on prefix (HHMM)
         // LoTW may send 4-char time (HHMM) while we store 6-char (HHMMSS)
-        // Use prefix matching: our time_on LIKE 'HHMM%'
         let match_result = sqlx::query(
             r#"SELECT id FROM qsos 
                WHERE UPPER(call) = ? AND UPPER(band) = ? AND qso_date = ?
-                 AND time_on LIKE ? || '%'
+                 AND SUBSTR(time_on, 1, 4) = ?
                LIMIT 1"#
         )
         .bind(call.to_uppercase())
         .bind(&band)
         .bind(&qso_date)
-        .bind(&time_on)
+        .bind(&time_prefix)
         .fetch_optional(pool)
         .await;
         
@@ -1151,7 +1556,14 @@ pub async fn sync_lotw_download(
             }
             Ok(None) => {
                 unmatched += 1;
-                log::debug!("No local QSO for LoTW QSL: {} on {} {}", call, band, qso_date);
+                unmatched_qsos.push(UnmatchedQso {
+                    call: call.clone(),
+                    qso_date: qso_date.clone(),
+                    time_on: time_on.clone(),
+                    band: band.clone(),
+                    mode: mode.clone(),
+                });
+                log::warn!("No local QSO for LoTW QSL: {} on {} {} at {} ({})", call, band, qso_date, time_on, mode);
             }
             Err(e) => {
                 errors.push(format!("DB error matching {}: {}", call, e));
@@ -1165,9 +1577,19 @@ pub async fn sync_lotw_download(
         total_records: adif_file.records.len() as i32,
         matched,
         unmatched,
+        unmatched_qsos,
         errors,
         last_qsl: result.last_qsl,
     })
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct UnmatchedQso {
+    pub call: String,
+    pub qso_date: String,
+    pub time_on: String,
+    pub band: String,
+    pub mode: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -1175,6 +1597,7 @@ pub struct LotwDownloadResult {
     pub total_records: i32,
     pub matched: i32,
     pub unmatched: i32,
+    pub unmatched_qsos: Vec<UnmatchedQso>,
     pub errors: Vec<String>,
     pub last_qsl: Option<String>,
 }
@@ -1571,16 +1994,22 @@ pub async fn import_adif(
             continue;
         }
         
+        // Normalize time to 6 chars for consistency
+        let time_on_normalized = normalize_time_to_hhmmss(&time_on);
+        
         // Check for duplicate (same call, date, time, band, mode)
         // Note: time_on is included because you can work the same station
         // multiple times on the same day/band/mode (e.g., contest exchanges)
+        // Use UPPER() for band to handle case differences (WSJT-X uses "20m", ADIF may use "20M")
+        // Use extract_hhmm for time comparison to handle 4 vs 6 char times
         if skip_duplicates {
+            let time_hhmm = extract_hhmm(&time_on);
             let exists: bool = sqlx::query_scalar(
-                "SELECT EXISTS(SELECT 1 FROM qsos WHERE call = ? AND qso_date = ? AND time_on = ? AND band = ? AND mode = ?)"
+                "SELECT EXISTS(SELECT 1 FROM qsos WHERE call = ? AND qso_date = ? AND SUBSTR(time_on, 1, 4) = ? AND UPPER(band) = UPPER(?) AND UPPER(mode) = UPPER(?))"
             )
             .bind(&call)
             .bind(&qso_date)
-            .bind(&time_on)
+            .bind(&time_hhmm)
             .bind(&band)
             .bind(&mode)
             .fetch_one(pool)
@@ -1624,7 +2053,7 @@ pub async fn import_adif(
         .bind(&call)
         .bind(&qso_date)
         .bind(record.get("QSO_DATE_OFF"))
-        .bind(&time_on)
+        .bind(&time_on_normalized)  // Use normalized 6-char time
         .bind(record.get("TIME_OFF"))
         .bind(&band)
         .bind(&mode)
@@ -2199,4 +2628,691 @@ pub async fn prune_band_activity(
     .map_err(|e| format!("Failed to prune band activity: {}", e))?;
     
     Ok(result.rows_affected() as i64)
+}
+
+// ============================================================================
+// FCC Database Commands
+// ============================================================================
+
+use crate::fcc::{FccSyncStatus, FccLicenseInfo};
+
+/// Get FCC database sync status
+#[command]
+pub async fn get_fcc_sync_status(
+    state: tauri::State<'_, AppState>,
+) -> Result<FccSyncStatus, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    crate::fcc::get_sync_status(pool).await
+}
+
+/// Sync (download and import) the FCC amateur license database
+#[command]
+pub async fn sync_fcc_database(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> Result<FccSyncStatus, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    // Mark sync as in progress
+    sqlx::query(
+        "UPDATE fcc_sync_status SET sync_in_progress = 1, error_message = NULL WHERE id = 1"
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| format!("Failed to update sync status: {}", e))?;
+    
+    // Emit progress event
+    let _ = app.emit("fcc-sync-progress", "Starting FCC database download...");
+    
+    // Get app data directory
+    let data_dir = app.path().app_data_dir()
+        .map_err(|e| format!("Failed to get app data dir: {}", e))?;
+    
+    // Download the database
+    let _ = app.emit("fcc-sync-progress", "Downloading FCC database (~25MB)...");
+    
+    let en_path = match crate::fcc::download_fcc_database(&data_dir).await {
+        Ok(path) => path,
+        Err(e) => {
+            // Update error status
+            let _ = sqlx::query(
+                "UPDATE fcc_sync_status SET sync_in_progress = 0, error_message = ? WHERE id = 1"
+            )
+            .bind(&e)
+            .execute(pool)
+            .await;
+            
+            return Err(e);
+        }
+    };
+    
+    // Parse and import
+    let _ = app.emit("fcc-sync-progress", "Importing FCC records into database...");
+    
+    let record_count = match crate::fcc::parse_fcc_database(&en_path, pool).await {
+        Ok(count) => count,
+        Err(e) => {
+            // Update error status
+            let _ = sqlx::query(
+                "UPDATE fcc_sync_status SET sync_in_progress = 0, error_message = ? WHERE id = 1"
+            )
+            .bind(&e)
+            .execute(pool)
+            .await;
+            
+            return Err(e);
+        }
+    };
+    
+    // Update success status
+    sqlx::query(
+        r#"UPDATE fcc_sync_status SET 
+           sync_in_progress = 0, 
+           last_sync_at = datetime('now'),
+           record_count = ?,
+           error_message = NULL
+           WHERE id = 1"#
+    )
+    .bind(record_count as i64)
+    .execute(pool)
+    .await
+    .map_err(|e| format!("Failed to update sync status: {}", e))?;
+    
+    let _ = app.emit("fcc-sync-progress", format!("Imported {} FCC records", record_count));
+    
+    // Return updated status
+    crate::fcc::get_sync_status(pool).await
+}
+
+/// Lookup a single callsign in the FCC database
+#[command]
+pub async fn lookup_fcc_callsign(
+    state: tauri::State<'_, AppState>,
+    callsign: String,
+) -> Result<Option<FccLicenseInfo>, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    Ok(crate::fcc::lookup_callsign(pool, &callsign).await)
+}
+
+/// Lookup multiple callsigns in the FCC database (batch)
+#[command]
+pub async fn lookup_fcc_callsigns(
+    state: tauri::State<'_, AppState>,
+    callsigns: Vec<String>,
+) -> Result<Vec<FccLicenseInfo>, String> {
+    let db_guard = state.db.lock().await;
+    let pool = db_guard.as_ref().ok_or("Database not initialized")?;
+    
+    Ok(crate::fcc::lookup_callsigns(pool, &callsigns).await)
+}
+
+// ============================================================================
+// Unit Tests
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ========================================================================
+    // Time Format Normalization Tests
+    // ========================================================================
+
+    #[test]
+    fn test_normalize_time_to_hhmmss_4_chars() {
+        // HHMM -> HHMMSS (add 00 seconds)
+        assert_eq!(normalize_time_to_hhmmss("1234"), "123400");
+        assert_eq!(normalize_time_to_hhmmss("0000"), "000000");
+        assert_eq!(normalize_time_to_hhmmss("2359"), "235900");
+    }
+
+    #[test]
+    fn test_normalize_time_to_hhmmss_6_chars() {
+        // Already HHMMSS - no change
+        assert_eq!(normalize_time_to_hhmmss("123456"), "123456");
+        assert_eq!(normalize_time_to_hhmmss("000000"), "000000");
+        assert_eq!(normalize_time_to_hhmmss("235959"), "235959");
+    }
+
+    #[test]
+    fn test_normalize_time_to_hhmmss_longer_than_6() {
+        // Truncate to 6 chars
+        assert_eq!(normalize_time_to_hhmmss("12345678"), "123456");
+        assert_eq!(normalize_time_to_hhmmss("1234567890"), "123456");
+    }
+
+    #[test]
+    fn test_normalize_time_to_hhmmss_datetime_format() {
+        // CRITICAL: This is the format from WSJT-X QsoLogged (type 5) messages
+        // BUG FIX: Previously this returned "2026-0" (first 6 chars) instead of "232445"
+        assert_eq!(normalize_time_to_hhmmss("2026-01-08 23:24:45"), "232445");
+        assert_eq!(normalize_time_to_hhmmss("2026-01-08 00:00:00"), "000000");
+        assert_eq!(normalize_time_to_hhmmss("2026-12-31 23:59:59"), "235959");
+        assert_eq!(normalize_time_to_hhmmss("1999-01-01 12:34:56"), "123456");
+    }
+
+    #[test]
+    fn test_normalize_time_to_hhmmss_time_with_colons() {
+        // Time format with colons (no date)
+        assert_eq!(normalize_time_to_hhmmss("23:24:45"), "232445");
+        assert_eq!(normalize_time_to_hhmmss("00:00:00"), "000000");
+        assert_eq!(normalize_time_to_hhmmss("12:34"), "123400");
+    }
+
+    #[test]
+    fn test_normalize_time_to_hhmmss_edge_cases() {
+        // Empty string
+        assert_eq!(normalize_time_to_hhmmss(""), "000000");
+        // Whitespace
+        assert_eq!(normalize_time_to_hhmmss("  1234  "), "123400");
+        // Short strings (padded with zeros)
+        assert_eq!(normalize_time_to_hhmmss("1"), "100000");
+        assert_eq!(normalize_time_to_hhmmss("12"), "120000");
+        assert_eq!(normalize_time_to_hhmmss("123"), "123000");
+        // 5 chars - add one zero
+        assert_eq!(normalize_time_to_hhmmss("12345"), "123450");
+    }
+
+    // ========================================================================
+    // HHMM Extraction Tests
+    // ========================================================================
+
+    #[test]
+    fn test_extract_hhmm_from_hhmmss() {
+        assert_eq!(extract_hhmm("123456"), "1234");
+        assert_eq!(extract_hhmm("000000"), "0000");
+        assert_eq!(extract_hhmm("235959"), "2359");
+    }
+
+    #[test]
+    fn test_extract_hhmm_from_hhmm() {
+        assert_eq!(extract_hhmm("1234"), "1234");
+        assert_eq!(extract_hhmm("0000"), "0000");
+    }
+
+    #[test]
+    fn test_extract_hhmm_edge_cases() {
+        // Short strings get padded
+        assert_eq!(extract_hhmm("1"), "1000");
+        assert_eq!(extract_hhmm("12"), "1200");
+        assert_eq!(extract_hhmm("123"), "1230");
+        assert_eq!(extract_hhmm(""), "0000");
+    }
+
+    // ========================================================================
+    // Time to Minutes Conversion Tests
+    // ========================================================================
+
+    #[test]
+    fn test_time_to_minutes_valid() {
+        assert_eq!(time_to_minutes("0000"), Some(0));
+        assert_eq!(time_to_minutes("0100"), Some(60));
+        assert_eq!(time_to_minutes("1200"), Some(720));
+        assert_eq!(time_to_minutes("2359"), Some(1439));
+        assert_eq!(time_to_minutes("123456"), Some(754)); // 12*60 + 34
+    }
+
+    #[test]
+    fn test_time_to_minutes_invalid() {
+        // Too short
+        assert_eq!(time_to_minutes("123"), None);
+        assert_eq!(time_to_minutes(""), None);
+        // Invalid hours
+        assert_eq!(time_to_minutes("2400"), None);
+        assert_eq!(time_to_minutes("2500"), None);
+        // Invalid minutes
+        assert_eq!(time_to_minutes("0060"), None);
+        assert_eq!(time_to_minutes("0099"), None);
+    }
+
+    // ========================================================================
+    // Time Difference Tests
+    // ========================================================================
+
+    #[test]
+    fn test_time_difference_minutes_same_time() {
+        assert_eq!(time_difference_minutes("1234", "1234"), Some(0));
+        assert_eq!(time_difference_minutes("123400", "123456"), Some(0)); // Same HHMM
+    }
+
+    #[test]
+    fn test_time_difference_minutes_small_diff() {
+        assert_eq!(time_difference_minutes("1200", "1205"), Some(5));
+        assert_eq!(time_difference_minutes("1205", "1200"), Some(5)); // Order doesn't matter
+        assert_eq!(time_difference_minutes("1234", "1334"), Some(60)); // 1 hour
+    }
+
+    #[test]
+    fn test_time_difference_minutes_midnight_wrap() {
+        // 23:50 to 00:10 should be 20 minutes, not 1420
+        assert_eq!(time_difference_minutes("2350", "0010"), Some(20));
+        assert_eq!(time_difference_minutes("0010", "2350"), Some(20));
+    }
+
+    #[test]
+    fn test_time_difference_minutes_invalid() {
+        assert_eq!(time_difference_minutes("invalid", "1234"), None);
+        assert_eq!(time_difference_minutes("1234", ""), None);
+    }
+
+    // ========================================================================
+    // Date Normalization Tests
+    // ========================================================================
+
+    #[test]
+    fn test_normalize_date_already_correct() {
+        assert_eq!(normalize_date_to_yyyymmdd("20260108"), "20260108");
+        assert_eq!(normalize_date_to_yyyymmdd("19991231"), "19991231");
+    }
+
+    #[test]
+    fn test_normalize_date_with_hyphens() {
+        assert_eq!(normalize_date_to_yyyymmdd("2026-01-08"), "20260108");
+        assert_eq!(normalize_date_to_yyyymmdd("1999-12-31"), "19991231");
+    }
+
+    #[test]
+    fn test_normalize_date_with_slashes() {
+        assert_eq!(normalize_date_to_yyyymmdd("2026/01/08"), "20260108");
+    }
+
+    #[test]
+    fn test_normalize_date_longer() {
+        // Truncate to 8 digits
+        assert_eq!(normalize_date_to_yyyymmdd("202601081234"), "20260108");
+    }
+
+    // ========================================================================
+    // Date Validation Tests
+    // ========================================================================
+
+    #[test]
+    fn test_is_valid_adif_date_valid() {
+        assert!(is_valid_adif_date("20260108"));
+        assert!(is_valid_adif_date("19001231"));
+        assert!(is_valid_adif_date("21001231"));
+    }
+
+    #[test]
+    fn test_is_valid_adif_date_invalid_format() {
+        assert!(!is_valid_adif_date("2026-01-08")); // Has hyphens
+        assert!(!is_valid_adif_date("2026108"));    // Too short
+        assert!(!is_valid_adif_date("202601081")); // Too long
+        assert!(!is_valid_adif_date(""));
+    }
+
+    #[test]
+    fn test_is_valid_adif_date_invalid_values() {
+        assert!(!is_valid_adif_date("20261301")); // Month 13
+        assert!(!is_valid_adif_date("20260032")); // Day 32
+        assert!(!is_valid_adif_date("20260001")); // Month 0
+        assert!(!is_valid_adif_date("20260100")); // Day 0
+        assert!(!is_valid_adif_date("18990101")); // Year before 1900
+    }
+
+    // ========================================================================
+    // Time Validation Tests
+    // ========================================================================
+
+    #[test]
+    fn test_is_valid_adif_time_valid_hhmm() {
+        assert!(is_valid_adif_time("0000"));
+        assert!(is_valid_adif_time("1234"));
+        assert!(is_valid_adif_time("2359"));
+    }
+
+    #[test]
+    fn test_is_valid_adif_time_valid_hhmmss() {
+        assert!(is_valid_adif_time("000000"));
+        assert!(is_valid_adif_time("123456"));
+        assert!(is_valid_adif_time("235959"));
+    }
+
+    #[test]
+    fn test_is_valid_adif_time_invalid_format() {
+        assert!(!is_valid_adif_time("12:34")); // Has colon
+        assert!(!is_valid_adif_time("123"));    // Too short
+        assert!(!is_valid_adif_time("12345"));  // 5 chars - invalid
+        assert!(!is_valid_adif_time("1234567")); // 7 chars - invalid
+        assert!(!is_valid_adif_time(""));
+    }
+
+    #[test]
+    fn test_is_valid_adif_time_invalid_values() {
+        assert!(!is_valid_adif_time("2400"));   // Hour 24
+        assert!(!is_valid_adif_time("2500"));   // Hour 25
+        assert!(!is_valid_adif_time("0060"));   // Minute 60
+        assert!(!is_valid_adif_time("123460")); // Second 60
+    }
+
+    // ========================================================================
+    // QSO Duplicate Detection Tests
+    // ========================================================================
+
+    #[test]
+    fn test_is_qso_duplicate_exact_match() {
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "123400", "123400",
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_case_insensitive_call() {
+        assert!(is_qso_duplicate(
+            "w1abc", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_case_insensitive_band() {
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20m", "20M",  // Different case
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_case_insensitive_mode() {
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20M", "20M",
+            "ft8", "FT8"  // Different case
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_time_4_vs_6_chars() {
+        // 4-char and 6-char times with same HHMM are duplicates
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "123456",  // 4 vs 6 chars
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_date_with_hyphens() {
+        // Date normalization
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "2026-01-08", "20260108",  // Hyphenated vs clean
+            "1234", "1234",
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_not_duplicate_different_call() {
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W2XYZ",  // Different callsigns
+            "20260108", "20260108",
+            "1234", "1234",
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_not_duplicate_different_date() {
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260109",  // Different dates
+            "1234", "1234",
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_not_duplicate_different_time() {
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1235",  // Different times (even by 1 minute)
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_not_duplicate_different_band() {
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20M", "40M",  // Different bands
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_not_duplicate_different_mode() {
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20M", "20M",
+            "FT8", "CW"  // Different modes
+        ));
+    }
+
+    #[test]
+    fn test_is_qso_duplicate_same_minute_different_seconds() {
+        // Same minute should be duplicate (ignore seconds)
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "123400", "123459",  // Same HHMM, different SS
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    // ========================================================================
+    // Frequency to Band Conversion Tests
+    // ========================================================================
+
+    #[test]
+    fn test_freq_to_band_hf() {
+        assert_eq!(freq_to_band(1.840), "160M");
+        assert_eq!(freq_to_band(3.573), "80M");
+        assert_eq!(freq_to_band(5.357), "60M");
+        assert_eq!(freq_to_band(7.074), "40M");
+        assert_eq!(freq_to_band(10.136), "30M");
+        assert_eq!(freq_to_band(14.074), "20M");
+        assert_eq!(freq_to_band(18.100), "17M");
+        assert_eq!(freq_to_band(21.074), "15M");
+        assert_eq!(freq_to_band(24.915), "12M");
+        assert_eq!(freq_to_band(28.074), "10M");
+    }
+
+    #[test]
+    fn test_freq_to_band_vhf_uhf() {
+        assert_eq!(freq_to_band(50.313), "6M");
+        assert_eq!(freq_to_band(144.174), "2M");
+        assert_eq!(freq_to_band(432.065), "70CM");
+    }
+
+    #[test]
+    fn test_freq_to_band_edge_cases() {
+        // Band edges
+        assert_eq!(freq_to_band(14.0), "20M");    // Lower edge
+        assert_eq!(freq_to_band(14.349), "20M");  // Upper edge
+        // Out of band
+        assert_eq!(freq_to_band(13.9), "13.900MHz");   // Below 20m
+        assert_eq!(freq_to_band(14.36), "14.360MHz");  // Above 20m
+    }
+
+    #[test]
+    fn test_freq_to_band_uppercase() {
+        // All bands should be uppercase
+        let band = freq_to_band(14.074);
+        assert!(band.chars().next().unwrap().is_uppercase() || band.chars().next().unwrap().is_ascii_digit());
+        assert!(!band.contains('m') || band.ends_with("MHz")); // Either no lowercase 'm' or it's the MHz fallback
+    }
+
+    // ========================================================================
+    // Time from Milliseconds Tests
+    // ========================================================================
+
+    #[test]
+    fn test_format_time_from_ms_midnight() {
+        assert_eq!(format_time_from_ms(0), "000000");
+    }
+
+    #[test]
+    fn test_format_time_from_ms_noon() {
+        // 12:00:00 = 12 * 60 * 60 * 1000 = 43200000 ms
+        assert_eq!(format_time_from_ms(43200000), "120000");
+    }
+
+    #[test]
+    fn test_format_time_from_ms_end_of_day() {
+        // 23:59:59 = (23*3600 + 59*60 + 59) * 1000 = 86399000 ms
+        assert_eq!(format_time_from_ms(86399000), "235959");
+    }
+
+    #[test]
+    fn test_format_time_from_ms_with_seconds() {
+        // 12:34:56 = (12*3600 + 34*60 + 56) * 1000 = 45296000 ms
+        assert_eq!(format_time_from_ms(45296000), "123456");
+    }
+
+    #[test]
+    fn test_format_time_from_ms_wrap_around() {
+        // More than 24 hours should wrap around
+        // 25:00:00 = 25 * 3600 * 1000 = 90000000 ms -> wraps to 01:00:00
+        assert_eq!(format_time_from_ms(90000000), "010000");
+    }
+
+    // ========================================================================
+    // Regression Tests - Real-World Scenarios
+    // ========================================================================
+
+    #[test]
+    fn regression_wsjt_x_vs_adif_import_duplicate() {
+        // Real scenario: WSJT-X logs with 4-char time, ADIF import has 6-char
+        // These MUST be detected as duplicates
+        assert!(is_qso_duplicate(
+            "K5VJZ", "K5VJZ",
+            "20260107", "20260107",
+            "2337", "233726",  // WSJT-X (4) vs ADIF (6)
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn regression_lotw_date_format_matching() {
+        // LoTW uses YYYYMMDD, we might have had YYYY-MM-DD
+        // After normalization, these should match
+        let date1 = normalize_date_to_yyyymmdd("2026-01-07");
+        let date2 = normalize_date_to_yyyymmdd("20260107");
+        assert_eq!(date1, date2);
+        assert_eq!(date1, "20260107");
+    }
+
+    #[test]
+    fn regression_band_case_mismatch() {
+        // WSJT-X might use "20m", ADIF standard is "20M"
+        // Both should work for duplicate detection
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20m", "20M",  // Case mismatch
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn regression_same_station_different_times_not_duplicate() {
+        // Working same station at 12:34 and 12:45 are NOT duplicates
+        // (e.g., contest, or two separate contacts)
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1245",  // 11 minutes apart
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn regression_lotw_time_matching_within_minute() {
+        // LoTW might report slightly different seconds
+        // 12:34:00 vs 12:34:56 should match (same HHMM)
+        assert!(is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "123400", "123456",
+            "20M", "20M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn regression_empty_time_handling() {
+        // Empty time should be normalized to "000000" and "0000"
+        let t = normalize_time_to_hhmmss("");
+        assert_eq!(t, "000000");
+        let hhmm = extract_hhmm("");
+        assert_eq!(hhmm, "0000");
+    }
+
+    #[test]
+    fn regression_whitespace_in_time() {
+        // Time with whitespace should be trimmed
+        let t = normalize_time_to_hhmmss("  1234  ");
+        assert_eq!(t, "123400");
+    }
+
+    // ========================================================================
+    // Contest/Special Scenario Tests
+    // ========================================================================
+
+    #[test]
+    fn test_same_station_different_bands_not_duplicate() {
+        // Same call, same time, different bands = NOT duplicate (band change)
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20M", "40M",
+            "FT8", "FT8"
+        ));
+    }
+
+    #[test]
+    fn test_same_station_different_modes_not_duplicate() {
+        // Same call, same time, different modes = NOT duplicate
+        assert!(!is_qso_duplicate(
+            "W1ABC", "W1ABC",
+            "20260108", "20260108",
+            "1234", "1234",
+            "20M", "20M",
+            "FT8", "SSB"
+        ));
+    }
 }

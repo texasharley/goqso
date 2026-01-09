@@ -362,7 +362,55 @@ CREATE INDEX IF NOT EXISTS idx_band_activity_calls ON band_activity(de_call, dx_
 CREATE INDEX IF NOT EXISTS idx_band_activity_qso ON band_activity(qso_id);
 "#;
 
+/// Migration 005: FCC Amateur License Database Cache
+/// 
+/// Stores US amateur radio license data from FCC ULS database.
+/// Used for offline callsign → state lookups (essential for POTA/portable ops).
+/// 
+/// Data source: https://data.fcc.gov/download/pub/uls/complete/l_amat.zip
+/// Update frequency: Weekly (FCC updates daily, but weekly is sufficient)
+/// 
+/// We extract from EN.dat (Entity records):
+/// - Call sign (column 4)
+/// - First name + Last name (columns 8, 10)
+/// - City (column 16)
+/// - State (column 17)
+pub const MIGRATION_005: &str = r#"
+-- =============================================================================
+-- FCC Amateur License Cache
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS fcc_licenses (
+    call            TEXT PRIMARY KEY,       -- Callsign (uppercase)
+    name            TEXT,                   -- Licensee name
+    city            TEXT,                   -- City
+    state           TEXT,                   -- 2-letter state code
+    zip             TEXT,                   -- ZIP code
+    grid            TEXT,                   -- Calculated from address (if available)
+    license_class   TEXT,                   -- License class (E, G, T, etc.)
+    grant_date      TEXT,                   -- License grant date
+    expire_date     TEXT,                   -- License expiration date
+    frn             TEXT,                   -- FCC Registration Number
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Index for state lookups (WAS tracking)
+CREATE INDEX IF NOT EXISTS idx_fcc_state ON fcc_licenses(state);
+
+-- FCC sync status
+CREATE TABLE IF NOT EXISTS fcc_sync_status (
+    id              INTEGER PRIMARY KEY CHECK (id = 1),
+    last_sync_at    TEXT,                   -- When we last synced
+    record_count    INTEGER DEFAULT 0,      -- Number of records imported
+    file_date       TEXT,                   -- Date of the FCC file
+    sync_in_progress INTEGER DEFAULT 0,     -- Flag to prevent concurrent syncs
+    error_message   TEXT,                   -- Last error if any
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+INSERT OR IGNORE INTO fcc_sync_status (id, updated_at) VALUES (1, datetime('now'));
+"#;
+
 /// Run all migrations
 pub fn get_migrations() -> Vec<&'static str> {
-    vec![MIGRATION_001, MIGRATION_002, MIGRATION_003, MIGRATION_004]
+    vec![MIGRATION_001, MIGRATION_002, MIGRATION_003, MIGRATION_004, MIGRATION_005]
 }

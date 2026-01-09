@@ -1,0 +1,3971 @@
+[
+  {
+    "EntityId": "001",
+    "Name": "Canada",
+    "Continent": "NA",
+    "ItuZones": null,
+    "CqZones": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "Prefixes": [
+      "VA-VG",
+      "VO",
+      "VY"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "002",
+    "Name": "Abu Ail Is.",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": null,
+    "Deleted": true
+  },
+  {
+    "EntityId": "003",
+    "Name": "Afghanistan",
+    "Continent": "AS",
+    "ItuZones": 40,
+    "CqZones": 21,
+    "Prefixes": [
+      "YA",
+      "T6"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "004",
+    "Name": "Agalega & St. Brandon Is.",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": [
+      "3B6",
+      "7"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "005",
+    "Name": "Aland Is.",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 15,
+    "Prefixes": "OH0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "006",
+    "Name": "Alaska",
+    "Continent": "NA",
+    "ItuZones": [
+      1,
+      2
+    ],
+    "CqZones": 1,
+    "Prefixes": [
+      "KL",
+      "AL",
+      "NL",
+      "WL"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "007",
+    "Name": "Albania",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "ZA",
+    "Deleted": false
+  },
+  {
+    "EntityId": "008",
+    "Name": "Aldabra",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "VQ9",
+    "Deleted": true
+  },
+  {
+    "EntityId": "009",
+    "Name": "American Samoa",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "KH8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "010",
+    "Name": "Amsterdam & St. Paul Is.",
+    "Continent": "AF",
+    "ItuZones": 68,
+    "CqZones": 39,
+    "Prefixes": "FT/Z",
+    "Deleted": false
+  },
+  {
+    "EntityId": "011",
+    "Name": "Andaman & Nicobar Is.",
+    "Continent": "AS",
+    "ItuZones": 49,
+    "CqZones": 26,
+    "Prefixes": "VU4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "012",
+    "Name": "Anguilla",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "VP2E",
+    "Deleted": false
+  },
+  {
+    "EntityId": "013",
+    "Name": "Antarctica",
+    "Continent": "AN",
+    "ItuZones": null,
+    "CqZones": null,
+    "Prefixes": "CE9/KC4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "014",
+    "Name": "Armenia",
+    "Continent": "AS",
+    "ItuZones": 29,
+    "CqZones": 21,
+    "Prefixes": "EK",
+    "Deleted": false
+  },
+  {
+    "EntityId": "015",
+    "Name": "Asiatic Russia",
+    "Continent": "AS",
+    "ItuZones": null,
+    "CqZones": null,
+    "Prefixes": [
+      "UA-UI8-0",
+      "RA-RZ"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "016",
+    "Name": "New Zealand Subantarctic Islands",
+    "Continent": "OC",
+    "ItuZones": 60,
+    "CqZones": 32,
+    "Prefixes": "ZL9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "017",
+    "Name": "Aves I.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "YV0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "018",
+    "Name": "Azerbaijan",
+    "Continent": "AS",
+    "ItuZones": 29,
+    "CqZones": 21,
+    "Prefixes": [
+      "4J",
+      "4K"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "019",
+    "Name": "Bajo Nuevo",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "HK0",
+    "Deleted": true
+  },
+  {
+    "EntityId": "020",
+    "Name": "Baker & Howland Is.",
+    "Continent": "OC",
+    "ItuZones": 61,
+    "CqZones": 31,
+    "Prefixes": "KH1",
+    "Deleted": false
+  },
+  {
+    "EntityId": "021",
+    "Name": "Balearic Is.",
+    "Continent": "EU",
+    "ItuZones": 37,
+    "CqZones": 14,
+    "Prefixes": "EA6-EH6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "022",
+    "Name": "Palau",
+    "Continent": "OC",
+    "ItuZones": 64,
+    "CqZones": 27,
+    "Prefixes": "T8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "023",
+    "Name": "Blenheim Reef",
+    "Continent": "AF",
+    "ItuZones": 41,
+    "CqZones": 39,
+    "Prefixes": null,
+    "Deleted": true
+  },
+  {
+    "EntityId": "024",
+    "Name": "Bouvet",
+    "Continent": "AF",
+    "ItuZones": 67,
+    "CqZones": 38,
+    "Prefixes": "3Y",
+    "Deleted": false
+  },
+  {
+    "EntityId": "025",
+    "Name": "British North Borneo",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "ZC5",
+    "Deleted": true
+  },
+  {
+    "EntityId": "026",
+    "Name": "British Somaliland",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": "VQ6",
+    "Deleted": true
+  },
+  {
+    "EntityId": "027",
+    "Name": "Belarus (Republic of)",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 16,
+    "Prefixes": "EU-EW",
+    "Deleted": false
+  },
+  {
+    "EntityId": "028",
+    "Name": "Canal Zone",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": "KZ5",
+    "Deleted": true
+  },
+  {
+    "EntityId": "029",
+    "Name": "Canary Is.",
+    "Continent": "AF",
+    "ItuZones": 36,
+    "CqZones": 33,
+    "Prefixes": "EA8-EH8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "030",
+    "Name": "Celebe & Molucca Is.",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "PK6",
+    "Deleted": true
+  },
+  {
+    "EntityId": "031",
+    "Name": "C. Kiribati (British Phoenix Is.)",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 31,
+    "Prefixes": "T31",
+    "Deleted": false
+  },
+  {
+    "EntityId": "032",
+    "Name": "Ceuta & Melilla",
+    "Continent": "AF",
+    "ItuZones": 37,
+    "CqZones": 33,
+    "Prefixes": "EA9-EH9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "033",
+    "Name": "Chagos Is.",
+    "Continent": "AF",
+    "ItuZones": 41,
+    "CqZones": 39,
+    "Prefixes": "VQ9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "034",
+    "Name": "Chatham Is.",
+    "Continent": "OC",
+    "ItuZones": 60,
+    "CqZones": 32,
+    "Prefixes": "ZL7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "035",
+    "Name": "Christmas I.",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 29,
+    "Prefixes": "VK9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "036",
+    "Name": "Clipperton I.",
+    "Continent": "NA",
+    "ItuZones": 10,
+    "CqZones": 7,
+    "Prefixes": [
+      "FO",
+      "TX"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "037",
+    "Name": "Cocos I.",
+    "Continent": "NA",
+    "ItuZones": 12,
+    "CqZones": 7,
+    "Prefixes": "TI9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "038",
+    "Name": "Cocos (Keeling) Is.",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 29,
+    "Prefixes": "VK9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "039",
+    "Name": "Comoros",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": [
+      "FH",
+      "FB8"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "040",
+    "Name": "Crete",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 20,
+    "Prefixes": [
+      "SV9",
+      "J49"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "041",
+    "Name": "Crozet I.",
+    "Continent": "AF",
+    "ItuZones": 68,
+    "CqZones": 39,
+    "Prefixes": "FT/W",
+    "Deleted": false
+  },
+  {
+    "EntityId": "042",
+    "Name": "Damao, Diu",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "CR8",
+    "Deleted": true
+  },
+  {
+    "EntityId": "043",
+    "Name": "Desecheo I.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "KP5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "044",
+    "Name": "Desroches",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "VQ9",
+    "Deleted": true
+  },
+  {
+    "EntityId": "045",
+    "Name": "Dodecanese",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 20,
+    "Prefixes": [
+      "SV5",
+      "J45"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "046",
+    "Name": "East Malaysia",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": [
+      "9M6",
+      "8"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "047",
+    "Name": "Easter I.",
+    "Continent": "SA",
+    "ItuZones": 63,
+    "CqZones": 12,
+    "Prefixes": "CE0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "048",
+    "Name": "E. Kiribati (Line Is.)",
+    "Continent": "OC",
+    "ItuZones": [
+      61,
+      63
+    ],
+    "CqZones": 31,
+    "Prefixes": "T32",
+    "Deleted": false
+  },
+  {
+    "EntityId": "049",
+    "Name": "Equatorial Guinea",
+    "Continent": "AF",
+    "ItuZones": 47,
+    "CqZones": 36,
+    "Prefixes": "3C",
+    "Deleted": false
+  },
+  {
+    "EntityId": "050",
+    "Name": "Mexico",
+    "Continent": "NA",
+    "ItuZones": 10,
+    "CqZones": 6,
+    "Prefixes": "XA-XI",
+    "Deleted": false
+  },
+  {
+    "EntityId": "051",
+    "Name": "Eritrea",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": "E3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "052",
+    "Name": "Estonia",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 15,
+    "Prefixes": "ES",
+    "Deleted": false
+  },
+  {
+    "EntityId": "053",
+    "Name": "Ethiopia",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": "ET",
+    "Deleted": false
+  },
+  {
+    "EntityId": "054",
+    "Name": "European Russia",
+    "Continent": "EU",
+    "ItuZones": null,
+    "CqZones": 16,
+    "Prefixes": [
+      "UA-UI1-7",
+      "RA-RZ"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "055",
+    "Name": "Farquhar",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "VQ9",
+    "Deleted": true
+  },
+  {
+    "EntityId": "056",
+    "Name": "Fernando de Noronha",
+    "Continent": "SA",
+    "ItuZones": 13,
+    "CqZones": 11,
+    "Prefixes": "PP0-PY0F",
+    "Deleted": false
+  },
+  {
+    "EntityId": "057",
+    "Name": "French Equatorial Africa",
+    "Continent": "AF",
+    "ItuZones": [
+      47,
+      52
+    ],
+    "CqZones": 36,
+    "Prefixes": "FQ8",
+    "Deleted": true
+  },
+  {
+    "EntityId": "058",
+    "Name": "French Indo-China",
+    "Continent": "AS",
+    "ItuZones": 49,
+    "CqZones": 26,
+    "Prefixes": "FI8",
+    "Deleted": true
+  },
+  {
+    "EntityId": "059",
+    "Name": "French West Africa",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "FF",
+    "Deleted": true
+  },
+  {
+    "EntityId": "060",
+    "Name": "Bahamas (Commonwealth of the)",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "C6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "061",
+    "Name": "Franz Josef Land",
+    "Continent": "EU",
+    "ItuZones": 75,
+    "CqZones": 40,
+    "Prefixes": "R1/F",
+    "Deleted": false
+  },
+  {
+    "EntityId": "062",
+    "Name": "Barbados",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "8P",
+    "Deleted": false
+  },
+  {
+    "EntityId": "063",
+    "Name": "French Guiana",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 9,
+    "Prefixes": "FY",
+    "Deleted": false
+  },
+  {
+    "EntityId": "064",
+    "Name": "Bermuda",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 5,
+    "Prefixes": "VP9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "065",
+    "Name": "British Virgin Is.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "VP2V",
+    "Deleted": false
+  },
+  {
+    "EntityId": "066",
+    "Name": "Belize",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": "V3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "067",
+    "Name": "French India",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "FN8",
+    "Deleted": true
+  },
+  {
+    "EntityId": "068",
+    "Name": "Kuwait/Saudi Arabia Neutral Zone",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": [
+      "8Z5",
+      "9K3"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "069",
+    "Name": "Cayman Is.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "ZF",
+    "Deleted": false
+  },
+  {
+    "EntityId": "070",
+    "Name": "Cuba",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": [
+      "CL-CM",
+      "CO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "071",
+    "Name": "Galapagos Is.",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 10,
+    "Prefixes": [
+      "HC8",
+      "HD8"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "072",
+    "Name": "Dominican Republic",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "HI",
+    "Deleted": false
+  },
+  {
+    "EntityId": "074",
+    "Name": "El Salvador",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": [
+      "YS",
+      "HU"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "075",
+    "Name": "Georgia",
+    "Continent": "AS",
+    "ItuZones": 29,
+    "CqZones": 21,
+    "Prefixes": "4L",
+    "Deleted": false
+  },
+  {
+    "EntityId": "076",
+    "Name": "Guatemala",
+    "Continent": "NA",
+    "ItuZones": 12,
+    "CqZones": 7,
+    "Prefixes": [
+      "TG",
+      "TD"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "077",
+    "Name": "Grenada",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "J3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "078",
+    "Name": "Haiti",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "HH",
+    "Deleted": false
+  },
+  {
+    "EntityId": "079",
+    "Name": "Guadeloupe",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": [
+      "FG",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "080",
+    "Name": "Honduras",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": [
+      "HQ",
+      "HR"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "081",
+    "Name": "Germany",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 14,
+    "Prefixes": "DA-DM",
+    "Deleted": true
+  },
+  {
+    "EntityId": "082",
+    "Name": "Jamaica",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "6Y",
+    "Deleted": false
+  },
+  {
+    "EntityId": "084",
+    "Name": "Martinique",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": [
+      "FM",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "085",
+    "Name": "Bonaire, Curacao",
+    "Continent": "SA",
+    "ItuZones": 11,
+    "CqZones": 9,
+    "Prefixes": "PJ",
+    "Deleted": true
+  },
+  {
+    "EntityId": "086",
+    "Name": "Nicaragua",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": [
+      "YN",
+      "H6-7",
+      "HT"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "088",
+    "Name": "Panama",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": [
+      "HO",
+      "HP"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "089",
+    "Name": "Turks & Caicos Is.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "VP5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "090",
+    "Name": "Trinidad & Tobago",
+    "Continent": "SA",
+    "ItuZones": 11,
+    "CqZones": 9,
+    "Prefixes": [
+      "9Y",
+      "9Z"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "091",
+    "Name": "Aruba",
+    "Continent": "SA",
+    "ItuZones": 11,
+    "CqZones": 9,
+    "Prefixes": "P4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "093",
+    "Name": "Geyser Reef",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": null,
+    "Deleted": true
+  },
+  {
+    "EntityId": "094",
+    "Name": "Antigua & Barbuda",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "V2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "095",
+    "Name": "Dominica",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "J7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "096",
+    "Name": "Montserrat",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "VP2M",
+    "Deleted": false
+  },
+  {
+    "EntityId": "097",
+    "Name": "St. Lucia",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "J6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "098",
+    "Name": "St. Vincent",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "J8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "099",
+    "Name": "Glorioso Is.",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": [
+      "FT/G",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "100",
+    "Name": "Argentina",
+    "Continent": "SA",
+    "ItuZones": [
+      14,
+      16
+    ],
+    "CqZones": 13,
+    "Prefixes": "LO-LW",
+    "Deleted": false
+  },
+  {
+    "EntityId": "101",
+    "Name": "Goa",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "CR8",
+    "Deleted": true
+  },
+  {
+    "EntityId": "102",
+    "Name": "Gold Coast, Togoland",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "ZD4",
+    "Deleted": true
+  },
+  {
+    "EntityId": "103",
+    "Name": "Guam",
+    "Continent": "OC",
+    "ItuZones": 64,
+    "CqZones": 27,
+    "Prefixes": "KH2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "104",
+    "Name": "Bolivia",
+    "Continent": "SA",
+    "ItuZones": [
+      12,
+      14
+    ],
+    "CqZones": 10,
+    "Prefixes": "CP",
+    "Deleted": false
+  },
+  {
+    "EntityId": "105",
+    "Name": "Guantanamo Bay",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "KG4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "106",
+    "Name": "Guernsey",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": [
+      "GU",
+      "GP"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "107",
+    "Name": "Guinea",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "3X",
+    "Deleted": false
+  },
+  {
+    "EntityId": "108",
+    "Name": "Brazil",
+    "Continent": "SA",
+    "ItuZones": null,
+    "CqZones": 11,
+    "Prefixes": [
+      "PP-PY",
+      "ZV-ZZ"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "109",
+    "Name": "Guinea-Bissau",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "J5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "110",
+    "Name": "Hawaii",
+    "Continent": "OC",
+    "ItuZones": 61,
+    "CqZones": 31,
+    "Prefixes": [
+      "KH6",
+      "7"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "111",
+    "Name": "Heard I.",
+    "Continent": "AF",
+    "ItuZones": 68,
+    "CqZones": 39,
+    "Prefixes": "VK",
+    "Deleted": false
+  },
+  {
+    "EntityId": "112",
+    "Name": "Chile",
+    "Continent": "SA",
+    "ItuZones": [
+      14,
+      16
+    ],
+    "CqZones": 12,
+    "Prefixes": "CA-CE",
+    "Deleted": false
+  },
+  {
+    "EntityId": "113",
+    "Name": "Ifni",
+    "Continent": "AF",
+    "ItuZones": 37,
+    "CqZones": 33,
+    "Prefixes": "EA9",
+    "Deleted": true
+  },
+  {
+    "EntityId": "114",
+    "Name": "Isle of Man",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": [
+      "GD",
+      "GT"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "115",
+    "Name": "Italian Somaliland",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": "I5",
+    "Deleted": true
+  },
+  {
+    "EntityId": "116",
+    "Name": "Colombia",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 9,
+    "Prefixes": [
+      "HJ",
+      "HK",
+      "5J",
+      "5K"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "117",
+    "Name": "ITU HQ",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 14,
+    "Prefixes": "4U_ITU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "118",
+    "Name": "Jan Mayen",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 40,
+    "Prefixes": "JX",
+    "Deleted": false
+  },
+  {
+    "EntityId": "119",
+    "Name": "Java",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "PK1-3",
+    "Deleted": true
+  },
+  {
+    "EntityId": "120",
+    "Name": "Ecuador",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 10,
+    "Prefixes": [
+      "HC",
+      "HD"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "122",
+    "Name": "Jersey",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": [
+      "GJ",
+      "GH"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "123",
+    "Name": "Johnston I.",
+    "Continent": "OC",
+    "ItuZones": 61,
+    "CqZones": 31,
+    "Prefixes": "KH3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "124",
+    "Name": "Juan de Nova, Europa",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": [
+      "FT/J",
+      "E",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "125",
+    "Name": "Juan Fernandez Is.",
+    "Continent": "SA",
+    "ItuZones": 14,
+    "CqZones": 12,
+    "Prefixes": "CE0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "126",
+    "Name": "Kaliningrad",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 15,
+    "Prefixes": [
+      "UA2",
+      "RA2"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "127",
+    "Name": "Kamaran Is.",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "VS9K",
+    "Deleted": true
+  },
+  {
+    "EntityId": "128",
+    "Name": "Karelo-Finnish Republic",
+    "Continent": "EU",
+    "ItuZones": 19,
+    "CqZones": 16,
+    "Prefixes": "UN1",
+    "Deleted": true
+  },
+  {
+    "EntityId": "129",
+    "Name": "Guyana",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 9,
+    "Prefixes": "8R",
+    "Deleted": false
+  },
+  {
+    "EntityId": "130",
+    "Name": "Kazakhstan",
+    "Continent": "AS",
+    "ItuZones": [
+      29,
+      30,
+      31
+    ],
+    "CqZones": 17,
+    "Prefixes": "UN-UQ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "131",
+    "Name": "Kerguelen Is.",
+    "Continent": "AF",
+    "ItuZones": 68,
+    "CqZones": 39,
+    "Prefixes": "FT/X",
+    "Deleted": false
+  },
+  {
+    "EntityId": "132",
+    "Name": "Paraguay",
+    "Continent": "SA",
+    "ItuZones": 14,
+    "CqZones": 11,
+    "Prefixes": "ZP",
+    "Deleted": false
+  },
+  {
+    "EntityId": "133",
+    "Name": "Kermadec Is.",
+    "Continent": "OC",
+    "ItuZones": 60,
+    "CqZones": 32,
+    "Prefixes": "ZL8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "134",
+    "Name": "Kingman Reef",
+    "Continent": "OC",
+    "ItuZones": 61,
+    "CqZones": 31,
+    "Prefixes": "KH5K",
+    "Deleted": true
+  },
+  {
+    "EntityId": "135",
+    "Name": "Kyrgyz Republic",
+    "Continent": "AS",
+    "ItuZones": [
+      30,
+      31
+    ],
+    "CqZones": 17,
+    "Prefixes": "EX",
+    "Deleted": false
+  },
+  {
+    "EntityId": "136",
+    "Name": "Peru",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 10,
+    "Prefixes": "OA-OC",
+    "Deleted": false
+  },
+  {
+    "EntityId": "137",
+    "Name": "Korea (Republic of)",
+    "Continent": "AS",
+    "ItuZones": 44,
+    "CqZones": 25,
+    "Prefixes": [
+      "HL",
+      "6K-6N"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "138",
+    "Name": "Kure I.",
+    "Continent": "OC",
+    "ItuZones": 61,
+    "CqZones": 31,
+    "Prefixes": "KH7K",
+    "Deleted": false
+  },
+  {
+    "EntityId": "139",
+    "Name": "Kuria Muria I.",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "VS9H",
+    "Deleted": true
+  },
+  {
+    "EntityId": "140",
+    "Name": "Suriname",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 9,
+    "Prefixes": "PZ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "141",
+    "Name": "Falkland Is.",
+    "Continent": "SA",
+    "ItuZones": 16,
+    "CqZones": 13,
+    "Prefixes": "VP8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "142",
+    "Name": "Lakshadweep Is.",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "VU7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "143",
+    "Name": "Lao People's Democratic Rep",
+    "Continent": "AS",
+    "ItuZones": 49,
+    "CqZones": 26,
+    "Prefixes": "XW",
+    "Deleted": false
+  },
+  {
+    "EntityId": "144",
+    "Name": "Uruguay",
+    "Continent": "SA",
+    "ItuZones": 14,
+    "CqZones": 13,
+    "Prefixes": "CV-CX",
+    "Deleted": false
+  },
+  {
+    "EntityId": "145",
+    "Name": "Latvia",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 15,
+    "Prefixes": "YL",
+    "Deleted": false
+  },
+  {
+    "EntityId": "146",
+    "Name": "Lithuania",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 15,
+    "Prefixes": "LY",
+    "Deleted": false
+  },
+  {
+    "EntityId": "147",
+    "Name": "Lord Howe I.",
+    "Continent": "OC",
+    "ItuZones": 60,
+    "CqZones": 30,
+    "Prefixes": "VK",
+    "Deleted": false
+  },
+  {
+    "EntityId": "148",
+    "Name": "Venezuela",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 9,
+    "Prefixes": [
+      "YV-YY",
+      "4M"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "149",
+    "Name": "Azores",
+    "Continent": "EU",
+    "ItuZones": 36,
+    "CqZones": 14,
+    "Prefixes": "CU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "150",
+    "Name": "Australia",
+    "Continent": "OC",
+    "ItuZones": null,
+    "CqZones": [
+      29,
+      30
+    ],
+    "Prefixes": "VK",
+    "Deleted": false
+  },
+  {
+    "EntityId": "151",
+    "Name": "Malyj Vysotskij I.",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 16,
+    "Prefixes": "R1/M",
+    "Deleted": true
+  },
+  {
+    "EntityId": "152",
+    "Name": "Macao",
+    "Continent": "AS",
+    "ItuZones": 44,
+    "CqZones": 24,
+    "Prefixes": "XX9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "153",
+    "Name": "Macquarie I.",
+    "Continent": "OC",
+    "ItuZones": 60,
+    "CqZones": 30,
+    "Prefixes": "VK7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "154",
+    "Name": "Yemen Arab Republic",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "4W",
+    "Deleted": true
+  },
+  {
+    "EntityId": "155",
+    "Name": "Malaya",
+    "Continent": "AS",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": [
+      "VS2",
+      "9M2"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "157",
+    "Name": "Nauru",
+    "Continent": "OC",
+    "ItuZones": 65,
+    "CqZones": 31,
+    "Prefixes": "C2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "158",
+    "Name": "Vanuatu",
+    "Continent": "OC",
+    "ItuZones": 56,
+    "CqZones": 32,
+    "Prefixes": "YJ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "159",
+    "Name": "Maldives",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "8Q",
+    "Deleted": false
+  },
+  {
+    "EntityId": "160",
+    "Name": "Tonga",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "A3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "161",
+    "Name": "Malpelo I.",
+    "Continent": "SA",
+    "ItuZones": 12,
+    "CqZones": 9,
+    "Prefixes": "HK0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "162",
+    "Name": "New Caledonia",
+    "Continent": "OC",
+    "ItuZones": 56,
+    "CqZones": 32,
+    "Prefixes": [
+      "FK",
+      "TX"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "163",
+    "Name": "Papua New Guinea",
+    "Continent": "OC",
+    "ItuZones": 51,
+    "CqZones": 28,
+    "Prefixes": "P2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "164",
+    "Name": "Manchuria",
+    "Continent": "AS",
+    "ItuZones": 33,
+    "CqZones": 24,
+    "Prefixes": "C9",
+    "Deleted": true
+  },
+  {
+    "EntityId": "165",
+    "Name": "Mauritius",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "3B8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "166",
+    "Name": "Mariana Is.",
+    "Continent": "OC",
+    "ItuZones": 64,
+    "CqZones": 27,
+    "Prefixes": "KH0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "167",
+    "Name": "Market Reef",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 15,
+    "Prefixes": "OJ0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "168",
+    "Name": "Marshall Is.",
+    "Continent": "OC",
+    "ItuZones": 65,
+    "CqZones": 31,
+    "Prefixes": "V7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "169",
+    "Name": "Mayotte",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": [
+      "FH",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "170",
+    "Name": "New Zealand",
+    "Continent": "OC",
+    "ItuZones": 60,
+    "CqZones": 32,
+    "Prefixes": "ZK-ZM",
+    "Deleted": false
+  },
+  {
+    "EntityId": "171",
+    "Name": "Mellish Reef",
+    "Continent": "OC",
+    "ItuZones": 56,
+    "CqZones": 30,
+    "Prefixes": "VK9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "172",
+    "Name": "Pitcairn I.",
+    "Continent": "OC",
+    "ItuZones": 63,
+    "CqZones": 32,
+    "Prefixes": "VP6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "173",
+    "Name": "Micronesia",
+    "Continent": "OC",
+    "ItuZones": 65,
+    "CqZones": 27,
+    "Prefixes": "V6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "174",
+    "Name": "Midway I.",
+    "Continent": "OC",
+    "ItuZones": 61,
+    "CqZones": 31,
+    "Prefixes": "KH4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "175",
+    "Name": "French Polynesia",
+    "Continent": "OC",
+    "ItuZones": 63,
+    "CqZones": 32,
+    "Prefixes": [
+      "FO",
+      "TX"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "176",
+    "Name": "Fiji (Republic of)",
+    "Continent": "OC",
+    "ItuZones": 56,
+    "CqZones": 32,
+    "Prefixes": "3D2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "177",
+    "Name": "Minami Torishima",
+    "Continent": "OC",
+    "ItuZones": 90,
+    "CqZones": 27,
+    "Prefixes": "JD1",
+    "Deleted": false
+  },
+  {
+    "EntityId": "178",
+    "Name": "Minerva Reef",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "1M",
+    "Deleted": true
+  },
+  {
+    "EntityId": "179",
+    "Name": "Moldova (Republic of)",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 16,
+    "Prefixes": "ER",
+    "Deleted": false
+  },
+  {
+    "EntityId": "180",
+    "Name": "Mount Athos",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 20,
+    "Prefixes": "SV/A",
+    "Deleted": false
+  },
+  {
+    "EntityId": "181",
+    "Name": "Mozambique",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 37,
+    "Prefixes": [
+      "C8",
+      "C9"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "182",
+    "Name": "Navassa I.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "KP1",
+    "Deleted": false
+  },
+  {
+    "EntityId": "183",
+    "Name": "Netherlands Borneo",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "PK5",
+    "Deleted": true
+  },
+  {
+    "EntityId": "184",
+    "Name": "Netherlands New Guinea",
+    "Continent": "OC",
+    "ItuZones": 51,
+    "CqZones": 28,
+    "Prefixes": "JZ0",
+    "Deleted": true
+  },
+  {
+    "EntityId": "185",
+    "Name": "Solomon Is.",
+    "Continent": "OC",
+    "ItuZones": 51,
+    "CqZones": 28,
+    "Prefixes": "H4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "186",
+    "Name": "Newfoundland, Labrador",
+    "Continent": "NA",
+    "ItuZones": 9,
+    "CqZones": [
+      2,
+      5
+    ],
+    "Prefixes": "VO",
+    "Deleted": true
+  },
+  {
+    "EntityId": "187",
+    "Name": "Niger",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "5U",
+    "Deleted": false
+  },
+  {
+    "EntityId": "188",
+    "Name": "Niue",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "E6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "189",
+    "Name": "Norfolk I.",
+    "Continent": "OC",
+    "ItuZones": 60,
+    "CqZones": 32,
+    "Prefixes": "VK9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "190",
+    "Name": "Samoa",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "5W",
+    "Deleted": false
+  },
+  {
+    "EntityId": "191",
+    "Name": "North Cook Is.",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "E5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "192",
+    "Name": "Ogasawara",
+    "Continent": "AS",
+    "ItuZones": 45,
+    "CqZones": 27,
+    "Prefixes": "JD1",
+    "Deleted": false
+  },
+  {
+    "EntityId": "193",
+    "Name": "Okinawa (Ryukyu Is.)",
+    "Continent": "AS",
+    "ItuZones": 45,
+    "CqZones": 25,
+    "Prefixes": [
+      "KR6",
+      "8",
+      "JR6",
+      "KA6"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "194",
+    "Name": "Okino Tori-shima",
+    "Continent": "AS",
+    "ItuZones": 45,
+    "CqZones": 27,
+    "Prefixes": "7J1",
+    "Deleted": true
+  },
+  {
+    "EntityId": "195",
+    "Name": "Annobon I.",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": "3C0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "196",
+    "Name": "Palestine",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": [
+      "ZC6",
+      "4X1"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "197",
+    "Name": "Palmyra & Jarvis Is.",
+    "Continent": "OC",
+    "ItuZones": [
+      61,
+      62
+    ],
+    "CqZones": 31,
+    "Prefixes": "KH5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "198",
+    "Name": "Papua Territory",
+    "Continent": "OC",
+    "ItuZones": 51,
+    "CqZones": 28,
+    "Prefixes": [
+      "P2",
+      "VK9"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "199",
+    "Name": "Peter 1 I.",
+    "Continent": "AN",
+    "ItuZones": 72,
+    "CqZones": 12,
+    "Prefixes": "3Y",
+    "Deleted": false
+  },
+  {
+    "EntityId": "200",
+    "Name": "Portuguese Timor",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": [
+      "CR8",
+      "CR10"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "201",
+    "Name": "Prince Edward & Marion Is.",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": "ZS8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "202",
+    "Name": "Puerto Rico",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": [
+      "KP3",
+      "4"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "203",
+    "Name": "Andorra",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": "C3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "204",
+    "Name": "Revillagigedo",
+    "Continent": "NA",
+    "ItuZones": 10,
+    "CqZones": 6,
+    "Prefixes": "XA4-XI4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "205",
+    "Name": "Ascension I.",
+    "Continent": "AF",
+    "ItuZones": 66,
+    "CqZones": 36,
+    "Prefixes": "ZD8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "206",
+    "Name": "Austria",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "OE",
+    "Deleted": false
+  },
+  {
+    "EntityId": "207",
+    "Name": "Rodrigues I.",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "3B9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "208",
+    "Name": "Ruanda-Urundi",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": "9U5",
+    "Deleted": true
+  },
+  {
+    "EntityId": "209",
+    "Name": "Belgium",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": "ON-OT",
+    "Deleted": false
+  },
+  {
+    "EntityId": "210",
+    "Name": "Saar",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 14,
+    "Prefixes": "9S4",
+    "Deleted": true
+  },
+  {
+    "EntityId": "211",
+    "Name": "Sable I.",
+    "Continent": "NA",
+    "ItuZones": 9,
+    "CqZones": 5,
+    "Prefixes": "CY0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "212",
+    "Name": "Bulgaria",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 20,
+    "Prefixes": "LZ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "213",
+    "Name": "Saint Martin",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": [
+      "FS",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "214",
+    "Name": "Corsica",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "TK",
+    "Deleted": false
+  },
+  {
+    "EntityId": "215",
+    "Name": "Cyprus",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": [
+      "5B",
+      "C4",
+      "P3"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "216",
+    "Name": "San Andres & Providencia",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": "HK0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "217",
+    "Name": "San Felix & San Ambrosio",
+    "Continent": "SA",
+    "ItuZones": 14,
+    "CqZones": 12,
+    "Prefixes": "CE0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "218",
+    "Name": "Czechoslovakia",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "OK-OM",
+    "Deleted": true
+  },
+  {
+    "EntityId": "219",
+    "Name": "Sao Tome & Principe",
+    "Continent": "AF",
+    "ItuZones": 47,
+    "CqZones": 36,
+    "Prefixes": "S9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "220",
+    "Name": "Sarawak",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "VS4",
+    "Deleted": true
+  },
+  {
+    "EntityId": "221",
+    "Name": "Denmark",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 14,
+    "Prefixes": "OU-OZ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "222",
+    "Name": "Faroe Is.",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 14,
+    "Prefixes": "OY",
+    "Deleted": false
+  },
+  {
+    "EntityId": "223",
+    "Name": "United Kingdom of Great Britain",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": "G",
+    "Deleted": false
+  },
+  {
+    "EntityId": "224",
+    "Name": "Finland",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 15,
+    "Prefixes": "OF-OJ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "225",
+    "Name": "Sardinia",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": [
+      "IS0",
+      "IM0"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "226",
+    "Name": "Saudi Arabia/Iraq Neutral Zone",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "8Z4",
+    "Deleted": true
+  },
+  {
+    "EntityId": "227",
+    "Name": "France",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": "F",
+    "Deleted": false
+  },
+  {
+    "EntityId": "228",
+    "Name": "Serrana Bank & Roncador Cay",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": [
+      "HK0",
+      "KP3",
+      "KS4"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "229",
+    "Name": "German Democratic Republic",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 14,
+    "Prefixes": [
+      "DM",
+      "Y2-9"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "230",
+    "Name": "Germany (Federal Rep of)",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 14,
+    "Prefixes": "DA-DR",
+    "Deleted": false
+  },
+  {
+    "EntityId": "231",
+    "Name": "Sikkim",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "AC3",
+    "Deleted": true
+  },
+  {
+    "EntityId": "232",
+    "Name": "Somalia",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": [
+      "T5",
+      "6O"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "233",
+    "Name": "Gibraltar",
+    "Continent": "EU",
+    "ItuZones": 37,
+    "CqZones": 14,
+    "Prefixes": "ZB2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "234",
+    "Name": "South Cook Is.",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "E5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "235",
+    "Name": "South Georgia I.",
+    "Continent": "SA",
+    "ItuZones": 73,
+    "CqZones": 13,
+    "Prefixes": "VP0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "236",
+    "Name": "Greece",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 20,
+    "Prefixes": [
+      "SV-SZ",
+      "J4"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "237",
+    "Name": "Greenland",
+    "Continent": "NA",
+    "ItuZones": [
+      5,
+      75
+    ],
+    "CqZones": 40,
+    "Prefixes": "OX",
+    "Deleted": false
+  },
+  {
+    "EntityId": "238",
+    "Name": "South Orkney Is.",
+    "Continent": "SA",
+    "ItuZones": 73,
+    "CqZones": 13,
+    "Prefixes": "VP0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "239",
+    "Name": "Hungary",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": [
+      "HA",
+      "HG"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "240",
+    "Name": "South Sandwich Is.",
+    "Continent": "SA",
+    "ItuZones": 73,
+    "CqZones": 13,
+    "Prefixes": "VP0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "241",
+    "Name": "South Shetland Is.",
+    "Continent": "SA",
+    "ItuZones": 73,
+    "CqZones": 13,
+    "Prefixes": "VP0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "242",
+    "Name": "Iceland",
+    "Continent": "EU",
+    "ItuZones": 17,
+    "CqZones": 40,
+    "Prefixes": "TF",
+    "Deleted": false
+  },
+  {
+    "EntityId": "243",
+    "Name": "People's Democratic Rep. of Yemen",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": [
+      "VS9A",
+      "P",
+      "S"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "244",
+    "Name": "Southern Sudan",
+    "Continent": "AF",
+    "ItuZones": [
+      47,
+      48
+    ],
+    "CqZones": 34,
+    "Prefixes": "ST0",
+    "Deleted": true
+  },
+  {
+    "EntityId": "245",
+    "Name": "Ireland",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": [
+      "EI",
+      "EJ"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "246",
+    "Name": "Sovereign Military Order of Malta",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "1A",
+    "Deleted": false
+  },
+  {
+    "EntityId": "247",
+    "Name": "Spratly Is.",
+    "Continent": "AS",
+    "ItuZones": 50,
+    "CqZones": 26,
+    "Prefixes": null,
+    "Deleted": false
+  },
+  {
+    "EntityId": "248",
+    "Name": "Italy",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": [
+      15,
+      33
+    ],
+    "Prefixes": "I",
+    "Deleted": false
+  },
+  {
+    "EntityId": "249",
+    "Name": "St. Kitts & Nevis",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "V4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "250",
+    "Name": "St. Helena",
+    "Continent": "AF",
+    "ItuZones": 66,
+    "CqZones": 36,
+    "Prefixes": "ZD7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "251",
+    "Name": "Liechtenstein",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 14,
+    "Prefixes": "HB0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "252",
+    "Name": "St. Paul I.",
+    "Continent": "NA",
+    "ItuZones": 9,
+    "CqZones": 5,
+    "Prefixes": "CY9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "253",
+    "Name": "St. Peter & St. Paul Rocks",
+    "Continent": "SA",
+    "ItuZones": 13,
+    "CqZones": 11,
+    "Prefixes": "PP0-PY0S",
+    "Deleted": false
+  },
+  {
+    "EntityId": "254",
+    "Name": "Luxembourg",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": "LX",
+    "Deleted": false
+  },
+  {
+    "EntityId": "255",
+    "Name": "St. Maarten, Saba, St. Eustatius",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "PJ",
+    "Deleted": true
+  },
+  {
+    "EntityId": "256",
+    "Name": "Madeira Is.",
+    "Continent": "AF",
+    "ItuZones": 36,
+    "CqZones": 33,
+    "Prefixes": "CT3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "257",
+    "Name": "Malta",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "9H",
+    "Deleted": false
+  },
+  {
+    "EntityId": "258",
+    "Name": "Sumatra",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "PK4",
+    "Deleted": true
+  },
+  {
+    "EntityId": "259",
+    "Name": "Svalbard",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 40,
+    "Prefixes": "JW",
+    "Deleted": false
+  },
+  {
+    "EntityId": "260",
+    "Name": "Monaco",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": "3A",
+    "Deleted": false
+  },
+  {
+    "EntityId": "261",
+    "Name": "Swan Is.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": "KS4",
+    "Deleted": true
+  },
+  {
+    "EntityId": "262",
+    "Name": "Tajikistan",
+    "Continent": "AS",
+    "ItuZones": 30,
+    "CqZones": 17,
+    "Prefixes": "EY",
+    "Deleted": false
+  },
+  {
+    "EntityId": "263",
+    "Name": "Netherlands",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": "PA-PI",
+    "Deleted": false
+  },
+  {
+    "EntityId": "264",
+    "Name": "Tangier",
+    "Continent": "AF",
+    "ItuZones": 37,
+    "CqZones": 33,
+    "Prefixes": "CN2",
+    "Deleted": true
+  },
+  {
+    "EntityId": "265",
+    "Name": "Northern Ireland",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": [
+      "GI",
+      "GN"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "266",
+    "Name": "Norway",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 14,
+    "Prefixes": "LA-LN",
+    "Deleted": false
+  },
+  {
+    "EntityId": "267",
+    "Name": "Territory of New Guinea",
+    "Continent": "OC",
+    "ItuZones": 51,
+    "CqZones": 28,
+    "Prefixes": [
+      "P2",
+      "VK9"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "268",
+    "Name": "Tibet",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 23,
+    "Prefixes": "AC4",
+    "Deleted": true
+  },
+  {
+    "EntityId": "269",
+    "Name": "Poland",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "SN-SR",
+    "Deleted": false
+  },
+  {
+    "EntityId": "270",
+    "Name": "Tokelau Is.",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 31,
+    "Prefixes": "ZK3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "271",
+    "Name": "Trieste",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "I1",
+    "Deleted": true
+  },
+  {
+    "EntityId": "272",
+    "Name": "Portugal",
+    "Continent": "EU",
+    "ItuZones": 37,
+    "CqZones": 14,
+    "Prefixes": "CQ-CU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "273",
+    "Name": "Trindade & Martim Vaz Is.",
+    "Continent": "SA",
+    "ItuZones": 15,
+    "CqZones": 11,
+    "Prefixes": "PP0-PY0T",
+    "Deleted": false
+  },
+  {
+    "EntityId": "274",
+    "Name": "Tristan da Cunha & Gough I.",
+    "Continent": "AF",
+    "ItuZones": 66,
+    "CqZones": 38,
+    "Prefixes": "ZD9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "275",
+    "Name": "Romania",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 20,
+    "Prefixes": "YO-YR",
+    "Deleted": false
+  },
+  {
+    "EntityId": "276",
+    "Name": "Tromelin I.",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": [
+      "FT/T",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "277",
+    "Name": "St. Pierre & Miquelon",
+    "Continent": "NA",
+    "ItuZones": 9,
+    "CqZones": 5,
+    "Prefixes": "FP",
+    "Deleted": false
+  },
+  {
+    "EntityId": "278",
+    "Name": "San Marino",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "T7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "279",
+    "Name": "Scotland",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": [
+      "GM",
+      "GS"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "280",
+    "Name": "Turkmenistan",
+    "Continent": "AS",
+    "ItuZones": 30,
+    "CqZones": 17,
+    "Prefixes": "EZ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "281",
+    "Name": "Spain",
+    "Continent": "EU",
+    "ItuZones": 37,
+    "CqZones": 14,
+    "Prefixes": "EA-EH",
+    "Deleted": false
+  },
+  {
+    "EntityId": "282",
+    "Name": "Tuvalu",
+    "Continent": "OC",
+    "ItuZones": 65,
+    "CqZones": 31,
+    "Prefixes": "T2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "283",
+    "Name": "UK Sovereign Base Areas on Cyprus",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": "ZC4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "284",
+    "Name": "Sweden",
+    "Continent": "EU",
+    "ItuZones": 18,
+    "CqZones": 14,
+    "Prefixes": [
+      "SA-SM",
+      "7S",
+      "8S"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "285",
+    "Name": "Virgin Is.",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "KP2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "286",
+    "Name": "Uganda",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": "5X",
+    "Deleted": false
+  },
+  {
+    "EntityId": "287",
+    "Name": "Switzerland",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 14,
+    "Prefixes": "HB",
+    "Deleted": false
+  },
+  {
+    "EntityId": "288",
+    "Name": "Ukraine",
+    "Continent": "EU",
+    "ItuZones": 29,
+    "CqZones": 16,
+    "Prefixes": [
+      "UR-UZ",
+      "EM-EO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "289",
+    "Name": "United Nations HQ",
+    "Continent": "NA",
+    "ItuZones": 8,
+    "CqZones": 5,
+    "Prefixes": "4U_UN",
+    "Deleted": false
+  },
+  {
+    "EntityId": "291",
+    "Name": "United States of America",
+    "Continent": "NA",
+    "ItuZones": [
+      6,
+      7,
+      8
+    ],
+    "CqZones": [
+      3,
+      4,
+      5
+    ],
+    "Prefixes": [
+      "K",
+      "W",
+      "N",
+      "AA-AK"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "292",
+    "Name": "Uzbekistan",
+    "Continent": "AS",
+    "ItuZones": 30,
+    "CqZones": 17,
+    "Prefixes": "UJ-UM",
+    "Deleted": false
+  },
+  {
+    "EntityId": "293",
+    "Name": "Viet Nam",
+    "Continent": "AS",
+    "ItuZones": 49,
+    "CqZones": 26,
+    "Prefixes": [
+      "3W",
+      "XV"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "294",
+    "Name": "Wales",
+    "Continent": "EU",
+    "ItuZones": 27,
+    "CqZones": 14,
+    "Prefixes": [
+      "GW",
+      "GC"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "295",
+    "Name": "Vatican",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "HV",
+    "Deleted": false
+  },
+  {
+    "EntityId": "296",
+    "Name": "Serbia",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": [
+      "YT",
+      "YU"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "297",
+    "Name": "Wake I.",
+    "Continent": "OC",
+    "ItuZones": 65,
+    "CqZones": 31,
+    "Prefixes": "KH9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "298",
+    "Name": "Wallis & Futuna Is.",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "FW",
+    "Deleted": false
+  },
+  {
+    "EntityId": "299",
+    "Name": "West Malaysia",
+    "Continent": "AS",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": [
+      "9M2",
+      "4"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "301",
+    "Name": "W. Kiribati (Gilbert Is. )",
+    "Continent": "OC",
+    "ItuZones": 65,
+    "CqZones": 31,
+    "Prefixes": "T30",
+    "Deleted": false
+  },
+  {
+    "EntityId": "302",
+    "Name": "Western Sahara",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 33,
+    "Prefixes": "S0",
+    "Deleted": false
+  },
+  {
+    "EntityId": "303",
+    "Name": "Willis I.",
+    "Continent": "OC",
+    "ItuZones": 55,
+    "CqZones": 30,
+    "Prefixes": "VK9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "304",
+    "Name": "Bahrain",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "A9",
+    "Deleted": false
+  },
+  {
+    "EntityId": "305",
+    "Name": "Bangladesh",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "S2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "306",
+    "Name": "Bhutan",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "A5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "307",
+    "Name": "Zanzibar",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 37,
+    "Prefixes": [
+      "VQ1",
+      "5H1"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "308",
+    "Name": "Costa Rica",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 7,
+    "Prefixes": [
+      "TI",
+      "TE"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "309",
+    "Name": "Myanmar",
+    "Continent": "AS",
+    "ItuZones": 49,
+    "CqZones": 26,
+    "Prefixes": [
+      "XY",
+      "XZ"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "312",
+    "Name": "Cambodia",
+    "Continent": "AS",
+    "ItuZones": 49,
+    "CqZones": 26,
+    "Prefixes": "XU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "315",
+    "Name": "Sri Lanka",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "4P-4S",
+    "Deleted": false
+  },
+  {
+    "EntityId": "318",
+    "Name": "China",
+    "Continent": "AS",
+    "ItuZones": null,
+    "CqZones": [
+      23,
+      24
+    ],
+    "Prefixes": "B",
+    "Deleted": false
+  },
+  {
+    "EntityId": "321",
+    "Name": "Hong Kong",
+    "Continent": "AS",
+    "ItuZones": 44,
+    "CqZones": 24,
+    "Prefixes": "VR",
+    "Deleted": false
+  },
+  {
+    "EntityId": "324",
+    "Name": "India",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 22,
+    "Prefixes": "VU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "327",
+    "Name": "Indonesia",
+    "Continent": "OC",
+    "ItuZones": [
+      51,
+      54
+    ],
+    "CqZones": 28,
+    "Prefixes": "YB-YH",
+    "Deleted": false
+  },
+  {
+    "EntityId": "330",
+    "Name": "Iran (Islamic Repub of)",
+    "Continent": "AS",
+    "ItuZones": 40,
+    "CqZones": 21,
+    "Prefixes": [
+      "EP",
+      "EQ"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "333",
+    "Name": "Iraq",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "YI",
+    "Deleted": false
+  },
+  {
+    "EntityId": "336",
+    "Name": "Israel",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": [
+      "4X",
+      "4Z"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "339",
+    "Name": "Japan",
+    "Continent": "AS",
+    "ItuZones": 45,
+    "CqZones": 25,
+    "Prefixes": [
+      "JA-JS",
+      "7J-7N"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "342",
+    "Name": "Jordan",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": "JY",
+    "Deleted": false
+  },
+  {
+    "EntityId": "344",
+    "Name": "Democratic People's Rep. of Korea",
+    "Continent": "AS",
+    "ItuZones": 44,
+    "CqZones": 25,
+    "Prefixes": "P5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "345",
+    "Name": "Brunei Darussalam",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "V8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "348",
+    "Name": "Kuwait",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "9K",
+    "Deleted": false
+  },
+  {
+    "EntityId": "354",
+    "Name": "Lebanon",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": "OD",
+    "Deleted": false
+  },
+  {
+    "EntityId": "363",
+    "Name": "Mongolia",
+    "Continent": "AS",
+    "ItuZones": [
+      32,
+      33
+    ],
+    "CqZones": 23,
+    "Prefixes": "JT-JV",
+    "Deleted": false
+  },
+  {
+    "EntityId": "369",
+    "Name": "Nepal",
+    "Continent": "AS",
+    "ItuZones": 42,
+    "CqZones": 22,
+    "Prefixes": "9N",
+    "Deleted": false
+  },
+  {
+    "EntityId": "370",
+    "Name": "Oman",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "A4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "372",
+    "Name": "Pakistan (Islamic Rep of)",
+    "Continent": "AS",
+    "ItuZones": 41,
+    "CqZones": 21,
+    "Prefixes": "AP-AS",
+    "Deleted": false
+  },
+  {
+    "EntityId": "375",
+    "Name": "Philippines",
+    "Continent": "OC",
+    "ItuZones": 50,
+    "CqZones": 27,
+    "Prefixes": [
+      "DU-DZ",
+      "4D-4I"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "376",
+    "Name": "Qatar",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "A7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "378",
+    "Name": "Saudi Arabia",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "HZ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "379",
+    "Name": "Seychelles",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "S7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "381",
+    "Name": "Singapore (Republic of)",
+    "Continent": "AS",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "9V",
+    "Deleted": false
+  },
+  {
+    "EntityId": "382",
+    "Name": "Djibouti",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": "J2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "384",
+    "Name": "Syrian Arab Republic",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": "YK",
+    "Deleted": false
+  },
+  {
+    "EntityId": "386",
+    "Name": "Taiwan",
+    "Continent": "AS",
+    "ItuZones": 44,
+    "CqZones": 24,
+    "Prefixes": "BU-BX",
+    "Deleted": false
+  },
+  {
+    "EntityId": "387",
+    "Name": "Thailand",
+    "Continent": "AS",
+    "ItuZones": 49,
+    "CqZones": 26,
+    "Prefixes": [
+      "HS",
+      "E2"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "390",
+    "Name": "Republic of Turkiye",
+    "Continent": "EU",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": "TA-TC",
+    "Deleted": false
+  },
+  {
+    "EntityId": "391",
+    "Name": "United Arab Emirates",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "A6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "400",
+    "Name": "Algeria (People's Dem Rep of)",
+    "Continent": "AF",
+    "ItuZones": 37,
+    "CqZones": 33,
+    "Prefixes": [
+      "7R",
+      "7T-7Y"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "401",
+    "Name": "Angola",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": [
+      "D2",
+      "D3"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "402",
+    "Name": "Botswana (Republic of)",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": [
+      "A2",
+      "8O"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "404",
+    "Name": "Burundi",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": "9U",
+    "Deleted": false
+  },
+  {
+    "EntityId": "406",
+    "Name": "Cameroon",
+    "Continent": "AF",
+    "ItuZones": 47,
+    "CqZones": 36,
+    "Prefixes": "TJ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "408",
+    "Name": "Central Africa",
+    "Continent": "AF",
+    "ItuZones": 47,
+    "CqZones": 36,
+    "Prefixes": "TL",
+    "Deleted": false
+  },
+  {
+    "EntityId": "409",
+    "Name": "Cabo Verde (Rep of)",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "D4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "410",
+    "Name": "Chad",
+    "Continent": "AF",
+    "ItuZones": 47,
+    "CqZones": 36,
+    "Prefixes": "TT",
+    "Deleted": false
+  },
+  {
+    "EntityId": "411",
+    "Name": "Comoros",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "D6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "412",
+    "Name": "Republic of the Congo",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": "TN",
+    "Deleted": false
+  },
+  {
+    "EntityId": "414",
+    "Name": "Democratic Republic of the Congo",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": "9O-9T",
+    "Deleted": false
+  },
+  {
+    "EntityId": "416",
+    "Name": "Benin",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "TY",
+    "Deleted": false
+  },
+  {
+    "EntityId": "420",
+    "Name": "Gabon",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": "TR",
+    "Deleted": false
+  },
+  {
+    "EntityId": "422",
+    "Name": "Gambia (Republic of the)",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "C5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "424",
+    "Name": "Ghana",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "9G",
+    "Deleted": false
+  },
+  {
+    "EntityId": "428",
+    "Name": "Cote d'Ivoire",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "TU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "430",
+    "Name": "Kenya",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 37,
+    "Prefixes": [
+      "5Y",
+      "5Z"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "432",
+    "Name": "Lesotho",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": "7P",
+    "Deleted": false
+  },
+  {
+    "EntityId": "434",
+    "Name": "Liberia",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "EL",
+    "Deleted": false
+  },
+  {
+    "EntityId": "436",
+    "Name": "Libya",
+    "Continent": "AF",
+    "ItuZones": 38,
+    "CqZones": 34,
+    "Prefixes": "5A",
+    "Deleted": false
+  },
+  {
+    "EntityId": "438",
+    "Name": "Madagascar",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": "5R",
+    "Deleted": false
+  },
+  {
+    "EntityId": "440",
+    "Name": "Malawi",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 37,
+    "Prefixes": "7Q",
+    "Deleted": false
+  },
+  {
+    "EntityId": "442",
+    "Name": "Mali",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "TZ",
+    "Deleted": false
+  },
+  {
+    "EntityId": "444",
+    "Name": "Mauritania",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "5T",
+    "Deleted": false
+  },
+  {
+    "EntityId": "446",
+    "Name": "Morocco (Kingdom of)",
+    "Continent": "AF",
+    "ItuZones": 37,
+    "CqZones": 33,
+    "Prefixes": [
+      "CN",
+      "5C-5G"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "450",
+    "Name": "Nigeria",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "5N",
+    "Deleted": false
+  },
+  {
+    "EntityId": "452",
+    "Name": "Zimbabwe",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 38,
+    "Prefixes": "Z2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "453",
+    "Name": "Reunion I.",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 39,
+    "Prefixes": [
+      "FR",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "454",
+    "Name": "Rwanda",
+    "Continent": "AF",
+    "ItuZones": 52,
+    "CqZones": 36,
+    "Prefixes": "9X",
+    "Deleted": false
+  },
+  {
+    "EntityId": "456",
+    "Name": "Senegal",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": [
+      "6V",
+      "6W"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "458",
+    "Name": "Sierra Leone",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "9L",
+    "Deleted": false
+  },
+  {
+    "EntityId": "460",
+    "Name": "Rotuma I.",
+    "Continent": "OC",
+    "ItuZones": 56,
+    "CqZones": 32,
+    "Prefixes": "3D2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "462",
+    "Name": "South Africa",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": "ZR-ZU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "464",
+    "Name": "Namibia",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": "V5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "466",
+    "Name": "Sudan",
+    "Continent": "AF",
+    "ItuZones": [
+      47,
+      48
+    ],
+    "CqZones": 34,
+    "Prefixes": "ST",
+    "Deleted": false
+  },
+  {
+    "EntityId": "468",
+    "Name": "Kingdom of Eswatini",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": "3DA",
+    "Deleted": false
+  },
+  {
+    "EntityId": "470",
+    "Name": "Tanzania (United Republic of)",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 37,
+    "Prefixes": [
+      "5H",
+      "5I"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "474",
+    "Name": "Tunisia",
+    "Continent": "AF",
+    "ItuZones": 37,
+    "CqZones": 33,
+    "Prefixes": "3V",
+    "Deleted": false
+  },
+  {
+    "EntityId": "478",
+    "Name": "Egypt",
+    "Continent": "AF",
+    "ItuZones": 38,
+    "CqZones": 34,
+    "Prefixes": "SU",
+    "Deleted": false
+  },
+  {
+    "EntityId": "480",
+    "Name": "Burkina Faso",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "XT",
+    "Deleted": false
+  },
+  {
+    "EntityId": "482",
+    "Name": "Zambia",
+    "Continent": "AF",
+    "ItuZones": 53,
+    "CqZones": 36,
+    "Prefixes": [
+      "9I",
+      "9J"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "483",
+    "Name": "Togo",
+    "Continent": "AF",
+    "ItuZones": 46,
+    "CqZones": 35,
+    "Prefixes": "5V",
+    "Deleted": false
+  },
+  {
+    "EntityId": "488",
+    "Name": "Walvis Bay",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": "ZS9",
+    "Deleted": true
+  },
+  {
+    "EntityId": "489",
+    "Name": "Conway Reef",
+    "Continent": "OC",
+    "ItuZones": 56,
+    "CqZones": 32,
+    "Prefixes": "3D2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "490",
+    "Name": "Banaba I. (Ocean I.)",
+    "Continent": "OC",
+    "ItuZones": 65,
+    "CqZones": 31,
+    "Prefixes": "T33",
+    "Deleted": false
+  },
+  {
+    "EntityId": "492",
+    "Name": "Yemen",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 21,
+    "Prefixes": "7O",
+    "Deleted": false
+  },
+  {
+    "EntityId": "493",
+    "Name": "Penguin Is.",
+    "Continent": "AF",
+    "ItuZones": 57,
+    "CqZones": 38,
+    "Prefixes": [
+      "ZS0",
+      "1"
+    ],
+    "Deleted": true
+  },
+  {
+    "EntityId": "497",
+    "Name": "Croatia",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "9A",
+    "Deleted": false
+  },
+  {
+    "EntityId": "499",
+    "Name": "Slovenia",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "S5",
+    "Deleted": false
+  },
+  {
+    "EntityId": "501",
+    "Name": "Bosnia-Herzegovina",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "E7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "502",
+    "Name": "North Macedonia (Republic of)",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "Z3",
+    "Deleted": false
+  },
+  {
+    "EntityId": "503",
+    "Name": "Czech Republic",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "OK-OL",
+    "Deleted": false
+  },
+  {
+    "EntityId": "504",
+    "Name": "Slovak Republic",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "OM",
+    "Deleted": false
+  },
+  {
+    "EntityId": "505",
+    "Name": "Pratas I.",
+    "Continent": "AS",
+    "ItuZones": 44,
+    "CqZones": 24,
+    "Prefixes": "BV9P",
+    "Deleted": false
+  },
+  {
+    "EntityId": "506",
+    "Name": "Scarborough Reef",
+    "Continent": "AS",
+    "ItuZones": 50,
+    "CqZones": 27,
+    "Prefixes": "BS7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "507",
+    "Name": "Temotu Province",
+    "Continent": "OC",
+    "ItuZones": 51,
+    "CqZones": 32,
+    "Prefixes": "H40",
+    "Deleted": false
+  },
+  {
+    "EntityId": "508",
+    "Name": "Austral I.",
+    "Continent": "OC",
+    "ItuZones": 63,
+    "CqZones": 32,
+    "Prefixes": [
+      "FO",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "509",
+    "Name": "Marquesas Is.",
+    "Continent": "OC",
+    "ItuZones": 63,
+    "CqZones": 31,
+    "Prefixes": [
+      "FO",
+      "TX"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "510",
+    "Name": "Palestine",
+    "Continent": "AS",
+    "ItuZones": 39,
+    "CqZones": 20,
+    "Prefixes": "E4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "511",
+    "Name": "Timor-Leste",
+    "Continent": "OC",
+    "ItuZones": 54,
+    "CqZones": 28,
+    "Prefixes": "4W",
+    "Deleted": false
+  },
+  {
+    "EntityId": "512",
+    "Name": "Chesterfield Is.",
+    "Continent": "OC",
+    "ItuZones": 56,
+    "CqZones": 30,
+    "Prefixes": [
+      "FK",
+      "TX"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "513",
+    "Name": "Ducie I.",
+    "Continent": "OC",
+    "ItuZones": 63,
+    "CqZones": 32,
+    "Prefixes": "VP6",
+    "Deleted": false
+  },
+  {
+    "EntityId": "514",
+    "Name": "Montenegro",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "4O",
+    "Deleted": false
+  },
+  {
+    "EntityId": "515",
+    "Name": "Swains I.",
+    "Continent": "OC",
+    "ItuZones": 62,
+    "CqZones": 32,
+    "Prefixes": "KH8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "516",
+    "Name": "Saint Barthelemy",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": [
+      "FJ",
+      "TO"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "517",
+    "Name": "Curacao",
+    "Continent": "SA",
+    "ItuZones": 11,
+    "CqZones": 9,
+    "Prefixes": "PJ2",
+    "Deleted": false
+  },
+  {
+    "EntityId": "518",
+    "Name": "Sint Maarten",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": "PJ7",
+    "Deleted": false
+  },
+  {
+    "EntityId": "519",
+    "Name": "Saba & St. Eustatius",
+    "Continent": "NA",
+    "ItuZones": 11,
+    "CqZones": 8,
+    "Prefixes": [
+      "PJ5",
+      "6"
+    ],
+    "Deleted": false
+  },
+  {
+    "EntityId": "520",
+    "Name": "Bonaire",
+    "Continent": "SA",
+    "ItuZones": 11,
+    "CqZones": 9,
+    "Prefixes": "PJ4",
+    "Deleted": false
+  },
+  {
+    "EntityId": "521",
+    "Name": "South Sudan (Republic of)",
+    "Continent": "AF",
+    "ItuZones": 48,
+    "CqZones": 34,
+    "Prefixes": "Z8",
+    "Deleted": false
+  },
+  {
+    "EntityId": "522",
+    "Name": "Republic of Kosovo",
+    "Continent": "EU",
+    "ItuZones": 28,
+    "CqZones": 15,
+    "Prefixes": "Z6",
+    "Deleted": false
+  }
+]
