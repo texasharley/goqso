@@ -4,6 +4,11 @@
 //
 // IMPORTANT: This module ONLY implements read operations (GET).
 // Upload functionality is NOT implemented to prevent accidental submissions.
+//
+// NOTE: Some methods and fields are for future features (DXCC credits download,
+// user activity lookup). Suppressing warnings until implemented.
+//
+#![allow(dead_code)]
 
 use reqwest::Client;
 use std::collections::HashMap;
@@ -340,7 +345,7 @@ impl LotwClient {
 
 /// Extract a header field value from ADIF content
 fn extract_header_value(adif: &str, field_name: &str) -> Option<String> {
-    let upper_field = field_name.to_uppercase();
+    let _upper_field = field_name.to_uppercase(); // For future case-insensitive matching
     let lower = adif.to_lowercase();
     
     // Find the field in the header (before <EOH>)

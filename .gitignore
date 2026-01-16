@@ -31,3 +31,4 @@ src-tauri/gen/schemas/
 *.pdb
 **/*.rs.bk
 Cargo.lock
+src-tauri/goqso.db

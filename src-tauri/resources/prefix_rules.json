@@ -1,0 +1,5656 @@
+{
+  "version": "2.0.0",
+  "generated": "2026-01-16T00:04:48Z",
+  "source": "Converted from v1.x - entity_id now uses ARRL 3-digit string format",
+  "authority": "https://www.arrl.org/files/file/DXCC/Current_Deleted.txt",
+  "stats": {
+    "total_rules": 806,
+    "entities_covered": 339,
+    "active_entities": 340,
+    "coverage_percent": 99.7
+  },
+  "rules": [
+    {
+      "prefix": "1A",
+      "entity_id": "246",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sovereign Military Order of Malta"
+    },
+    {
+      "prefix": "2E",
+      "entity_id": "223",
+      "priority": 10,
+      "exact": false,
+      "comment": "United Kingdom of Great Britain"
+    },
+    {
+      "prefix": "2I",
+      "entity_id": "265",
+      "priority": 30,
+      "exact": false,
+      "comment": "Northern Ireland"
+    },
+    {
+      "prefix": "2J",
+      "entity_id": "122",
+      "priority": 30,
+      "exact": false,
+      "comment": "Jersey"
+    },
+    {
+      "prefix": "2M",
+      "entity_id": "279",
+      "priority": 20,
+      "exact": false,
+      "comment": "Scotland"
+    },
+    {
+      "prefix": "2U",
+      "entity_id": "106",
+      "priority": 30,
+      "exact": false,
+      "comment": "Guernsey"
+    },
+    {
+      "prefix": "2W",
+      "entity_id": "294",
+      "priority": 20,
+      "exact": false,
+      "comment": "Wales"
+    },
+    {
+      "prefix": "3A",
+      "entity_id": "260",
+      "priority": 30,
+      "exact": false,
+      "comment": "Monaco"
+    },
+    {
+      "prefix": "3B6",
+      "entity_id": "004",
+      "priority": 10,
+      "exact": false,
+      "comment": "Agalega & St. Brandon Is."
+    },
+    {
+      "prefix": "3B7",
+      "entity_id": "004",
+      "priority": 10,
+      "exact": false,
+      "comment": "Agalega & St. Brandon Is."
+    },
+    {
+      "prefix": "3B8",
+      "entity_id": "165",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mauritius"
+    },
+    {
+      "prefix": "3B9",
+      "entity_id": "207",
+      "priority": 10,
+      "exact": false,
+      "comment": "Rodrigues I."
+    },
+    {
+      "prefix": "3C",
+      "entity_id": "049",
+      "priority": 10,
+      "exact": false,
+      "comment": "Equatorial Guinea"
+    },
+    {
+      "prefix": "3C0",
+      "entity_id": "195",
+      "priority": 30,
+      "exact": false,
+      "comment": "Annobon I."
+    },
+    {
+      "prefix": "3D2",
+      "entity_id": "176",
+      "priority": 10,
+      "exact": false,
+      "comment": "Fiji (Republic of)"
+    },
+    {
+      "prefix": "3D2/C",
+      "entity_id": "489",
+      "priority": 30,
+      "exact": false,
+      "comment": "Conway Reef"
+    },
+    {
+      "prefix": "3D2/R",
+      "entity_id": "460",
+      "priority": 30,
+      "exact": false,
+      "comment": "Rotuma I."
+    },
+    {
+      "prefix": "3D2C",
+      "entity_id": "489",
+      "priority": 60,
+      "exact": false,
+      "comment": "Conway Reef"
+    },
+    {
+      "prefix": "3D2R",
+      "entity_id": "460",
+      "priority": 60,
+      "exact": false,
+      "comment": "Rotuma I."
+    },
+    {
+      "prefix": "3DA",
+      "entity_id": "468",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kingdom of Eswatini"
+    },
+    {
+      "prefix": "3E",
+      "entity_id": "088",
+      "priority": 20,
+      "exact": false,
+      "comment": "Panama"
+    },
+    {
+      "prefix": "3F",
+      "entity_id": "088",
+      "priority": 20,
+      "exact": false,
+      "comment": "Panama"
+    },
+    {
+      "prefix": "3G",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "3V",
+      "entity_id": "474",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tunisia"
+    },
+    {
+      "prefix": "3W",
+      "entity_id": "293",
+      "priority": 10,
+      "exact": false,
+      "comment": "Viet Nam"
+    },
+    {
+      "prefix": "3X",
+      "entity_id": "107",
+      "priority": 10,
+      "exact": false,
+      "comment": "Guinea"
+    },
+    {
+      "prefix": "3Y",
+      "entity_id": "199",
+      "priority": 30,
+      "exact": false,
+      "comment": "Peter 1 I."
+    },
+    {
+      "prefix": "3Y",
+      "entity_id": "024",
+      "priority": 10,
+      "exact": false,
+      "comment": "Bouvet"
+    },
+    {
+      "prefix": "3Y0B",
+      "entity_id": "024",
+      "priority": 60,
+      "exact": false,
+      "comment": "Bouvet"
+    },
+    {
+      "prefix": "3Y0P",
+      "entity_id": "199",
+      "priority": 60,
+      "exact": false,
+      "comment": "Peter 1 I."
+    },
+    {
+      "prefix": "3Z",
+      "entity_id": "503",
+      "priority": 10,
+      "exact": false,
+      "comment": "Czech Republic"
+    },
+    {
+      "prefix": "4A",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "4B",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "4C",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "4D",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "4E",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "4F",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "4G",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "4H",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "4I",
+      "entity_id": "387",
+      "priority": 10,
+      "exact": false,
+      "comment": "Thailand"
+    },
+    {
+      "prefix": "4J",
+      "entity_id": "018",
+      "priority": 10,
+      "exact": false,
+      "comment": "Azerbaijan"
+    },
+    {
+      "prefix": "4K",
+      "entity_id": "018",
+      "priority": 10,
+      "exact": false,
+      "comment": "Azerbaijan"
+    },
+    {
+      "prefix": "4L",
+      "entity_id": "075",
+      "priority": 10,
+      "exact": false,
+      "comment": "Georgia"
+    },
+    {
+      "prefix": "4M",
+      "entity_id": "148",
+      "priority": 20,
+      "exact": false,
+      "comment": "Venezuela"
+    },
+    {
+      "prefix": "4O",
+      "entity_id": "514",
+      "priority": 30,
+      "exact": false,
+      "comment": "Montenegro"
+    },
+    {
+      "prefix": "4P",
+      "entity_id": "315",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sri Lanka"
+    },
+    {
+      "prefix": "4Q",
+      "entity_id": "315",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sri Lanka"
+    },
+    {
+      "prefix": "4R",
+      "entity_id": "315",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sri Lanka"
+    },
+    {
+      "prefix": "4S",
+      "entity_id": "315",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sri Lanka"
+    },
+    {
+      "prefix": "4T",
+      "entity_id": "136",
+      "priority": 20,
+      "exact": false,
+      "comment": "Peru"
+    },
+    {
+      "prefix": "4U_ITU",
+      "entity_id": "117",
+      "priority": 70,
+      "exact": false,
+      "comment": "ITU HQ"
+    },
+    {
+      "prefix": "4U_UN",
+      "entity_id": "289",
+      "priority": 60,
+      "exact": false,
+      "comment": "United Nations HQ"
+    },
+    {
+      "prefix": "4V",
+      "entity_id": "078",
+      "priority": 20,
+      "exact": false,
+      "comment": "Haiti"
+    },
+    {
+      "prefix": "4W",
+      "entity_id": "511",
+      "priority": 10,
+      "exact": false,
+      "comment": "Timor-Leste"
+    },
+    {
+      "prefix": "4X",
+      "entity_id": "336",
+      "priority": 10,
+      "exact": false,
+      "comment": "Israel"
+    },
+    {
+      "prefix": "4Z",
+      "entity_id": "336",
+      "priority": 10,
+      "exact": false,
+      "comment": "Israel"
+    },
+    {
+      "prefix": "5A",
+      "entity_id": "436",
+      "priority": 10,
+      "exact": false,
+      "comment": "Libya"
+    },
+    {
+      "prefix": "5B",
+      "entity_id": "215",
+      "priority": 30,
+      "exact": false,
+      "comment": "Cyprus"
+    },
+    {
+      "prefix": "5C",
+      "entity_id": "446",
+      "priority": 10,
+      "exact": false,
+      "comment": "Morocco (Kingdom of)"
+    },
+    {
+      "prefix": "5D",
+      "entity_id": "446",
+      "priority": 10,
+      "exact": false,
+      "comment": "Morocco (Kingdom of)"
+    },
+    {
+      "prefix": "5E",
+      "entity_id": "446",
+      "priority": 10,
+      "exact": false,
+      "comment": "Morocco (Kingdom of)"
+    },
+    {
+      "prefix": "5F",
+      "entity_id": "446",
+      "priority": 10,
+      "exact": false,
+      "comment": "Morocco (Kingdom of)"
+    },
+    {
+      "prefix": "5G",
+      "entity_id": "446",
+      "priority": 10,
+      "exact": false,
+      "comment": "Morocco (Kingdom of)"
+    },
+    {
+      "prefix": "5H",
+      "entity_id": "470",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tanzania (United Republic of)"
+    },
+    {
+      "prefix": "5I",
+      "entity_id": "470",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tanzania (United Republic of)"
+    },
+    {
+      "prefix": "5J",
+      "entity_id": "116",
+      "priority": 20,
+      "exact": false,
+      "comment": "Colombia"
+    },
+    {
+      "prefix": "5K",
+      "entity_id": "116",
+      "priority": 20,
+      "exact": false,
+      "comment": "Colombia"
+    },
+    {
+      "prefix": "5N",
+      "entity_id": "450",
+      "priority": 10,
+      "exact": false,
+      "comment": "Nigeria"
+    },
+    {
+      "prefix": "5P",
+      "entity_id": "221",
+      "priority": 30,
+      "exact": false,
+      "comment": "Denmark"
+    },
+    {
+      "prefix": "5Q",
+      "entity_id": "221",
+      "priority": 30,
+      "exact": false,
+      "comment": "Denmark"
+    },
+    {
+      "prefix": "5R",
+      "entity_id": "438",
+      "priority": 10,
+      "exact": false,
+      "comment": "Madagascar"
+    },
+    {
+      "prefix": "5T",
+      "entity_id": "444",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mauritania"
+    },
+    {
+      "prefix": "5U",
+      "entity_id": "187",
+      "priority": 10,
+      "exact": false,
+      "comment": "Niger"
+    },
+    {
+      "prefix": "5V",
+      "entity_id": "483",
+      "priority": 10,
+      "exact": false,
+      "comment": "Togo"
+    },
+    {
+      "prefix": "5W",
+      "entity_id": "190",
+      "priority": 10,
+      "exact": false,
+      "comment": "Samoa"
+    },
+    {
+      "prefix": "5X",
+      "entity_id": "286",
+      "priority": 10,
+      "exact": false,
+      "comment": "Uganda"
+    },
+    {
+      "prefix": "5Y",
+      "entity_id": "430",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kenya"
+    },
+    {
+      "prefix": "5Z",
+      "entity_id": "430",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kenya"
+    },
+    {
+      "prefix": "6D",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "6E",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "6F",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "6G",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "6H",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "6I",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "6J",
+      "entity_id": "050",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "6K",
+      "entity_id": "137",
+      "priority": 30,
+      "exact": false,
+      "comment": "Korea (Republic of)"
+    },
+    {
+      "prefix": "6L",
+      "entity_id": "137",
+      "priority": 30,
+      "exact": false,
+      "comment": "Korea (Republic of)"
+    },
+    {
+      "prefix": "6M",
+      "entity_id": "137",
+      "priority": 30,
+      "exact": false,
+      "comment": "Korea (Republic of)"
+    },
+    {
+      "prefix": "6N",
+      "entity_id": "137",
+      "priority": 30,
+      "exact": false,
+      "comment": "Korea (Republic of)"
+    },
+    {
+      "prefix": "6N",
+      "entity_id": "321",
+      "priority": 10,
+      "exact": false,
+      "comment": "Hong Kong"
+    },
+    {
+      "prefix": "6O",
+      "entity_id": "232",
+      "priority": 10,
+      "exact": false,
+      "comment": "Somalia"
+    },
+    {
+      "prefix": "6V",
+      "entity_id": "456",
+      "priority": 10,
+      "exact": false,
+      "comment": "Senegal"
+    },
+    {
+      "prefix": "6W",
+      "entity_id": "456",
+      "priority": 10,
+      "exact": false,
+      "comment": "Senegal"
+    },
+    {
+      "prefix": "6Y",
+      "entity_id": "082",
+      "priority": 20,
+      "exact": false,
+      "comment": "Jamaica"
+    },
+    {
+      "prefix": "7J",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "7K",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "7L",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "7M",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "7N",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "7O",
+      "entity_id": "492",
+      "priority": 10,
+      "exact": false,
+      "comment": "Yemen"
+    },
+    {
+      "prefix": "7P",
+      "entity_id": "432",
+      "priority": 10,
+      "exact": false,
+      "comment": "Lesotho"
+    },
+    {
+      "prefix": "7Q",
+      "entity_id": "440",
+      "priority": 10,
+      "exact": false,
+      "comment": "Malawi"
+    },
+    {
+      "prefix": "7R",
+      "entity_id": "400",
+      "priority": 10,
+      "exact": false,
+      "comment": "Algeria (People's Dem Rep of)"
+    },
+    {
+      "prefix": "7S",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "7T",
+      "entity_id": "400",
+      "priority": 10,
+      "exact": false,
+      "comment": "Algeria (People's Dem Rep of)"
+    },
+    {
+      "prefix": "7U",
+      "entity_id": "400",
+      "priority": 10,
+      "exact": false,
+      "comment": "Algeria (People's Dem Rep of)"
+    },
+    {
+      "prefix": "7V",
+      "entity_id": "400",
+      "priority": 10,
+      "exact": false,
+      "comment": "Algeria (People's Dem Rep of)"
+    },
+    {
+      "prefix": "7W",
+      "entity_id": "400",
+      "priority": 10,
+      "exact": false,
+      "comment": "Algeria (People's Dem Rep of)"
+    },
+    {
+      "prefix": "7X",
+      "entity_id": "400",
+      "priority": 10,
+      "exact": false,
+      "comment": "Algeria (People's Dem Rep of)"
+    },
+    {
+      "prefix": "7Y",
+      "entity_id": "400",
+      "priority": 10,
+      "exact": false,
+      "comment": "Algeria (People's Dem Rep of)"
+    },
+    {
+      "prefix": "8J",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "8K",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "8L",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "8M",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "8N",
+      "entity_id": "318",
+      "priority": 10,
+      "exact": false,
+      "comment": "China"
+    },
+    {
+      "prefix": "8O",
+      "entity_id": "402",
+      "priority": 10,
+      "exact": false,
+      "comment": "Botswana (Republic of)"
+    },
+    {
+      "prefix": "8P",
+      "entity_id": "062",
+      "priority": 20,
+      "exact": false,
+      "comment": "Barbados"
+    },
+    {
+      "prefix": "8Q",
+      "entity_id": "159",
+      "priority": 10,
+      "exact": false,
+      "comment": "Maldives"
+    },
+    {
+      "prefix": "8R",
+      "entity_id": "129",
+      "priority": 20,
+      "exact": false,
+      "comment": "Guyana"
+    },
+    {
+      "prefix": "8S",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "9A",
+      "entity_id": "497",
+      "priority": 30,
+      "exact": false,
+      "comment": "Croatia"
+    },
+    {
+      "prefix": "9G",
+      "entity_id": "424",
+      "priority": 10,
+      "exact": false,
+      "comment": "Ghana"
+    },
+    {
+      "prefix": "9H",
+      "entity_id": "257",
+      "priority": 30,
+      "exact": false,
+      "comment": "Malta"
+    },
+    {
+      "prefix": "9I",
+      "entity_id": "482",
+      "priority": 10,
+      "exact": false,
+      "comment": "Zambia"
+    },
+    {
+      "prefix": "9J",
+      "entity_id": "482",
+      "priority": 10,
+      "exact": false,
+      "comment": "Zambia"
+    },
+    {
+      "prefix": "9K",
+      "entity_id": "348",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kuwait"
+    },
+    {
+      "prefix": "9L",
+      "entity_id": "458",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sierra Leone"
+    },
+    {
+      "prefix": "9M",
+      "entity_id": "299",
+      "priority": 30,
+      "exact": false,
+      "comment": "West Malaysia"
+    },
+    {
+      "prefix": "9M2",
+      "entity_id": "299",
+      "priority": 20,
+      "exact": false,
+      "comment": "West Malaysia"
+    },
+    {
+      "prefix": "9M4",
+      "entity_id": "299",
+      "priority": 20,
+      "exact": false,
+      "comment": "West Malaysia"
+    },
+    {
+      "prefix": "9M6",
+      "entity_id": "046",
+      "priority": 20,
+      "exact": false,
+      "comment": "East Malaysia"
+    },
+    {
+      "prefix": "9M8",
+      "entity_id": "046",
+      "priority": 20,
+      "exact": false,
+      "comment": "East Malaysia"
+    },
+    {
+      "prefix": "9N",
+      "entity_id": "369",
+      "priority": 10,
+      "exact": false,
+      "comment": "Nepal"
+    },
+    {
+      "prefix": "9O",
+      "entity_id": "414",
+      "priority": 10,
+      "exact": false,
+      "comment": "Democratic Republic of the Congo"
+    },
+    {
+      "prefix": "9P",
+      "entity_id": "414",
+      "priority": 10,
+      "exact": false,
+      "comment": "Democratic Republic of the Congo"
+    },
+    {
+      "prefix": "9Q",
+      "entity_id": "414",
+      "priority": 10,
+      "exact": false,
+      "comment": "Democratic Republic of the Congo"
+    },
+    {
+      "prefix": "9R",
+      "entity_id": "414",
+      "priority": 10,
+      "exact": false,
+      "comment": "Democratic Republic of the Congo"
+    },
+    {
+      "prefix": "9S",
+      "entity_id": "414",
+      "priority": 10,
+      "exact": false,
+      "comment": "Democratic Republic of the Congo"
+    },
+    {
+      "prefix": "9T",
+      "entity_id": "414",
+      "priority": 10,
+      "exact": false,
+      "comment": "Democratic Republic of the Congo"
+    },
+    {
+      "prefix": "9U",
+      "entity_id": "404",
+      "priority": 10,
+      "exact": false,
+      "comment": "Burundi"
+    },
+    {
+      "prefix": "9V",
+      "entity_id": "381",
+      "priority": 10,
+      "exact": false,
+      "comment": "Singapore (Republic of)"
+    },
+    {
+      "prefix": "9W",
+      "entity_id": "299",
+      "priority": 30,
+      "exact": false,
+      "comment": "West Malaysia"
+    },
+    {
+      "prefix": "9X",
+      "entity_id": "454",
+      "priority": 10,
+      "exact": false,
+      "comment": "Rwanda"
+    },
+    {
+      "prefix": "9Y",
+      "entity_id": "090",
+      "priority": 20,
+      "exact": false,
+      "comment": "Trinidad & Tobago"
+    },
+    {
+      "prefix": "9Z",
+      "entity_id": "090",
+      "priority": 20,
+      "exact": false,
+      "comment": "Trinidad & Tobago"
+    },
+    {
+      "prefix": "A2",
+      "entity_id": "402",
+      "priority": 10,
+      "exact": false,
+      "comment": "Botswana (Republic of)"
+    },
+    {
+      "prefix": "A3",
+      "entity_id": "160",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tonga"
+    },
+    {
+      "prefix": "A4",
+      "entity_id": "370",
+      "priority": 10,
+      "exact": false,
+      "comment": "Oman"
+    },
+    {
+      "prefix": "A5",
+      "entity_id": "306",
+      "priority": 10,
+      "exact": false,
+      "comment": "Bhutan"
+    },
+    {
+      "prefix": "A6",
+      "entity_id": "391",
+      "priority": 10,
+      "exact": false,
+      "comment": "United Arab Emirates"
+    },
+    {
+      "prefix": "A7",
+      "entity_id": "376",
+      "priority": 10,
+      "exact": false,
+      "comment": "Qatar"
+    },
+    {
+      "prefix": "A9",
+      "entity_id": "304",
+      "priority": 10,
+      "exact": false,
+      "comment": "Bahrain"
+    },
+    {
+      "prefix": "AA",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AB",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AC",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AD",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AE",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AF",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AG",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AH",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AH0",
+      "entity_id": "166",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mariana Is."
+    },
+    {
+      "prefix": "AH1",
+      "entity_id": "020",
+      "priority": 30,
+      "exact": false,
+      "comment": "Baker & Howland Is."
+    },
+    {
+      "prefix": "AH2",
+      "entity_id": "103",
+      "priority": 30,
+      "exact": false,
+      "comment": "Guam"
+    },
+    {
+      "prefix": "AH3",
+      "entity_id": "123",
+      "priority": 30,
+      "exact": false,
+      "comment": "Johnston I."
+    },
+    {
+      "prefix": "AH4",
+      "entity_id": "174",
+      "priority": 30,
+      "exact": false,
+      "comment": "Midway I."
+    },
+    {
+      "prefix": "AH5",
+      "entity_id": "197",
+      "priority": 30,
+      "exact": false,
+      "comment": "Palmyra & Jarvis Is."
+    },
+    {
+      "prefix": "AH6",
+      "entity_id": "110",
+      "priority": 30,
+      "exact": false,
+      "comment": "Hawaii"
+    },
+    {
+      "prefix": "AH7",
+      "entity_id": "110",
+      "priority": 30,
+      "exact": false,
+      "comment": "Hawaii"
+    },
+    {
+      "prefix": "AH8",
+      "entity_id": "009",
+      "priority": 30,
+      "exact": false,
+      "comment": "American Samoa"
+    },
+    {
+      "prefix": "AI",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AJ",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AK",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "AL",
+      "entity_id": "006",
+      "priority": 30,
+      "exact": false,
+      "comment": "Alaska"
+    },
+    {
+      "prefix": "AP",
+      "entity_id": "372",
+      "priority": 10,
+      "exact": false,
+      "comment": "Pakistan (Islamic Rep of)"
+    },
+    {
+      "prefix": "AS",
+      "entity_id": "372",
+      "priority": 10,
+      "exact": false,
+      "comment": "Pakistan (Islamic Rep of)"
+    },
+    {
+      "prefix": "AX",
+      "entity_id": "150",
+      "priority": 30,
+      "exact": false,
+      "comment": "Australia"
+    },
+    {
+      "prefix": "AY",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "AZ",
+      "entity_id": "108",
+      "priority": 10,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "BS7",
+      "entity_id": "506",
+      "priority": 40,
+      "exact": false,
+      "comment": "Scarborough Reef"
+    },
+    {
+      "prefix": "BV",
+      "entity_id": "386",
+      "priority": 20,
+      "exact": false,
+      "comment": "Taiwan"
+    },
+    {
+      "prefix": "BV9P",
+      "entity_id": "505",
+      "priority": 50,
+      "exact": false,
+      "comment": "Pratas I."
+    },
+    {
+      "prefix": "BY",
+      "entity_id": "318",
+      "priority": 30,
+      "exact": false,
+      "comment": "China"
+    },
+    {
+      "prefix": "C2",
+      "entity_id": "157",
+      "priority": 10,
+      "exact": false,
+      "comment": "Nauru"
+    },
+    {
+      "prefix": "C3",
+      "entity_id": "203",
+      "priority": 30,
+      "exact": false,
+      "comment": "Andorra"
+    },
+    {
+      "prefix": "C4",
+      "entity_id": "215",
+      "priority": 30,
+      "exact": false,
+      "comment": "Cyprus"
+    },
+    {
+      "prefix": "C5",
+      "entity_id": "422",
+      "priority": 10,
+      "exact": false,
+      "comment": "Gambia (Republic of the)"
+    },
+    {
+      "prefix": "C6",
+      "entity_id": "060",
+      "priority": 20,
+      "exact": false,
+      "comment": "Bahamas (Commonwealth of the)"
+    },
+    {
+      "prefix": "C8",
+      "entity_id": "181",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mozambique"
+    },
+    {
+      "prefix": "C9",
+      "entity_id": "181",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mozambique"
+    },
+    {
+      "prefix": "CA",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "CB",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "CC",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "CD",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "CE",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "CE0",
+      "entity_id": "047",
+      "priority": 30,
+      "exact": false,
+      "comment": "Easter I."
+    },
+    {
+      "prefix": "CE0X",
+      "entity_id": "217",
+      "priority": 40,
+      "exact": false,
+      "comment": "San Felix & San Ambrosio"
+    },
+    {
+      "prefix": "CE0Y",
+      "entity_id": "047",
+      "priority": 40,
+      "exact": false,
+      "comment": "Easter I."
+    },
+    {
+      "prefix": "CE0Z",
+      "entity_id": "125",
+      "priority": 40,
+      "exact": false,
+      "comment": "Juan Fernandez Is."
+    },
+    {
+      "prefix": "CE9",
+      "entity_id": "013",
+      "priority": 40,
+      "exact": false,
+      "comment": "Antarctica"
+    },
+    {
+      "prefix": "CE9/KC4",
+      "entity_id": "013",
+      "priority": 80,
+      "exact": false,
+      "comment": "Antarctica"
+    },
+    {
+      "prefix": "CL",
+      "entity_id": "070",
+      "priority": 20,
+      "exact": false,
+      "comment": "Cuba"
+    },
+    {
+      "prefix": "CM",
+      "entity_id": "070",
+      "priority": 20,
+      "exact": false,
+      "comment": "Cuba"
+    },
+    {
+      "prefix": "CN",
+      "entity_id": "446",
+      "priority": 10,
+      "exact": false,
+      "comment": "Morocco (Kingdom of)"
+    },
+    {
+      "prefix": "CO",
+      "entity_id": "070",
+      "priority": 20,
+      "exact": false,
+      "comment": "Cuba"
+    },
+    {
+      "prefix": "CP",
+      "entity_id": "104",
+      "priority": 20,
+      "exact": false,
+      "comment": "Bolivia"
+    },
+    {
+      "prefix": "CQ",
+      "entity_id": "272",
+      "priority": 30,
+      "exact": false,
+      "comment": "Portugal"
+    },
+    {
+      "prefix": "CR",
+      "entity_id": "272",
+      "priority": 30,
+      "exact": false,
+      "comment": "Portugal"
+    },
+    {
+      "prefix": "CS",
+      "entity_id": "272",
+      "priority": 30,
+      "exact": false,
+      "comment": "Portugal"
+    },
+    {
+      "prefix": "CT",
+      "entity_id": "272",
+      "priority": 30,
+      "exact": false,
+      "comment": "Portugal"
+    },
+    {
+      "prefix": "CT3",
+      "entity_id": "256",
+      "priority": 30,
+      "exact": false,
+      "comment": "Madeira Is."
+    },
+    {
+      "prefix": "CU",
+      "entity_id": "149",
+      "priority": 30,
+      "exact": false,
+      "comment": "Azores"
+    },
+    {
+      "prefix": "CU",
+      "entity_id": "272",
+      "priority": 30,
+      "exact": false,
+      "comment": "Portugal"
+    },
+    {
+      "prefix": "CV",
+      "entity_id": "144",
+      "priority": 20,
+      "exact": false,
+      "comment": "Uruguay"
+    },
+    {
+      "prefix": "CW",
+      "entity_id": "144",
+      "priority": 20,
+      "exact": false,
+      "comment": "Uruguay"
+    },
+    {
+      "prefix": "CX",
+      "entity_id": "144",
+      "priority": 20,
+      "exact": false,
+      "comment": "Uruguay"
+    },
+    {
+      "prefix": "CY0",
+      "entity_id": "211",
+      "priority": 40,
+      "exact": false,
+      "comment": "Sable I."
+    },
+    {
+      "prefix": "CY9",
+      "entity_id": "252",
+      "priority": 40,
+      "exact": false,
+      "comment": "St. Paul I."
+    },
+    {
+      "prefix": "D2",
+      "entity_id": "401",
+      "priority": 10,
+      "exact": false,
+      "comment": "Angola"
+    },
+    {
+      "prefix": "D3",
+      "entity_id": "401",
+      "priority": 10,
+      "exact": false,
+      "comment": "Angola"
+    },
+    {
+      "prefix": "D4",
+      "entity_id": "409",
+      "priority": 10,
+      "exact": false,
+      "comment": "Cabo Verde (Rep of)"
+    },
+    {
+      "prefix": "D6",
+      "entity_id": "411",
+      "priority": 10,
+      "exact": false,
+      "comment": "Comoros"
+    },
+    {
+      "prefix": "DA",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DB",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DC",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DD",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DE",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DF",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DG",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DH",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DI",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DJ",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DK",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DL",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DM",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DN",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DO",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DP",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DP0",
+      "entity_id": "013",
+      "priority": 40,
+      "exact": false,
+      "comment": "Antarctica"
+    },
+    {
+      "prefix": "DQ",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DR",
+      "entity_id": "230",
+      "priority": 30,
+      "exact": false,
+      "comment": "Germany (Federal Rep of)"
+    },
+    {
+      "prefix": "DR",
+      "entity_id": "227",
+      "priority": 10,
+      "exact": false,
+      "comment": "France"
+    },
+    {
+      "prefix": "DS",
+      "entity_id": "137",
+      "priority": 30,
+      "exact": false,
+      "comment": "Republic of Korea"
+    },
+    {
+      "prefix": "DU",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "DV",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "DW",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "DX",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "DY",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "DZ",
+      "entity_id": "375",
+      "priority": 30,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "E",
+      "entity_id": "124",
+      "priority": 20,
+      "exact": false,
+      "comment": "Juan de Nova, Europa"
+    },
+    {
+      "prefix": "E2",
+      "entity_id": "324",
+      "priority": 10,
+      "exact": false,
+      "comment": "India"
+    },
+    {
+      "prefix": "E3",
+      "entity_id": "051",
+      "priority": 10,
+      "exact": false,
+      "comment": "Eritrea"
+    },
+    {
+      "prefix": "E4",
+      "entity_id": "510",
+      "priority": 30,
+      "exact": false,
+      "comment": "Palestine"
+    },
+    {
+      "prefix": "E5",
+      "entity_id": "191",
+      "priority": 10,
+      "exact": false,
+      "comment": "North Cook Is."
+    },
+    {
+      "prefix": "E51",
+      "entity_id": "191",
+      "priority": 50,
+      "exact": false,
+      "comment": "North Cook Is."
+    },
+    {
+      "prefix": "E51",
+      "entity_id": "234",
+      "priority": 30,
+      "exact": false,
+      "comment": "South Cook Is."
+    },
+    {
+      "prefix": "E52",
+      "entity_id": "234",
+      "priority": 50,
+      "exact": false,
+      "comment": "South Cook Is."
+    },
+    {
+      "prefix": "E6",
+      "entity_id": "188",
+      "priority": 10,
+      "exact": false,
+      "comment": "Niue"
+    },
+    {
+      "prefix": "E7",
+      "entity_id": "501",
+      "priority": 30,
+      "exact": false,
+      "comment": "Bosnia-Herzegovina"
+    },
+    {
+      "prefix": "EA",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "EA6",
+      "entity_id": "021",
+      "priority": 30,
+      "exact": false,
+      "comment": "Balearic Is."
+    },
+    {
+      "prefix": "EA8",
+      "entity_id": "029",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canary Is."
+    },
+    {
+      "prefix": "EA9",
+      "entity_id": "032",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ceuta & Melilla"
+    },
+    {
+      "prefix": "EB",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "EC",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "ED",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "EE",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "EF",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "EG",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "EH",
+      "entity_id": "281",
+      "priority": 30,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "EI",
+      "entity_id": "245",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ireland"
+    },
+    {
+      "prefix": "EJ",
+      "entity_id": "245",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ireland"
+    },
+    {
+      "prefix": "EJ",
+      "entity_id": "122",
+      "priority": 10,
+      "exact": false,
+      "comment": "Jersey"
+    },
+    {
+      "prefix": "EK",
+      "entity_id": "014",
+      "priority": 10,
+      "exact": false,
+      "comment": "Armenia"
+    },
+    {
+      "prefix": "EL",
+      "entity_id": "434",
+      "priority": 10,
+      "exact": false,
+      "comment": "Liberia"
+    },
+    {
+      "prefix": "EM",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "EN",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "EO",
+      "entity_id": "288",
+      "priority": 10,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "EP",
+      "entity_id": "330",
+      "priority": 10,
+      "exact": false,
+      "comment": "Iran (Islamic Repub of)"
+    },
+    {
+      "prefix": "EQ",
+      "entity_id": "330",
+      "priority": 10,
+      "exact": false,
+      "comment": "Iran (Islamic Repub of)"
+    },
+    {
+      "prefix": "ER",
+      "entity_id": "179",
+      "priority": 30,
+      "exact": false,
+      "comment": "Moldova (Republic of)"
+    },
+    {
+      "prefix": "ES",
+      "entity_id": "052",
+      "priority": 10,
+      "exact": false,
+      "comment": "Estonia"
+    },
+    {
+      "prefix": "ET",
+      "entity_id": "053",
+      "priority": 10,
+      "exact": false,
+      "comment": "Ethiopia"
+    },
+    {
+      "prefix": "EU",
+      "entity_id": "027",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belarus (Republic of)"
+    },
+    {
+      "prefix": "EV",
+      "entity_id": "027",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belarus (Republic of)"
+    },
+    {
+      "prefix": "EW",
+      "entity_id": "027",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belarus (Republic of)"
+    },
+    {
+      "prefix": "EX",
+      "entity_id": "135",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kyrgyz Republic"
+    },
+    {
+      "prefix": "EY",
+      "entity_id": "262",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tajikistan"
+    },
+    {
+      "prefix": "EZ",
+      "entity_id": "280",
+      "priority": 10,
+      "exact": false,
+      "comment": "Turkmenistan"
+    },
+    {
+      "prefix": "F",
+      "entity_id": "248",
+      "priority": 10,
+      "exact": false,
+      "comment": "Italy"
+    },
+    {
+      "prefix": "FG",
+      "entity_id": "079",
+      "priority": 30,
+      "exact": false,
+      "comment": "Guadeloupe"
+    },
+    {
+      "prefix": "FH",
+      "entity_id": "169",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mayotte"
+    },
+    {
+      "prefix": "FJ",
+      "entity_id": "214",
+      "priority": 30,
+      "exact": false,
+      "comment": "Corsica"
+    },
+    {
+      "prefix": "FJ",
+      "entity_id": "516",
+      "priority": 30,
+      "exact": false,
+      "comment": "Saint Barthelemy"
+    },
+    {
+      "prefix": "FK",
+      "entity_id": "162",
+      "priority": 10,
+      "exact": false,
+      "comment": "New Caledonia"
+    },
+    {
+      "prefix": "FK0C",
+      "entity_id": "512",
+      "priority": 60,
+      "exact": false,
+      "comment": "Chesterfield Is."
+    },
+    {
+      "prefix": "FM",
+      "entity_id": "084",
+      "priority": 30,
+      "exact": false,
+      "comment": "Martinique"
+    },
+    {
+      "prefix": "FO",
+      "entity_id": "036",
+      "priority": 30,
+      "exact": false,
+      "comment": "Clipperton I."
+    },
+    {
+      "prefix": "FO",
+      "entity_id": "508",
+      "priority": 30,
+      "exact": false,
+      "comment": "Austral I."
+    },
+    {
+      "prefix": "FO",
+      "entity_id": "509",
+      "priority": 30,
+      "exact": false,
+      "comment": "Marquesas Is."
+    },
+    {
+      "prefix": "FO",
+      "entity_id": "175",
+      "priority": 10,
+      "exact": false,
+      "comment": "French Polynesia"
+    },
+    {
+      "prefix": "FO0A",
+      "entity_id": "508",
+      "priority": 60,
+      "exact": false,
+      "comment": "Austral I."
+    },
+    {
+      "prefix": "FO0C",
+      "entity_id": "036",
+      "priority": 60,
+      "exact": false,
+      "comment": "Clipperton I."
+    },
+    {
+      "prefix": "FO0M",
+      "entity_id": "509",
+      "priority": 60,
+      "exact": false,
+      "comment": "Marquesas Is."
+    },
+    {
+      "prefix": "FP",
+      "entity_id": "277",
+      "priority": 30,
+      "exact": false,
+      "comment": "St. Pierre & Miquelon"
+    },
+    {
+      "prefix": "FR",
+      "entity_id": "453",
+      "priority": 10,
+      "exact": false,
+      "comment": "Reunion I."
+    },
+    {
+      "prefix": "FS",
+      "entity_id": "213",
+      "priority": 30,
+      "exact": false,
+      "comment": "Saint Martin"
+    },
+    {
+      "prefix": "FT/G",
+      "entity_id": "099",
+      "priority": 50,
+      "exact": false,
+      "comment": "Glorioso Is."
+    },
+    {
+      "prefix": "FT/J",
+      "entity_id": "124",
+      "priority": 50,
+      "exact": false,
+      "comment": "Juan de Nova, Europa"
+    },
+    {
+      "prefix": "FT/T",
+      "entity_id": "276",
+      "priority": 50,
+      "exact": false,
+      "comment": "Tromelin I."
+    },
+    {
+      "prefix": "FT/W",
+      "entity_id": "041",
+      "priority": 50,
+      "exact": false,
+      "comment": "Crozet I."
+    },
+    {
+      "prefix": "FT/X",
+      "entity_id": "131",
+      "priority": 50,
+      "exact": false,
+      "comment": "Kerguelen Is."
+    },
+    {
+      "prefix": "FT/Z",
+      "entity_id": "010",
+      "priority": 50,
+      "exact": false,
+      "comment": "Amsterdam & St. Paul Is."
+    },
+    {
+      "prefix": "FT0G",
+      "entity_id": "099",
+      "priority": 50,
+      "exact": false,
+      "comment": "Glorioso Is."
+    },
+    {
+      "prefix": "FT0J",
+      "entity_id": "124",
+      "priority": 50,
+      "exact": false,
+      "comment": "Juan de Nova, Europa"
+    },
+    {
+      "prefix": "FT0T",
+      "entity_id": "276",
+      "priority": 50,
+      "exact": false,
+      "comment": "Tromelin I."
+    },
+    {
+      "prefix": "FT0W",
+      "entity_id": "041",
+      "priority": 50,
+      "exact": false,
+      "comment": "Crozet I."
+    },
+    {
+      "prefix": "FT0X",
+      "entity_id": "131",
+      "priority": 50,
+      "exact": false,
+      "comment": "Kerguelen Is."
+    },
+    {
+      "prefix": "FT0Z",
+      "entity_id": "010",
+      "priority": 50,
+      "exact": false,
+      "comment": "Amsterdam & St. Paul Is."
+    },
+    {
+      "prefix": "FW",
+      "entity_id": "298",
+      "priority": 10,
+      "exact": false,
+      "comment": "Wallis & Futuna Is."
+    },
+    {
+      "prefix": "FY",
+      "entity_id": "063",
+      "priority": 30,
+      "exact": false,
+      "comment": "French Guiana"
+    },
+    {
+      "prefix": "G",
+      "entity_id": "223",
+      "priority": 10,
+      "exact": false,
+      "comment": "United Kingdom of Great Britain"
+    },
+    {
+      "prefix": "GD",
+      "entity_id": "114",
+      "priority": 20,
+      "exact": false,
+      "comment": "Isle of Man"
+    },
+    {
+      "prefix": "GI",
+      "entity_id": "265",
+      "priority": 20,
+      "exact": false,
+      "comment": "Northern Ireland"
+    },
+    {
+      "prefix": "GJ",
+      "entity_id": "122",
+      "priority": 20,
+      "exact": false,
+      "comment": "Jersey"
+    },
+    {
+      "prefix": "GM",
+      "entity_id": "279",
+      "priority": 20,
+      "exact": false,
+      "comment": "Scotland"
+    },
+    {
+      "prefix": "GU",
+      "entity_id": "106",
+      "priority": 20,
+      "exact": false,
+      "comment": "Guernsey"
+    },
+    {
+      "prefix": "GW",
+      "entity_id": "294",
+      "priority": 20,
+      "exact": false,
+      "comment": "Wales"
+    },
+    {
+      "prefix": "H3",
+      "entity_id": "088",
+      "priority": 20,
+      "exact": false,
+      "comment": "Panama"
+    },
+    {
+      "prefix": "H4",
+      "entity_id": "185",
+      "priority": 10,
+      "exact": false,
+      "comment": "Solomon Is."
+    },
+    {
+      "prefix": "H40",
+      "entity_id": "507",
+      "priority": 30,
+      "exact": false,
+      "comment": "Temotu Province"
+    },
+    {
+      "prefix": "H6",
+      "entity_id": "086",
+      "priority": 20,
+      "exact": false,
+      "comment": "Nicaragua"
+    },
+    {
+      "prefix": "H7",
+      "entity_id": "086",
+      "priority": 20,
+      "exact": false,
+      "comment": "Nicaragua"
+    },
+    {
+      "prefix": "H8",
+      "entity_id": "088",
+      "priority": 20,
+      "exact": false,
+      "comment": "Panama"
+    },
+    {
+      "prefix": "H9",
+      "entity_id": "088",
+      "priority": 20,
+      "exact": false,
+      "comment": "Panama"
+    },
+    {
+      "prefix": "HA",
+      "entity_id": "239",
+      "priority": 30,
+      "exact": false,
+      "comment": "Hungary"
+    },
+    {
+      "prefix": "HB",
+      "entity_id": "287",
+      "priority": 30,
+      "exact": false,
+      "comment": "Switzerland"
+    },
+    {
+      "prefix": "HB0",
+      "entity_id": "251",
+      "priority": 30,
+      "exact": false,
+      "comment": "Liechtenstein"
+    },
+    {
+      "prefix": "HC",
+      "entity_id": "120",
+      "priority": 20,
+      "exact": false,
+      "comment": "Ecuador"
+    },
+    {
+      "prefix": "HC8",
+      "entity_id": "071",
+      "priority": 30,
+      "exact": false,
+      "comment": "Galapagos Is."
+    },
+    {
+      "prefix": "HD",
+      "entity_id": "120",
+      "priority": 20,
+      "exact": false,
+      "comment": "Ecuador"
+    },
+    {
+      "prefix": "HD8",
+      "entity_id": "071",
+      "priority": 30,
+      "exact": false,
+      "comment": "Galapagos Is."
+    },
+    {
+      "prefix": "HE",
+      "entity_id": "287",
+      "priority": 30,
+      "exact": false,
+      "comment": "Switzerland"
+    },
+    {
+      "prefix": "HF",
+      "entity_id": "269",
+      "priority": 30,
+      "exact": false,
+      "comment": "Poland"
+    },
+    {
+      "prefix": "HG",
+      "entity_id": "275",
+      "priority": 10,
+      "exact": false,
+      "comment": "Romania"
+    },
+    {
+      "prefix": "HH",
+      "entity_id": "078",
+      "priority": 20,
+      "exact": false,
+      "comment": "Haiti"
+    },
+    {
+      "prefix": "HI",
+      "entity_id": "072",
+      "priority": 20,
+      "exact": false,
+      "comment": "Dominican Republic"
+    },
+    {
+      "prefix": "HJ",
+      "entity_id": "116",
+      "priority": 20,
+      "exact": false,
+      "comment": "Colombia"
+    },
+    {
+      "prefix": "HK",
+      "entity_id": "116",
+      "priority": 20,
+      "exact": false,
+      "comment": "Colombia"
+    },
+    {
+      "prefix": "HK0",
+      "entity_id": "216",
+      "priority": 30,
+      "exact": false,
+      "comment": "San Andres & Providencia"
+    },
+    {
+      "prefix": "HK0M",
+      "entity_id": "161",
+      "priority": 40,
+      "exact": false,
+      "comment": "Malpelo I."
+    },
+    {
+      "prefix": "HL",
+      "entity_id": "137",
+      "priority": 30,
+      "exact": false,
+      "comment": "Korea (Republic of)"
+    },
+    {
+      "prefix": "HO",
+      "entity_id": "088",
+      "priority": 20,
+      "exact": false,
+      "comment": "Panama"
+    },
+    {
+      "prefix": "HP",
+      "entity_id": "088",
+      "priority": 20,
+      "exact": false,
+      "comment": "Panama"
+    },
+    {
+      "prefix": "HQ",
+      "entity_id": "080",
+      "priority": 20,
+      "exact": false,
+      "comment": "Honduras"
+    },
+    {
+      "prefix": "HR",
+      "entity_id": "080",
+      "priority": 20,
+      "exact": false,
+      "comment": "Honduras"
+    },
+    {
+      "prefix": "HS",
+      "entity_id": "387",
+      "priority": 30,
+      "exact": false,
+      "comment": "Thailand"
+    },
+    {
+      "prefix": "HT",
+      "entity_id": "086",
+      "priority": 20,
+      "exact": false,
+      "comment": "Nicaragua"
+    },
+    {
+      "prefix": "HU",
+      "entity_id": "074",
+      "priority": 20,
+      "exact": false,
+      "comment": "El Salvador"
+    },
+    {
+      "prefix": "HV",
+      "entity_id": "295",
+      "priority": 30,
+      "exact": false,
+      "comment": "Vatican"
+    },
+    {
+      "prefix": "HZ",
+      "entity_id": "378",
+      "priority": 10,
+      "exact": false,
+      "comment": "Saudi Arabia"
+    },
+    {
+      "prefix": "I",
+      "entity_id": "281",
+      "priority": 10,
+      "exact": false,
+      "comment": "Spain"
+    },
+    {
+      "prefix": "IK",
+      "entity_id": "248",
+      "priority": 30,
+      "exact": false,
+      "comment": "Italy"
+    },
+    {
+      "prefix": "IM0",
+      "entity_id": "225",
+      "priority": 40,
+      "exact": false,
+      "comment": "Sardinia"
+    },
+    {
+      "prefix": "IS0",
+      "entity_id": "225",
+      "priority": 40,
+      "exact": false,
+      "comment": "Sardinia"
+    },
+    {
+      "prefix": "IZ",
+      "entity_id": "248",
+      "priority": 30,
+      "exact": false,
+      "comment": "Italy"
+    },
+    {
+      "prefix": "J2",
+      "entity_id": "382",
+      "priority": 10,
+      "exact": false,
+      "comment": "Djibouti"
+    },
+    {
+      "prefix": "J3",
+      "entity_id": "077",
+      "priority": 20,
+      "exact": false,
+      "comment": "Grenada"
+    },
+    {
+      "prefix": "J4",
+      "entity_id": "236",
+      "priority": 30,
+      "exact": false,
+      "comment": "Greece"
+    },
+    {
+      "prefix": "J5",
+      "entity_id": "109",
+      "priority": 10,
+      "exact": false,
+      "comment": "Guinea-Bissau"
+    },
+    {
+      "prefix": "J6",
+      "entity_id": "097",
+      "priority": 20,
+      "exact": false,
+      "comment": "St. Lucia"
+    },
+    {
+      "prefix": "J7",
+      "entity_id": "095",
+      "priority": 20,
+      "exact": false,
+      "comment": "Dominica"
+    },
+    {
+      "prefix": "J8",
+      "entity_id": "098",
+      "priority": 20,
+      "exact": false,
+      "comment": "St. Vincent"
+    },
+    {
+      "prefix": "JA",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JB",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JC",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JD",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JD1",
+      "entity_id": "177",
+      "priority": 30,
+      "exact": false,
+      "comment": "Minami Torishima"
+    },
+    {
+      "prefix": "JD1/O",
+      "entity_id": "192",
+      "priority": 40,
+      "exact": false,
+      "comment": "Ogasawara"
+    },
+    {
+      "prefix": "JD1M",
+      "entity_id": "177",
+      "priority": 60,
+      "exact": false,
+      "comment": "Minami Torishima"
+    },
+    {
+      "prefix": "JD1O",
+      "entity_id": "192",
+      "priority": 60,
+      "exact": false,
+      "comment": "Ogasawara"
+    },
+    {
+      "prefix": "JE",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JF",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JG",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JH",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JI",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JJ",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JK",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JL",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JM",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JN",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JO",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JP",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JQ",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JR",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JS",
+      "entity_id": "339",
+      "priority": 30,
+      "exact": false,
+      "comment": "Japan"
+    },
+    {
+      "prefix": "JT",
+      "entity_id": "363",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mongolia"
+    },
+    {
+      "prefix": "JU",
+      "entity_id": "363",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mongolia"
+    },
+    {
+      "prefix": "JV",
+      "entity_id": "363",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mongolia"
+    },
+    {
+      "prefix": "JW",
+      "entity_id": "259",
+      "priority": 10,
+      "exact": false,
+      "comment": "Svalbard"
+    },
+    {
+      "prefix": "JX",
+      "entity_id": "118",
+      "priority": 10,
+      "exact": false,
+      "comment": "Jan Mayen"
+    },
+    {
+      "prefix": "JY",
+      "entity_id": "342",
+      "priority": 10,
+      "exact": false,
+      "comment": "Jordan"
+    },
+    {
+      "prefix": "K",
+      "entity_id": "291",
+      "priority": 20,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "KC4",
+      "entity_id": "013",
+      "priority": 40,
+      "exact": false,
+      "comment": "Antarctica"
+    },
+    {
+      "prefix": "KC6",
+      "entity_id": "022",
+      "priority": 40,
+      "exact": false,
+      "comment": "Palau"
+    },
+    {
+      "prefix": "KG4",
+      "entity_id": "291",
+      "priority": 30,
+      "exact": false,
+      "comment": "USA (KG4 - see grid_overrides_dxcc for Guantanamo check)"
+    },
+    {
+      "prefix": "KH0",
+      "entity_id": "166",
+      "priority": 40,
+      "exact": false,
+      "comment": "Mariana Is."
+    },
+    {
+      "prefix": "KH1",
+      "entity_id": "020",
+      "priority": 40,
+      "exact": false,
+      "comment": "Baker & Howland Is."
+    },
+    {
+      "prefix": "KH2",
+      "entity_id": "103",
+      "priority": 40,
+      "exact": false,
+      "comment": "Guam"
+    },
+    {
+      "prefix": "KH3",
+      "entity_id": "123",
+      "priority": 40,
+      "exact": false,
+      "comment": "Johnston I."
+    },
+    {
+      "prefix": "KH4",
+      "entity_id": "174",
+      "priority": 40,
+      "exact": false,
+      "comment": "Midway I."
+    },
+    {
+      "prefix": "KH5",
+      "entity_id": "197",
+      "priority": 40,
+      "exact": false,
+      "comment": "Palmyra & Jarvis Is."
+    },
+    {
+      "prefix": "KH6",
+      "entity_id": "110",
+      "priority": 30,
+      "exact": false,
+      "comment": "Hawaii"
+    },
+    {
+      "prefix": "KH7",
+      "entity_id": "110",
+      "priority": 40,
+      "exact": false,
+      "comment": "Hawaii"
+    },
+    {
+      "prefix": "KH7K",
+      "entity_id": "138",
+      "priority": 50,
+      "exact": false,
+      "comment": "Kure I."
+    },
+    {
+      "prefix": "KH8",
+      "entity_id": "515",
+      "priority": 40,
+      "exact": false,
+      "comment": "Swains I."
+    },
+    {
+      "prefix": "KH8S",
+      "entity_id": "515",
+      "priority": 60,
+      "exact": false,
+      "comment": "Swains I."
+    },
+    {
+      "prefix": "KH9",
+      "entity_id": "297",
+      "priority": 40,
+      "exact": false,
+      "comment": "Wake I."
+    },
+    {
+      "prefix": "KL",
+      "entity_id": "006",
+      "priority": 30,
+      "exact": false,
+      "comment": "Alaska"
+    },
+    {
+      "prefix": "KL7",
+      "entity_id": "006",
+      "priority": 40,
+      "exact": false,
+      "comment": "Alaska"
+    },
+    {
+      "prefix": "KP1",
+      "entity_id": "182",
+      "priority": 30,
+      "exact": false,
+      "comment": "Navassa I."
+    },
+    {
+      "prefix": "KP2",
+      "entity_id": "285",
+      "priority": 30,
+      "exact": false,
+      "comment": "Virgin Is."
+    },
+    {
+      "prefix": "KP3",
+      "entity_id": "202",
+      "priority": 30,
+      "exact": false,
+      "comment": "Puerto Rico"
+    },
+    {
+      "prefix": "KP4",
+      "entity_id": "202",
+      "priority": 30,
+      "exact": false,
+      "comment": "Puerto Rico"
+    },
+    {
+      "prefix": "KP5",
+      "entity_id": "043",
+      "priority": 40,
+      "exact": false,
+      "comment": "Desecheo I."
+    },
+    {
+      "prefix": "KX6",
+      "entity_id": "168",
+      "priority": 40,
+      "exact": false,
+      "comment": "Marshall Is."
+    },
+    {
+      "prefix": "L2",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "L3",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "L4",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "L5",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "L6",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "L7",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "L8",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "L9",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LA",
+      "entity_id": "266",
+      "priority": 10,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LB",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LC",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LD",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LE",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LF",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LG",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LH",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LI",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LJ",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LK",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LL",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LM",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LN",
+      "entity_id": "266",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norway"
+    },
+    {
+      "prefix": "LO",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LP",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LQ",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LR",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LS",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LT",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LU",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LV",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LW",
+      "entity_id": "100",
+      "priority": 30,
+      "exact": false,
+      "comment": "Argentina"
+    },
+    {
+      "prefix": "LX",
+      "entity_id": "254",
+      "priority": 30,
+      "exact": false,
+      "comment": "Luxembourg"
+    },
+    {
+      "prefix": "LY",
+      "entity_id": "146",
+      "priority": 10,
+      "exact": false,
+      "comment": "Lithuania"
+    },
+    {
+      "prefix": "LZ",
+      "entity_id": "236",
+      "priority": 10,
+      "exact": false,
+      "comment": "Greece"
+    },
+    {
+      "prefix": "M",
+      "entity_id": "223",
+      "priority": 10,
+      "exact": false,
+      "comment": "United Kingdom of Great Britain"
+    },
+    {
+      "prefix": "MD",
+      "entity_id": "114",
+      "priority": 20,
+      "exact": false,
+      "comment": "Isle of Man"
+    },
+    {
+      "prefix": "MI",
+      "entity_id": "265",
+      "priority": 20,
+      "exact": false,
+      "comment": "Northern Ireland"
+    },
+    {
+      "prefix": "MJ",
+      "entity_id": "122",
+      "priority": 20,
+      "exact": false,
+      "comment": "Jersey"
+    },
+    {
+      "prefix": "MM",
+      "entity_id": "279",
+      "priority": 20,
+      "exact": false,
+      "comment": "Scotland"
+    },
+    {
+      "prefix": "MU",
+      "entity_id": "106",
+      "priority": 20,
+      "exact": false,
+      "comment": "Guernsey"
+    },
+    {
+      "prefix": "MW",
+      "entity_id": "294",
+      "priority": 20,
+      "exact": false,
+      "comment": "Wales"
+    },
+    {
+      "prefix": "N",
+      "entity_id": "291",
+      "priority": 20,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "NH6",
+      "entity_id": "110",
+      "priority": 30,
+      "exact": false,
+      "comment": "Hawaii"
+    },
+    {
+      "prefix": "NL",
+      "entity_id": "006",
+      "priority": 30,
+      "exact": false,
+      "comment": "Alaska"
+    },
+    {
+      "prefix": "NL7",
+      "entity_id": "006",
+      "priority": 40,
+      "exact": false,
+      "comment": "Alaska"
+    },
+    {
+      "prefix": "NP2",
+      "entity_id": "285",
+      "priority": 40,
+      "exact": false,
+      "comment": "US Virgin Is."
+    },
+    {
+      "prefix": "NP3",
+      "entity_id": "202",
+      "priority": 30,
+      "exact": false,
+      "comment": "Puerto Rico"
+    },
+    {
+      "prefix": "NP4",
+      "entity_id": "202",
+      "priority": 30,
+      "exact": false,
+      "comment": "Puerto Rico"
+    },
+    {
+      "prefix": "OA",
+      "entity_id": "136",
+      "priority": 20,
+      "exact": false,
+      "comment": "Peru"
+    },
+    {
+      "prefix": "OB",
+      "entity_id": "136",
+      "priority": 20,
+      "exact": false,
+      "comment": "Peru"
+    },
+    {
+      "prefix": "OC",
+      "entity_id": "136",
+      "priority": 20,
+      "exact": false,
+      "comment": "Peru"
+    },
+    {
+      "prefix": "OD",
+      "entity_id": "354",
+      "priority": 10,
+      "exact": false,
+      "comment": "Lebanon"
+    },
+    {
+      "prefix": "OE",
+      "entity_id": "206",
+      "priority": 30,
+      "exact": false,
+      "comment": "Austria"
+    },
+    {
+      "prefix": "OE",
+      "entity_id": "269",
+      "priority": 10,
+      "exact": false,
+      "comment": "Poland"
+    },
+    {
+      "prefix": "OF",
+      "entity_id": "224",
+      "priority": 30,
+      "exact": false,
+      "comment": "Finland"
+    },
+    {
+      "prefix": "OG",
+      "entity_id": "224",
+      "priority": 30,
+      "exact": false,
+      "comment": "Finland"
+    },
+    {
+      "prefix": "OH",
+      "entity_id": "224",
+      "priority": 10,
+      "exact": false,
+      "comment": "Finland"
+    },
+    {
+      "prefix": "OH0",
+      "entity_id": "005",
+      "priority": 30,
+      "exact": false,
+      "comment": "Aland Is."
+    },
+    {
+      "prefix": "OI",
+      "entity_id": "224",
+      "priority": 30,
+      "exact": false,
+      "comment": "Finland"
+    },
+    {
+      "prefix": "OJ",
+      "entity_id": "224",
+      "priority": 30,
+      "exact": false,
+      "comment": "Finland"
+    },
+    {
+      "prefix": "OJ0",
+      "entity_id": "167",
+      "priority": 40,
+      "exact": false,
+      "comment": "Market Reef"
+    },
+    {
+      "prefix": "OK",
+      "entity_id": "503",
+      "priority": 30,
+      "exact": false,
+      "comment": "Czech Republic"
+    },
+    {
+      "prefix": "OL",
+      "entity_id": "503",
+      "priority": 10,
+      "exact": false,
+      "comment": "Czech Republic"
+    },
+    {
+      "prefix": "OM",
+      "entity_id": "504",
+      "priority": 30,
+      "exact": false,
+      "comment": "Slovak Republic"
+    },
+    {
+      "prefix": "OM",
+      "entity_id": "239",
+      "priority": 10,
+      "exact": false,
+      "comment": "Hungary"
+    },
+    {
+      "prefix": "ON",
+      "entity_id": "209",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belgium"
+    },
+    {
+      "prefix": "OO",
+      "entity_id": "209",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belgium"
+    },
+    {
+      "prefix": "OP",
+      "entity_id": "209",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belgium"
+    },
+    {
+      "prefix": "OQ",
+      "entity_id": "209",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belgium"
+    },
+    {
+      "prefix": "OR",
+      "entity_id": "209",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belgium"
+    },
+    {
+      "prefix": "OS",
+      "entity_id": "209",
+      "priority": 30,
+      "exact": false,
+      "comment": "Belgium"
+    },
+    {
+      "prefix": "OT",
+      "entity_id": "287",
+      "priority": 10,
+      "exact": false,
+      "comment": "Switzerland"
+    },
+    {
+      "prefix": "OU",
+      "entity_id": "221",
+      "priority": 30,
+      "exact": false,
+      "comment": "Denmark"
+    },
+    {
+      "prefix": "OV",
+      "entity_id": "221",
+      "priority": 30,
+      "exact": false,
+      "comment": "Denmark"
+    },
+    {
+      "prefix": "OW",
+      "entity_id": "221",
+      "priority": 30,
+      "exact": false,
+      "comment": "Denmark"
+    },
+    {
+      "prefix": "OX",
+      "entity_id": "237",
+      "priority": 10,
+      "exact": false,
+      "comment": "Greenland"
+    },
+    {
+      "prefix": "OY",
+      "entity_id": "222",
+      "priority": 10,
+      "exact": false,
+      "comment": "Faroe Is."
+    },
+    {
+      "prefix": "OZ",
+      "entity_id": "221",
+      "priority": 10,
+      "exact": false,
+      "comment": "Denmark"
+    },
+    {
+      "prefix": "P2",
+      "entity_id": "163",
+      "priority": 10,
+      "exact": false,
+      "comment": "Papua New Guinea"
+    },
+    {
+      "prefix": "P3",
+      "entity_id": "215",
+      "priority": 30,
+      "exact": false,
+      "comment": "Cyprus"
+    },
+    {
+      "prefix": "P4",
+      "entity_id": "091",
+      "priority": 20,
+      "exact": false,
+      "comment": "Aruba"
+    },
+    {
+      "prefix": "P5",
+      "entity_id": "344",
+      "priority": 10,
+      "exact": false,
+      "comment": "Democratic People's Rep. of Korea"
+    },
+    {
+      "prefix": "PA",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PB",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PC",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PD",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PE",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PF",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PG",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PH",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PI",
+      "entity_id": "263",
+      "priority": 30,
+      "exact": false,
+      "comment": "Netherlands"
+    },
+    {
+      "prefix": "PI",
+      "entity_id": "209",
+      "priority": 10,
+      "exact": false,
+      "comment": "Belgium"
+    },
+    {
+      "prefix": "PJ2",
+      "entity_id": "517",
+      "priority": 30,
+      "exact": false,
+      "comment": "Curacao"
+    },
+    {
+      "prefix": "PJ4",
+      "entity_id": "520",
+      "priority": 30,
+      "exact": false,
+      "comment": "Bonaire"
+    },
+    {
+      "prefix": "PJ5",
+      "entity_id": "519",
+      "priority": 30,
+      "exact": false,
+      "comment": "Saba & St. Eustatius"
+    },
+    {
+      "prefix": "PJ6",
+      "entity_id": "519",
+      "priority": 30,
+      "exact": false,
+      "comment": "Saba & St. Eustatius"
+    },
+    {
+      "prefix": "PJ7",
+      "entity_id": "518",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sint Maarten"
+    },
+    {
+      "prefix": "PP",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PP0-PY0F",
+      "entity_id": "056",
+      "priority": 90,
+      "exact": false,
+      "comment": "Fernando de Noronha"
+    },
+    {
+      "prefix": "PP0-PY0S",
+      "entity_id": "253",
+      "priority": 90,
+      "exact": false,
+      "comment": "St. Peter & St. Paul Rocks"
+    },
+    {
+      "prefix": "PP0-PY0T",
+      "entity_id": "273",
+      "priority": 90,
+      "exact": false,
+      "comment": "Trindade & Martim Vaz Is."
+    },
+    {
+      "prefix": "PQ",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PR",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PS",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PT",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PU",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PV",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PW",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PX",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PY",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "PY0F",
+      "entity_id": "056",
+      "priority": 50,
+      "exact": false,
+      "comment": "Fernando de Noronha"
+    },
+    {
+      "prefix": "PY0S",
+      "entity_id": "253",
+      "priority": 50,
+      "exact": false,
+      "comment": "St. Peter & St. Paul Rocks"
+    },
+    {
+      "prefix": "PY0T",
+      "entity_id": "273",
+      "priority": 50,
+      "exact": false,
+      "comment": "Trindade & Martim Vaz Is."
+    },
+    {
+      "prefix": "PZ",
+      "entity_id": "140",
+      "priority": 20,
+      "exact": false,
+      "comment": "Suriname"
+    },
+    {
+      "prefix": "R",
+      "entity_id": "054",
+      "priority": 10,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "R1/F",
+      "entity_id": "061",
+      "priority": 50,
+      "exact": false,
+      "comment": "Franz Josef Land"
+    },
+    {
+      "prefix": "R1FJ",
+      "entity_id": "061",
+      "priority": 50,
+      "exact": false,
+      "comment": "Franz Josef Land"
+    },
+    {
+      "prefix": "R9",
+      "entity_id": "288",
+      "priority": 20,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "RA",
+      "entity_id": "054",
+      "priority": 30,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "RA2",
+      "entity_id": "126",
+      "priority": 40,
+      "exact": false,
+      "comment": "Kaliningrad"
+    },
+    {
+      "prefix": "RI1",
+      "entity_id": "013",
+      "priority": 40,
+      "exact": false,
+      "comment": "Antarctica"
+    },
+    {
+      "prefix": "RV",
+      "entity_id": "054",
+      "priority": 30,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "RW",
+      "entity_id": "054",
+      "priority": 30,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "RX",
+      "entity_id": "054",
+      "priority": 30,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "RZ",
+      "entity_id": "054",
+      "priority": 30,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "S0",
+      "entity_id": "302",
+      "priority": 10,
+      "exact": false,
+      "comment": "Western Sahara"
+    },
+    {
+      "prefix": "S2",
+      "entity_id": "305",
+      "priority": 10,
+      "exact": false,
+      "comment": "Bangladesh"
+    },
+    {
+      "prefix": "S5",
+      "entity_id": "499",
+      "priority": 30,
+      "exact": false,
+      "comment": "Slovenia"
+    },
+    {
+      "prefix": "S7",
+      "entity_id": "379",
+      "priority": 10,
+      "exact": false,
+      "comment": "Seychelles"
+    },
+    {
+      "prefix": "S9",
+      "entity_id": "219",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sao Tome & Principe"
+    },
+    {
+      "prefix": "SA",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SB",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SC",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SD",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SE",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SF",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SG",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SH",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SI",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SJ",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SK",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SL",
+      "entity_id": "284",
+      "priority": 30,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SM",
+      "entity_id": "284",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sweden"
+    },
+    {
+      "prefix": "SN",
+      "entity_id": "269",
+      "priority": 30,
+      "exact": false,
+      "comment": "Poland"
+    },
+    {
+      "prefix": "SO",
+      "entity_id": "269",
+      "priority": 30,
+      "exact": false,
+      "comment": "Poland"
+    },
+    {
+      "prefix": "SP",
+      "entity_id": "269",
+      "priority": 30,
+      "exact": false,
+      "comment": "Poland"
+    },
+    {
+      "prefix": "SQ",
+      "entity_id": "269",
+      "priority": 30,
+      "exact": false,
+      "comment": "Poland"
+    },
+    {
+      "prefix": "SR",
+      "entity_id": "269",
+      "priority": 30,
+      "exact": false,
+      "comment": "Poland"
+    },
+    {
+      "prefix": "ST",
+      "entity_id": "466",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sudan"
+    },
+    {
+      "prefix": "SU",
+      "entity_id": "478",
+      "priority": 10,
+      "exact": false,
+      "comment": "Egypt"
+    },
+    {
+      "prefix": "SV",
+      "entity_id": "236",
+      "priority": 30,
+      "exact": false,
+      "comment": "Greece"
+    },
+    {
+      "prefix": "SV/A",
+      "entity_id": "180",
+      "priority": 50,
+      "exact": false,
+      "comment": "Mount Athos"
+    },
+    {
+      "prefix": "SV5",
+      "entity_id": "045",
+      "priority": 30,
+      "exact": false,
+      "comment": "Dodecanese"
+    },
+    {
+      "prefix": "SV9",
+      "entity_id": "040",
+      "priority": 30,
+      "exact": false,
+      "comment": "Crete"
+    },
+    {
+      "prefix": "SW",
+      "entity_id": "236",
+      "priority": 30,
+      "exact": false,
+      "comment": "Greece"
+    },
+    {
+      "prefix": "SX",
+      "entity_id": "236",
+      "priority": 30,
+      "exact": false,
+      "comment": "Greece"
+    },
+    {
+      "prefix": "SY",
+      "entity_id": "236",
+      "priority": 30,
+      "exact": false,
+      "comment": "Greece"
+    },
+    {
+      "prefix": "SZ",
+      "entity_id": "236",
+      "priority": 30,
+      "exact": false,
+      "comment": "Greece"
+    },
+    {
+      "prefix": "T2",
+      "entity_id": "282",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tuvalu"
+    },
+    {
+      "prefix": "T3",
+      "entity_id": "301",
+      "priority": 30,
+      "exact": false,
+      "comment": "Kiribati"
+    },
+    {
+      "prefix": "T30",
+      "entity_id": "301",
+      "priority": 20,
+      "exact": false,
+      "comment": "W. Kiribati (Gilbert Is. )"
+    },
+    {
+      "prefix": "T31",
+      "entity_id": "031",
+      "priority": 20,
+      "exact": false,
+      "comment": "C. Kiribati (British Phoenix Is.)"
+    },
+    {
+      "prefix": "T32",
+      "entity_id": "048",
+      "priority": 20,
+      "exact": false,
+      "comment": "E. Kiribati (Line Is.)"
+    },
+    {
+      "prefix": "T33",
+      "entity_id": "490",
+      "priority": 20,
+      "exact": false,
+      "comment": "Banaba I. (Ocean I.)"
+    },
+    {
+      "prefix": "T4",
+      "entity_id": "070",
+      "priority": 20,
+      "exact": false,
+      "comment": "Cuba"
+    },
+    {
+      "prefix": "T5",
+      "entity_id": "232",
+      "priority": 10,
+      "exact": false,
+      "comment": "Somalia"
+    },
+    {
+      "prefix": "T6",
+      "entity_id": "003",
+      "priority": 10,
+      "exact": false,
+      "comment": "Afghanistan"
+    },
+    {
+      "prefix": "T7",
+      "entity_id": "278",
+      "priority": 30,
+      "exact": false,
+      "comment": "San Marino"
+    },
+    {
+      "prefix": "T8",
+      "entity_id": "022",
+      "priority": 10,
+      "exact": false,
+      "comment": "Palau"
+    },
+    {
+      "prefix": "TA",
+      "entity_id": "390",
+      "priority": 10,
+      "exact": false,
+      "comment": "Republic of Turkiye"
+    },
+    {
+      "prefix": "TB",
+      "entity_id": "390",
+      "priority": 10,
+      "exact": false,
+      "comment": "Republic of Turkiye"
+    },
+    {
+      "prefix": "TC",
+      "entity_id": "390",
+      "priority": 10,
+      "exact": false,
+      "comment": "Republic of Turkiye"
+    },
+    {
+      "prefix": "TD",
+      "entity_id": "076",
+      "priority": 20,
+      "exact": false,
+      "comment": "Guatemala"
+    },
+    {
+      "prefix": "TE",
+      "entity_id": "308",
+      "priority": 20,
+      "exact": false,
+      "comment": "Costa Rica"
+    },
+    {
+      "prefix": "TF",
+      "entity_id": "242",
+      "priority": 10,
+      "exact": false,
+      "comment": "Iceland"
+    },
+    {
+      "prefix": "TG",
+      "entity_id": "076",
+      "priority": 20,
+      "exact": false,
+      "comment": "Guatemala"
+    },
+    {
+      "prefix": "TI",
+      "entity_id": "308",
+      "priority": 20,
+      "exact": false,
+      "comment": "Costa Rica"
+    },
+    {
+      "prefix": "TI9",
+      "entity_id": "037",
+      "priority": 30,
+      "exact": false,
+      "comment": "Cocos I."
+    },
+    {
+      "prefix": "TJ",
+      "entity_id": "406",
+      "priority": 10,
+      "exact": false,
+      "comment": "Cameroon"
+    },
+    {
+      "prefix": "TL",
+      "entity_id": "408",
+      "priority": 10,
+      "exact": false,
+      "comment": "Central Africa"
+    },
+    {
+      "prefix": "TM",
+      "entity_id": "227",
+      "priority": 30,
+      "exact": false,
+      "comment": "France"
+    },
+    {
+      "prefix": "TN",
+      "entity_id": "412",
+      "priority": 10,
+      "exact": false,
+      "comment": "Republic of the Congo"
+    },
+    {
+      "prefix": "TO",
+      "entity_id": "099",
+      "priority": 30,
+      "exact": false,
+      "comment": "Glorioso Is."
+    },
+    {
+      "prefix": "TO",
+      "entity_id": "124",
+      "priority": 30,
+      "exact": false,
+      "comment": "Juan de Nova, Europa"
+    },
+    {
+      "prefix": "TO",
+      "entity_id": "276",
+      "priority": 30,
+      "exact": false,
+      "comment": "Tromelin I."
+    },
+    {
+      "prefix": "TO",
+      "entity_id": "508",
+      "priority": 30,
+      "exact": false,
+      "comment": "Austral I."
+    },
+    {
+      "prefix": "TO",
+      "entity_id": "516",
+      "priority": 30,
+      "exact": false,
+      "comment": "Saint Barthelemy"
+    },
+    {
+      "prefix": "TO1",
+      "entity_id": "079",
+      "priority": 50,
+      "exact": false,
+      "comment": "Guadeloupe"
+    },
+    {
+      "prefix": "TO2",
+      "entity_id": "084",
+      "priority": 50,
+      "exact": false,
+      "comment": "Martinique"
+    },
+    {
+      "prefix": "TO4",
+      "entity_id": "453",
+      "priority": 50,
+      "exact": false,
+      "comment": "Reunion I."
+    },
+    {
+      "prefix": "TO5",
+      "entity_id": "099",
+      "priority": 50,
+      "exact": false,
+      "comment": "Glorioso Is."
+    },
+    {
+      "prefix": "TO7",
+      "entity_id": "169",
+      "priority": 50,
+      "exact": false,
+      "comment": "Mayotte"
+    },
+    {
+      "prefix": "TR",
+      "entity_id": "420",
+      "priority": 10,
+      "exact": false,
+      "comment": "Gabon"
+    },
+    {
+      "prefix": "TS",
+      "entity_id": "474",
+      "priority": 30,
+      "exact": false,
+      "comment": "Tunisia"
+    },
+    {
+      "prefix": "TT",
+      "entity_id": "410",
+      "priority": 10,
+      "exact": false,
+      "comment": "Chad"
+    },
+    {
+      "prefix": "TU",
+      "entity_id": "428",
+      "priority": 10,
+      "exact": false,
+      "comment": "Cote d'Ivoire"
+    },
+    {
+      "prefix": "TX",
+      "entity_id": "512",
+      "priority": 30,
+      "exact": false,
+      "comment": "Chesterfield Is."
+    },
+    {
+      "prefix": "TX",
+      "entity_id": "036",
+      "priority": 30,
+      "exact": false,
+      "comment": "Clipperton I."
+    },
+    {
+      "prefix": "TX",
+      "entity_id": "509",
+      "priority": 30,
+      "exact": false,
+      "comment": "Marquesas Is."
+    },
+    {
+      "prefix": "TX0C",
+      "entity_id": "036",
+      "priority": 60,
+      "exact": false,
+      "comment": "Clipperton I."
+    },
+    {
+      "prefix": "TX0M",
+      "entity_id": "509",
+      "priority": 60,
+      "exact": false,
+      "comment": "Marquesas Is."
+    },
+    {
+      "prefix": "TY",
+      "entity_id": "416",
+      "priority": 10,
+      "exact": false,
+      "comment": "Benin"
+    },
+    {
+      "prefix": "TZ",
+      "entity_id": "442",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mali"
+    },
+    {
+      "prefix": "UA",
+      "entity_id": "054",
+      "priority": 30,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "UA0",
+      "entity_id": "015",
+      "priority": 20,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UA1",
+      "entity_id": "054",
+      "priority": 40,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "UA2",
+      "entity_id": "126",
+      "priority": 40,
+      "exact": false,
+      "comment": "Kaliningrad"
+    },
+    {
+      "prefix": "UA3",
+      "entity_id": "054",
+      "priority": 40,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "UA4",
+      "entity_id": "054",
+      "priority": 40,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "UA6",
+      "entity_id": "054",
+      "priority": 40,
+      "exact": false,
+      "comment": "European Russia"
+    },
+    {
+      "prefix": "UA8",
+      "entity_id": "015",
+      "priority": 40,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UA9",
+      "entity_id": "015",
+      "priority": 20,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UB0",
+      "entity_id": "015",
+      "priority": 40,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UB8",
+      "entity_id": "015",
+      "priority": 40,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UB9",
+      "entity_id": "015",
+      "priority": 40,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UC0",
+      "entity_id": "015",
+      "priority": 40,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UC8",
+      "entity_id": "015",
+      "priority": 40,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UC9",
+      "entity_id": "015",
+      "priority": 40,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UI",
+      "entity_id": "015",
+      "priority": 10,
+      "exact": false,
+      "comment": "Asiatic Russia"
+    },
+    {
+      "prefix": "UJ",
+      "entity_id": "292",
+      "priority": 10,
+      "exact": false,
+      "comment": "Uzbekistan"
+    },
+    {
+      "prefix": "UK",
+      "entity_id": "292",
+      "priority": 10,
+      "exact": false,
+      "comment": "Uzbekistan"
+    },
+    {
+      "prefix": "UL",
+      "entity_id": "292",
+      "priority": 10,
+      "exact": false,
+      "comment": "Uzbekistan"
+    },
+    {
+      "prefix": "UM",
+      "entity_id": "292",
+      "priority": 10,
+      "exact": false,
+      "comment": "Uzbekistan"
+    },
+    {
+      "prefix": "UN",
+      "entity_id": "130",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kazakhstan"
+    },
+    {
+      "prefix": "UO",
+      "entity_id": "130",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kazakhstan"
+    },
+    {
+      "prefix": "UP",
+      "entity_id": "130",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kazakhstan"
+    },
+    {
+      "prefix": "UQ",
+      "entity_id": "130",
+      "priority": 10,
+      "exact": false,
+      "comment": "Kazakhstan"
+    },
+    {
+      "prefix": "UR",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "US",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "UT",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "UU",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "UV",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "UW",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "UX",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "UY",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "UZ",
+      "entity_id": "288",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ukraine"
+    },
+    {
+      "prefix": "V2",
+      "entity_id": "094",
+      "priority": 20,
+      "exact": false,
+      "comment": "Antigua & Barbuda"
+    },
+    {
+      "prefix": "V3",
+      "entity_id": "066",
+      "priority": 20,
+      "exact": false,
+      "comment": "Belize"
+    },
+    {
+      "prefix": "V4",
+      "entity_id": "249",
+      "priority": 20,
+      "exact": false,
+      "comment": "St. Kitts & Nevis"
+    },
+    {
+      "prefix": "V5",
+      "entity_id": "464",
+      "priority": 10,
+      "exact": false,
+      "comment": "Namibia"
+    },
+    {
+      "prefix": "V6",
+      "entity_id": "173",
+      "priority": 10,
+      "exact": false,
+      "comment": "Micronesia"
+    },
+    {
+      "prefix": "V7",
+      "entity_id": "168",
+      "priority": 10,
+      "exact": false,
+      "comment": "Marshall Is."
+    },
+    {
+      "prefix": "V8",
+      "entity_id": "345",
+      "priority": 10,
+      "exact": false,
+      "comment": "Brunei Darussalam"
+    },
+    {
+      "prefix": "VA",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VB",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VC",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VD",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VE",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VF",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VG",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VK",
+      "entity_id": "150",
+      "priority": 30,
+      "exact": false,
+      "comment": "Australia"
+    },
+    {
+      "prefix": "VK0H",
+      "entity_id": "111",
+      "priority": 30,
+      "exact": false,
+      "comment": "Heard I."
+    },
+    {
+      "prefix": "VK0M",
+      "entity_id": "153",
+      "priority": 30,
+      "exact": false,
+      "comment": "Macquarie I."
+    },
+    {
+      "prefix": "VK9",
+      "entity_id": "038",
+      "priority": 40,
+      "exact": false,
+      "comment": "Cocos (Keeling) Is."
+    },
+    {
+      "prefix": "VK9",
+      "entity_id": "171",
+      "priority": 40,
+      "exact": false,
+      "comment": "Mellish Reef"
+    },
+    {
+      "prefix": "VK9C",
+      "entity_id": "038",
+      "priority": 60,
+      "exact": false,
+      "comment": "Cocos (Keeling) Is."
+    },
+    {
+      "prefix": "VK9C",
+      "entity_id": "037",
+      "priority": 30,
+      "exact": false,
+      "comment": "Cocos I."
+    },
+    {
+      "prefix": "VK9H",
+      "entity_id": "111",
+      "priority": 60,
+      "exact": false,
+      "comment": "Heard I."
+    },
+    {
+      "prefix": "VK9L",
+      "entity_id": "147",
+      "priority": 30,
+      "exact": false,
+      "comment": "Lord Howe I."
+    },
+    {
+      "prefix": "VK9M",
+      "entity_id": "171",
+      "priority": 60,
+      "exact": false,
+      "comment": "Mellish Reef"
+    },
+    {
+      "prefix": "VK9N",
+      "entity_id": "189",
+      "priority": 30,
+      "exact": false,
+      "comment": "Norfolk I."
+    },
+    {
+      "prefix": "VK9W",
+      "entity_id": "303",
+      "priority": 30,
+      "exact": false,
+      "comment": "Willis I."
+    },
+    {
+      "prefix": "VK9X",
+      "entity_id": "035",
+      "priority": 30,
+      "exact": false,
+      "comment": "Christmas I."
+    },
+    {
+      "prefix": "VO",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "VP0",
+      "entity_id": "235",
+      "priority": 40,
+      "exact": false,
+      "comment": "South Georgia I."
+    },
+    {
+      "prefix": "VP2E",
+      "entity_id": "012",
+      "priority": 40,
+      "exact": false,
+      "comment": "Anguilla"
+    },
+    {
+      "prefix": "VP2M",
+      "entity_id": "096",
+      "priority": 40,
+      "exact": false,
+      "comment": "Montserrat"
+    },
+    {
+      "prefix": "VP2V",
+      "entity_id": "065",
+      "priority": 40,
+      "exact": false,
+      "comment": "British Virgin Is."
+    },
+    {
+      "prefix": "VP5",
+      "entity_id": "089",
+      "priority": 30,
+      "exact": false,
+      "comment": "Turks & Caicos Is."
+    },
+    {
+      "prefix": "VP6",
+      "entity_id": "172",
+      "priority": 10,
+      "exact": false,
+      "comment": "Pitcairn I."
+    },
+    {
+      "prefix": "VP6/D",
+      "entity_id": "513",
+      "priority": 30,
+      "exact": false,
+      "comment": "Ducie I."
+    },
+    {
+      "prefix": "VP6D",
+      "entity_id": "513",
+      "priority": 60,
+      "exact": false,
+      "comment": "Ducie I."
+    },
+    {
+      "prefix": "VP6P",
+      "entity_id": "172",
+      "priority": 60,
+      "exact": false,
+      "comment": "Pitcairn I."
+    },
+    {
+      "prefix": "VP8",
+      "entity_id": "141",
+      "priority": 30,
+      "exact": false,
+      "comment": "Falkland Is."
+    },
+    {
+      "prefix": "VP8/G",
+      "entity_id": "075",
+      "priority": 40,
+      "exact": false,
+      "comment": "Georgia"
+    },
+    {
+      "prefix": "VP8/H",
+      "entity_id": "241",
+      "priority": 40,
+      "exact": false,
+      "comment": "South Shetland Is."
+    },
+    {
+      "prefix": "VP8/O",
+      "entity_id": "238",
+      "priority": 40,
+      "exact": false,
+      "comment": "South Orkney Is."
+    },
+    {
+      "prefix": "VP8/S",
+      "entity_id": "240",
+      "priority": 40,
+      "exact": false,
+      "comment": "South Sandwich Is."
+    },
+    {
+      "prefix": "VP8F",
+      "entity_id": "141",
+      "priority": 60,
+      "exact": false,
+      "comment": "Falkland Is."
+    },
+    {
+      "prefix": "VP8G",
+      "entity_id": "235",
+      "priority": 60,
+      "exact": false,
+      "comment": "South Georgia I."
+    },
+    {
+      "prefix": "VP8H",
+      "entity_id": "240",
+      "priority": 60,
+      "exact": false,
+      "comment": "South Sandwich Is."
+    },
+    {
+      "prefix": "VP8O",
+      "entity_id": "238",
+      "priority": 60,
+      "exact": false,
+      "comment": "South Orkney Is."
+    },
+    {
+      "prefix": "VP8S",
+      "entity_id": "241",
+      "priority": 60,
+      "exact": false,
+      "comment": "South Shetland Is."
+    },
+    {
+      "prefix": "VP9",
+      "entity_id": "064",
+      "priority": 30,
+      "exact": false,
+      "comment": "Bermuda"
+    },
+    {
+      "prefix": "VQ9",
+      "entity_id": "033",
+      "priority": 10,
+      "exact": false,
+      "comment": "Chagos Is."
+    },
+    {
+      "prefix": "VR",
+      "entity_id": "375",
+      "priority": 10,
+      "exact": false,
+      "comment": "Philippines"
+    },
+    {
+      "prefix": "VR2",
+      "entity_id": "321",
+      "priority": 20,
+      "exact": false,
+      "comment": "Hong Kong"
+    },
+    {
+      "prefix": "VU",
+      "entity_id": "324",
+      "priority": 30,
+      "exact": false,
+      "comment": "India"
+    },
+    {
+      "prefix": "VU4",
+      "entity_id": "011",
+      "priority": 30,
+      "exact": false,
+      "comment": "Andaman & Nicobar Is."
+    },
+    {
+      "prefix": "VU7",
+      "entity_id": "142",
+      "priority": 30,
+      "exact": false,
+      "comment": "Lakshadweep Is."
+    },
+    {
+      "prefix": "VY",
+      "entity_id": "001",
+      "priority": 30,
+      "exact": false,
+      "comment": "Canada"
+    },
+    {
+      "prefix": "W",
+      "entity_id": "291",
+      "priority": 20,
+      "exact": false,
+      "comment": "United States of America"
+    },
+    {
+      "prefix": "WH6",
+      "entity_id": "110",
+      "priority": 30,
+      "exact": false,
+      "comment": "Hawaii"
+    },
+    {
+      "prefix": "WL",
+      "entity_id": "006",
+      "priority": 30,
+      "exact": false,
+      "comment": "Alaska"
+    },
+    {
+      "prefix": "WL7",
+      "entity_id": "006",
+      "priority": 40,
+      "exact": false,
+      "comment": "Alaska"
+    },
+    {
+      "prefix": "WP2",
+      "entity_id": "285",
+      "priority": 40,
+      "exact": false,
+      "comment": "US Virgin Is."
+    },
+    {
+      "prefix": "WP3",
+      "entity_id": "202",
+      "priority": 30,
+      "exact": false,
+      "comment": "Puerto Rico"
+    },
+    {
+      "prefix": "WP4",
+      "entity_id": "202",
+      "priority": 30,
+      "exact": false,
+      "comment": "Puerto Rico"
+    },
+    {
+      "prefix": "XA",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XA4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XB",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XB4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XC",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XC4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XD",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XD4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XE",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XE4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XF",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XF4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XG",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XG4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XH",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XH4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XI",
+      "entity_id": "050",
+      "priority": 30,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XI4",
+      "entity_id": "204",
+      "priority": 40,
+      "exact": false,
+      "comment": "Revillagigedo"
+    },
+    {
+      "prefix": "XO",
+      "entity_id": "050",
+      "priority": 10,
+      "exact": false,
+      "comment": "Mexico"
+    },
+    {
+      "prefix": "XQ",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "XR",
+      "entity_id": "112",
+      "priority": 20,
+      "exact": false,
+      "comment": "Chile"
+    },
+    {
+      "prefix": "XT",
+      "entity_id": "480",
+      "priority": 10,
+      "exact": false,
+      "comment": "Burkina Faso"
+    },
+    {
+      "prefix": "XU",
+      "entity_id": "312",
+      "priority": 10,
+      "exact": false,
+      "comment": "Cambodia"
+    },
+    {
+      "prefix": "XV",
+      "entity_id": "293",
+      "priority": 10,
+      "exact": false,
+      "comment": "Viet Nam"
+    },
+    {
+      "prefix": "XW",
+      "entity_id": "143",
+      "priority": 10,
+      "exact": false,
+      "comment": "Lao People's Democratic Rep"
+    },
+    {
+      "prefix": "XX9",
+      "entity_id": "152",
+      "priority": 10,
+      "exact": false,
+      "comment": "Macao"
+    },
+    {
+      "prefix": "XY",
+      "entity_id": "309",
+      "priority": 10,
+      "exact": false,
+      "comment": "Myanmar"
+    },
+    {
+      "prefix": "XZ",
+      "entity_id": "309",
+      "priority": 10,
+      "exact": false,
+      "comment": "Myanmar"
+    },
+    {
+      "prefix": "YA",
+      "entity_id": "003",
+      "priority": 10,
+      "exact": false,
+      "comment": "Afghanistan"
+    },
+    {
+      "prefix": "YB",
+      "entity_id": "327",
+      "priority": 10,
+      "exact": false,
+      "comment": "Indonesia"
+    },
+    {
+      "prefix": "YC",
+      "entity_id": "327",
+      "priority": 10,
+      "exact": false,
+      "comment": "Indonesia"
+    },
+    {
+      "prefix": "YD",
+      "entity_id": "327",
+      "priority": 10,
+      "exact": false,
+      "comment": "Indonesia"
+    },
+    {
+      "prefix": "YE",
+      "entity_id": "327",
+      "priority": 10,
+      "exact": false,
+      "comment": "Indonesia"
+    },
+    {
+      "prefix": "YF",
+      "entity_id": "327",
+      "priority": 10,
+      "exact": false,
+      "comment": "Indonesia"
+    },
+    {
+      "prefix": "YG",
+      "entity_id": "327",
+      "priority": 10,
+      "exact": false,
+      "comment": "Indonesia"
+    },
+    {
+      "prefix": "YH",
+      "entity_id": "327",
+      "priority": 10,
+      "exact": false,
+      "comment": "Indonesia"
+    },
+    {
+      "prefix": "YI",
+      "entity_id": "333",
+      "priority": 10,
+      "exact": false,
+      "comment": "Iraq"
+    },
+    {
+      "prefix": "YJ",
+      "entity_id": "158",
+      "priority": 10,
+      "exact": false,
+      "comment": "Vanuatu"
+    },
+    {
+      "prefix": "YK",
+      "entity_id": "384",
+      "priority": 10,
+      "exact": false,
+      "comment": "Syrian Arab Republic"
+    },
+    {
+      "prefix": "YL",
+      "entity_id": "145",
+      "priority": 10,
+      "exact": false,
+      "comment": "Latvia"
+    },
+    {
+      "prefix": "YN",
+      "entity_id": "086",
+      "priority": 20,
+      "exact": false,
+      "comment": "Nicaragua"
+    },
+    {
+      "prefix": "YO",
+      "entity_id": "275",
+      "priority": 30,
+      "exact": false,
+      "comment": "Romania"
+    },
+    {
+      "prefix": "YP",
+      "entity_id": "275",
+      "priority": 30,
+      "exact": false,
+      "comment": "Romania"
+    },
+    {
+      "prefix": "YQ",
+      "entity_id": "275",
+      "priority": 30,
+      "exact": false,
+      "comment": "Romania"
+    },
+    {
+      "prefix": "YR",
+      "entity_id": "212",
+      "priority": 10,
+      "exact": false,
+      "comment": "Bulgaria"
+    },
+    {
+      "prefix": "YS",
+      "entity_id": "074",
+      "priority": 20,
+      "exact": false,
+      "comment": "El Salvador"
+    },
+    {
+      "prefix": "YT",
+      "entity_id": "296",
+      "priority": 30,
+      "exact": false,
+      "comment": "Serbia"
+    },
+    {
+      "prefix": "YU",
+      "entity_id": "296",
+      "priority": 30,
+      "exact": false,
+      "comment": "Serbia"
+    },
+    {
+      "prefix": "YV",
+      "entity_id": "148",
+      "priority": 20,
+      "exact": false,
+      "comment": "Venezuela"
+    },
+    {
+      "prefix": "YV0",
+      "entity_id": "017",
+      "priority": 30,
+      "exact": false,
+      "comment": "Aves I."
+    },
+    {
+      "prefix": "YW",
+      "entity_id": "148",
+      "priority": 20,
+      "exact": false,
+      "comment": "Venezuela"
+    },
+    {
+      "prefix": "YX",
+      "entity_id": "148",
+      "priority": 20,
+      "exact": false,
+      "comment": "Venezuela"
+    },
+    {
+      "prefix": "YY",
+      "entity_id": "148",
+      "priority": 20,
+      "exact": false,
+      "comment": "Venezuela"
+    },
+    {
+      "prefix": "Z2",
+      "entity_id": "452",
+      "priority": 10,
+      "exact": false,
+      "comment": "Zimbabwe"
+    },
+    {
+      "prefix": "Z3",
+      "entity_id": "502",
+      "priority": 30,
+      "exact": false,
+      "comment": "North Macedonia (Republic of)"
+    },
+    {
+      "prefix": "Z6",
+      "entity_id": "522",
+      "priority": 30,
+      "exact": false,
+      "comment": "Republic of Kosovo"
+    },
+    {
+      "prefix": "Z8",
+      "entity_id": "521",
+      "priority": 30,
+      "exact": false,
+      "comment": "South Sudan (Republic of)"
+    },
+    {
+      "prefix": "Z8",
+      "entity_id": "466",
+      "priority": 10,
+      "exact": false,
+      "comment": "Sudan"
+    },
+    {
+      "prefix": "ZA",
+      "entity_id": "007",
+      "priority": 30,
+      "exact": false,
+      "comment": "Albania"
+    },
+    {
+      "prefix": "ZB2",
+      "entity_id": "233",
+      "priority": 40,
+      "exact": false,
+      "comment": "Gibraltar"
+    },
+    {
+      "prefix": "ZC4",
+      "entity_id": "283",
+      "priority": 40,
+      "exact": false,
+      "comment": "UK Sovereign Base Areas on Cyprus"
+    },
+    {
+      "prefix": "ZD7",
+      "entity_id": "250",
+      "priority": 10,
+      "exact": false,
+      "comment": "St. Helena"
+    },
+    {
+      "prefix": "ZD8",
+      "entity_id": "205",
+      "priority": 10,
+      "exact": false,
+      "comment": "Ascension I."
+    },
+    {
+      "prefix": "ZD9",
+      "entity_id": "274",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tristan da Cunha & Gough I."
+    },
+    {
+      "prefix": "ZF",
+      "entity_id": "069",
+      "priority": 30,
+      "exact": false,
+      "comment": "Cayman Is."
+    },
+    {
+      "prefix": "ZK",
+      "entity_id": "170",
+      "priority": 30,
+      "exact": false,
+      "comment": "New Zealand"
+    },
+    {
+      "prefix": "ZK3",
+      "entity_id": "270",
+      "priority": 10,
+      "exact": false,
+      "comment": "Tokelau Is."
+    },
+    {
+      "prefix": "ZL",
+      "entity_id": "170",
+      "priority": 30,
+      "exact": false,
+      "comment": "New Zealand"
+    },
+    {
+      "prefix": "ZL7",
+      "entity_id": "034",
+      "priority": 30,
+      "exact": false,
+      "comment": "Chatham Is."
+    },
+    {
+      "prefix": "ZL8",
+      "entity_id": "133",
+      "priority": 30,
+      "exact": false,
+      "comment": "Kermadec Is."
+    },
+    {
+      "prefix": "ZL9",
+      "entity_id": "016",
+      "priority": 30,
+      "exact": false,
+      "comment": "New Zealand Subantarctic Islands"
+    },
+    {
+      "prefix": "ZM",
+      "entity_id": "170",
+      "priority": 30,
+      "exact": false,
+      "comment": "New Zealand"
+    },
+    {
+      "prefix": "ZP",
+      "entity_id": "132",
+      "priority": 20,
+      "exact": false,
+      "comment": "Paraguay"
+    },
+    {
+      "prefix": "ZR",
+      "entity_id": "462",
+      "priority": 30,
+      "exact": false,
+      "comment": "South Africa"
+    },
+    {
+      "prefix": "ZS",
+      "entity_id": "462",
+      "priority": 30,
+      "exact": false,
+      "comment": "South Africa"
+    },
+    {
+      "prefix": "ZS8",
+      "entity_id": "201",
+      "priority": 30,
+      "exact": false,
+      "comment": "Prince Edward & Marion Is."
+    },
+    {
+      "prefix": "ZT",
+      "entity_id": "462",
+      "priority": 30,
+      "exact": false,
+      "comment": "South Africa"
+    },
+    {
+      "prefix": "ZU",
+      "entity_id": "462",
+      "priority": 30,
+      "exact": false,
+      "comment": "South Africa"
+    },
+    {
+      "prefix": "ZV",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "ZW",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "ZX",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "ZY",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    },
+    {
+      "prefix": "ZZ",
+      "entity_id": "108",
+      "priority": 30,
+      "exact": false,
+      "comment": "Brazil"
+    }
+  ]
+}

@@ -101,11 +101,14 @@ goqso/
 │       ├── adif/             # ADIF parser/writer + mode registry
 │       ├── awards/           # Award progress calculations
 │       ├── db/               # Database init, migrations, schema
+│       ├── fcc/              # FCC ULS database integration (callsign→license lookup)
 │       ├── lotw/             # LoTW HTTP client
+│       ├── qso_tracker/      # QSO state machine for FT8 exchange tracking
 │       ├── reference/        # DXCC entities, prefixes, US states
 │       ├── udp/              # WSJT-X UDP listener
 │       ├── commands.rs       # All Tauri commands
 │       └── main.rs           # App entry point
+├── docs/                     # Documentation (design docs, performance guide)
 └── .github/
     └── copilot-instructions.md  # Dev environment instructions
 ```
@@ -296,7 +299,24 @@ Based on:
 1. **Official ARRL DXCC List** → Downloaded from https://www.arrl.org/files/file/DXCC/Current_Deleted.txt
 2. **`src-tauri/resources/dxcc_entities.json`** → Parsed from ARRL list, our SINGLE SOURCE OF TRUTH (402 entities as of Jan 2026)
 3. **`src-tauri/src/reference/dxcc.rs`** → Generated Rust code from JSON
-4. **`src-tauri/src/reference/prefixes.rs`** → Prefix-to-entity mappings (must match JSON entity IDs!)
+4. **`src-tauri/src/reference/prefixes.rs`** → Prefix-to-entity mappings (MANUALLY CURATED - see below)
+5. **`src-tauri/src/reference/states.rs`** → Generated from us_states.json and canadian_provinces.json
+
+### Generating Reference Data
+
+Run the generation script after updating JSON source files:
+
+```powershell
+python scripts/generate_reference.py
+cargo test reference::
+```
+
+**What's generated:**
+- `dxcc.rs` - Generated from `dxcc_entities.json`
+- `states.rs` - Generated from `us_states.json` and `canadian_provinces.json`
+
+**What's NOT generated:**
+- `prefixes.rs` - **Manually curated**. The DXCC JSON doesn't have enough prefix detail to auto-generate. Multiple entities can share the same prefix (e.g., HK0 for both Malpelo and San Andres), requiring suffix disambiguation (HK0M for Malpelo).
 
 **When making ANY changes to DXCC/prefix data:**
 1. ALWAYS cross-reference `dxcc_entities.json` for correct entity_id values
@@ -327,7 +347,7 @@ Location: `src-tauri/src/adif/parser.rs`
 
 ```powershell
 # Start dev server (use external window per copilot-instructions.md)
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd c:\dev\qso-logger\goqso; npm run tauri dev"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd c:\dev\goqso; npm run tauri dev"
 
 # Build for production
 npm run tauri build

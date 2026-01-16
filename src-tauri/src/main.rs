@@ -85,51 +85,53 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             // UDP Listener
-            commands::start_udp_listener,
-            commands::stop_udp_listener,
-            commands::call_station,
-            commands::get_udp_status,
+            commands::udp::start_udp_listener,
+            commands::udp::stop_udp_listener,
+            commands::udp::call_station,
+            commands::udp::get_udp_status,
             // QSO Operations
-            commands::get_qsos,
-            commands::add_qso,
-            commands::update_qso,
-            commands::delete_qso,
-            commands::remove_duplicate_qsos,
-            commands::clear_all_qsos,
-            commands::add_test_qsos,
+            commands::qso::get_qsos,
+            commands::qso::add_qso,
+            commands::qso::update_qso,
+            commands::qso::delete_qso,
+            commands::qso::remove_duplicate_qsos,
+            commands::qso::clear_all_qsos,
+            commands::qso::add_test_qsos,
             // ADIF Import/Export
-            commands::import_adif,
-            commands::export_adif,
+            commands::adif::import_adif,
+            commands::adif::export_adif,
             // Callsign History & Status
-            commands::get_callsign_history,
-            commands::check_qso_status,
+            commands::qso::get_callsign_history,
+            commands::qso::check_qso_status,
+            // QSO Data Repair
+            commands::qso::repair_qso_data,
             // LoTW Integration
-            commands::import_lotw_confirmations,
-            commands::get_sync_status,
-            commands::sync_lotw_download,
-            commands::detect_tqsl_path,
-            commands::upload_to_lotw,
+            commands::adif::import_lotw_confirmations,
+            commands::lotw::get_sync_status,
+            commands::lotw::sync_lotw_download,
+            commands::lotw::detect_tqsl_path,
+            commands::lotw::upload_to_lotw,
             // Awards Progress
-            commands::get_dxcc_progress,
-            commands::get_was_progress,
+            commands::awards::get_dxcc_progress,
+            commands::awards::get_was_progress,
             // CTY Lookup
-            commands::lookup_callsign,
+            commands::settings::lookup_callsign,
             // Settings
-            commands::get_setting,
-            commands::set_setting,
+            commands::settings::get_setting,
+            commands::settings::set_setting,
             // Database
-            commands::is_db_ready,
-            commands::get_db_stats,
+            commands::settings::is_db_ready,
+            commands::settings::get_db_stats,
             // Band Activity
-            commands::get_recent_activity,
-            commands::prune_band_activity,
+            commands::band_activity::get_recent_activity,
+            commands::band_activity::prune_band_activity,
             // FCC Database
-            commands::get_fcc_sync_status,
-            commands::sync_fcc_database,
-            commands::lookup_fcc_callsign,
-            commands::lookup_fcc_callsigns,
+            commands::fcc::get_fcc_sync_status,
+            commands::fcc::sync_fcc_database,
+            commands::fcc::lookup_fcc_callsign,
+            commands::fcc::lookup_fcc_callsigns,
             // Diagnostics
-            commands::get_qso_diagnostics,
+            commands::diagnostics::get_qso_diagnostics,
         ])
         .run(tauri::generate_context!())
         .expect("error while running GoQSO");

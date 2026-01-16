@@ -1,3 +1,10 @@
+//! SQL migrations for database schema
+//!
+//! NOTE: get_migrations() helper exists for future dynamic migration system.
+//! Currently using hardcoded migration constants in init.rs.
+//!
+#![allow(dead_code)]
+
 /// SQL migration for initial database schema
 /// 
 /// Design principles:

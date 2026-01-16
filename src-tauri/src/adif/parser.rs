@@ -1,5 +1,10 @@
 // ADIF Parser
 // Handles both standard ADIF and LoTW confirmation files
+//
+// NOTE: Some accessor methods (qsl_rcvd) are defined for completeness
+// but not currently used. Keeping for future QSL verification features.
+//
+#![allow(dead_code)]
 
 use std::collections::HashMap;
 
@@ -99,12 +104,7 @@ pub fn parse_adif(content: &str) -> Result<AdifFile, String> {
     
     let body = &content[body_start..];
     
-    // Split by <EOR> to get individual records
-    let parts: Vec<&str> = body.split(|c: char| {
-        false // Placeholder, we'll use a different approach
-    }).collect();
-    
-    // Actually split by <EOR> case-insensitively
+    // Split by <EOR> case-insensitively
     let mut current_pos = 0;
     let body_upper = body.to_uppercase();
     

@@ -1,6 +1,11 @@
 // Amateur Radio Band Definitions
 // Reference: ARRL Band Plan and ADIF 3.1.4 Specification
 //
+// NOTE: Band lookup functions are for future features like auto-detecting
+// band from frequency and generating band-specific FT8 frequencies.
+//
+#![allow(dead_code)]
+
 // This module provides frequency-to-band conversion and band metadata.
 
 /// HF and VHF/UHF amateur radio bands

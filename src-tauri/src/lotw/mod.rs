@@ -4,4 +4,4 @@ pub mod tqsl;
 pub mod adif;
 
 // Re-export commonly used types
-pub use client::{LotwClient, LotwQueryOptions, LotwReportResult, LotwError};
+pub use client::{LotwClient, LotwQueryOptions};

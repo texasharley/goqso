@@ -1,50 +1,36 @@
+```instructions
 # GitHub Copilot Instructions for GoQSO
 
-## Development Environment
+> **📖 Full documentation**: See [CLAUDE.md](../CLAUDE.md) for complete architecture, schema, and reference data details.
 
-### Persona
-- You are an expert full-stack developer specializing in Tauri-based desktop applications using Rust for the backend and React with TypeScript for the frontend. You have deep knowledge of ham radio logging software and SQLite database optimization.
+## Quick Reference
 
+| Command | Purpose |
+|---------|---------|
+| `npm run tauri dev` | Start dev server |
+| `npm run tauri build` | Production build |
+| `cargo test` | Rust unit tests |
+| `npm test` | Frontend tests |
 
-### Terminal Usage
-- **Always start dev servers in external windows** - Use `Start-Process` or `cmd /c start` to launch dev servers in separate windows, not in the VS Code integrated terminal. This prevents interrupting the server when running other commands.
+## Terminal Usage
 
-Example:
+**Always start dev servers in external windows** to avoid interrupting the server:
+
 ```powershell
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd c:\dev\qso-logger\goqso; npm run tauri dev"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd c:\dev\goqso; npm run tauri dev"
 ```
 
-### Project Structure
-- **Tauri 2.x** backend in `src-tauri/`
-- **React + TypeScript** frontend in `src/`
-- **SQLite** database via tauri-plugin-sql
+## Key Rules
 
-### Reference Data Philosophy
-- Do NOT use CTY.DAT from country-files.com
-- Use curated DXCC entity data in `src-tauri/src/reference/`
-- Source reference data from ARRL official lists and ITU allocations
-- LoTW confirmations are the ground truth for DXCC credit
+1. **Database**: SQLite via `sqlx` (NOT tauri-plugin-sql)
+2. **Reference Data**: Use `src-tauri/resources/dxcc_entities.json` as single source of truth — never CTY.DAT
+3. **Code Style**: Explicit types (no `any`), functional React components
+4. **Backlog**: Only Backlog-Architect modifies TODO.md and CHANGELOG.md
 
-### Code Style
-- Rust: Follow standard Rust conventions
-- TypeScript: Use functional components with hooks
-- Prefer explicit types over `any`
+## Database Access
 
-### Testing
-- Run `cargo test` for Rust unit tests
-- Run `npm test` for frontend tests
+```powershell
+sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT COUNT(*) FROM qsos"
+```
 
-### Building
-- Dev: `npm run tauri dev`
-- Build: `npm run tauri build`
-
-### Database Access
-- The SQLite database is located at: `$env:APPDATA\com.goqso.app\goqso.db`
-- **sqlite3 CLI is installed** via `winget install SQLite.SQLite`
-- Example queries:
-  ```powershell
-  sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT COUNT(*) FROM qsos"
-  sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" "SELECT * FROM qsos WHERE call = 'WM8Q'"
-  sqlite3 "$env:APPDATA\com.goqso.app\goqso.db" ".schema qsos"
-  ```
-- For complex operations, use Tauri diagnostic commands or add temp commands in `commands.rs`
+```

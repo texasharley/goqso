@@ -2,6 +2,11 @@
 // QSO Tracker - State Machine for Auto-Logging FT8/FT4 QSOs
 // =============================================================================
 //
+// NOTE: This module is intentionally not used yet - planned for future auto-logging
+// improvements where we track QSO state machine to log only complete exchanges.
+//
+#![allow(dead_code)]
+
 // This module tracks the progress of QSOs in progress and determines when a 
 // valid, complete QSO has occurred. A QSO is only logged when ALL required
 // elements have been exchanged.
@@ -55,14 +60,12 @@
 //
 // The key insight: We track both TX and RX messages for our QSO.
 
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 mod state;
 mod tracker;
 
-pub use state::{QsoState, QsoPhase, QsoRole};
-pub use tracker::QsoTracker;
+pub use state::{QsoPhase, QsoRole};
 
 /// A message we observed (either transmitted or received)
 #[derive(Debug, Clone)]

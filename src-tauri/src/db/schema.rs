@@ -1,5 +1,10 @@
 // Database schema definitions
 // These are used as reference - actual tables created via SQL migrations
+//
+// NOTE: Schema structs defined here for documentation/reference purposes.
+// Actual DB operations use dynamic queries. These may be used in future for ORM-like access.
+//
+#![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
 

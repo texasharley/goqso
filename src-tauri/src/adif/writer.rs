@@ -1,5 +1,10 @@
 // ADIF Writer
 // Exports QSOs to ADIF format
+//
+// NOTE: EXPORT_FIELDS constant is for future structured export. Currently using
+// dynamic field iteration from HashMap.
+//
+#![allow(dead_code)]
 
 use std::collections::HashMap;
 

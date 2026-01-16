@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
-use super::wsjtx::{parse_message, parse_qso_logged, parse_logged_adif, parse_decode, WsjtxMessageType, QsoLoggedMessage, DecodeMessage, read_qt_string, ReplyMessage};
+use super::wsjtx::{parse_message, parse_qso_logged, parse_logged_adif, parse_decode, WsjtxMessageType, QsoLoggedMessage, DecodeMessage, read_qt_string, ReplyMessage, is_valid_grid, normalize_rst};
 
 /// Parse an ADIF record string into a QsoLoggedMessage
 /// ADIF format: <TAG:LENGTH>VALUE or <TAG:LENGTH:TYPE>VALUE
@@ -73,8 +73,16 @@ fn parse_adif_to_qso(adif: &str) -> Option<QsoLoggedMessage> {
     
     // Extract required fields
     let call = fields.get("CALL")?.clone();
-    let grid = fields.get("GRIDSQUARE").cloned().unwrap_or_default();
+    let raw_grid = fields.get("GRIDSQUARE").cloned().unwrap_or_default();
     let mode = fields.get("MODE").cloned().unwrap_or_default();
+    
+    // Validate grid - WSJT-X sometimes puts "RR73", "RRR", "73" in grid field
+    let grid = if is_valid_grid(&raw_grid) { 
+        raw_grid 
+    } else { 
+        log::warn!("Invalid grid '{}' for {} in LoggedADIF, clearing it", raw_grid, call);
+        String::new() 
+    };
     
     // Frequency in Hz - ADIF FREQ is in MHz
     let freq_hz = fields.get("FREQ")
@@ -82,8 +90,9 @@ fn parse_adif_to_qso(adif: &str) -> Option<QsoLoggedMessage> {
         .map(|f| (f * 1_000_000.0) as u64)
         .unwrap_or(0);
     
-    let report_sent = fields.get("RST_SENT").cloned().unwrap_or_default();
-    let report_rcvd = fields.get("RST_RCVD").cloned().unwrap_or_default();
+    // Normalize RST values for consistent storage
+    let report_sent = normalize_rst(&fields.get("RST_SENT").cloned().unwrap_or_default());
+    let report_rcvd = normalize_rst(&fields.get("RST_RCVD").cloned().unwrap_or_default());
     let my_call = fields.get("STATION_CALLSIGN").or(fields.get("OPERATOR")).cloned().unwrap_or_default();
     let my_grid = fields.get("MY_GRIDSQUARE").cloned().unwrap_or_default();
     
@@ -166,7 +175,10 @@ impl Default for UdpListenerState {
 }
 
 /// Message types sent from the listener to the main thread
+/// NOTE: Some variant fields (max_schema, revision, tx_mode, decoding) are parsed
+/// from the WSJT-X protocol for completeness but not currently used in the UI.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum UdpMessage {
     QsoLogged(QsoLoggedMessage),
     Decode(DecodeMessage),
@@ -229,11 +241,13 @@ pub fn start_listener(
                                 }
                             }
                             WsjtxMessageType::QsoLogged => {
-                                log::info!("Received QsoLogged message from WSJT-X ({} bytes)", len);
+                                log::warn!("[QSO-SOURCE] QsoLogged (type 5) received from WSJT-X ({} bytes)", len);
                                 log::debug!("QsoLogged raw bytes: {:02x?}", &buf[..len.min(200)]);
-                                if let Some(qso) = parse_qso_logged(&buf[..len]) {
-                                    log::info!("QSO Logged: {} on {} @ {} Hz", 
-                                        qso.call, qso.mode, qso.freq_hz);
+                                if let Some(mut qso) = parse_qso_logged(&buf[..len]) {
+                                    log::warn!("[QSO-SOURCE] Type5: call={} mode={} freq={} datetime_on={} grid={}", 
+                                        qso.call, qso.mode, qso.freq_hz, qso.datetime_on, qso.grid);
+                                    // Tag source for debugging
+                                    qso.id = "TYPE5".to_string();
                                     let _ = sender.send(UdpMessage::QsoLogged(qso));
                                 } else {
                                     log::error!("Failed to parse QsoLogged message");
@@ -272,12 +286,15 @@ pub fn start_listener(
                                 }
                             }
                             WsjtxMessageType::LoggedADIF => {
-                                log::info!("Received LoggedADIF message from WSJT-X ({} bytes)", len);
+                                log::warn!("[QSO-SOURCE] LoggedADIF (type 12) received from WSJT-X ({} bytes)", len);
                                 if let Some(adif_msg) = parse_logged_adif(&buf[..len]) {
+                                    log::warn!("[QSO-SOURCE] Type12 ADIF: {}", adif_msg.adif);
                                     // Convert ADIF string to QsoLoggedMessage
-                                    if let Some(qso) = parse_adif_to_qso(&adif_msg.adif) {
-                                        log::info!("LoggedADIF QSO: {} on {} @ {} Hz", 
-                                            qso.call, qso.mode, qso.freq_hz);
+                                    if let Some(mut qso) = parse_adif_to_qso(&adif_msg.adif) {
+                                        log::warn!("[QSO-SOURCE] Type12: call={} mode={} freq={} datetime_on={} grid={}", 
+                                            qso.call, qso.mode, qso.freq_hz, qso.datetime_on, qso.grid);
+                                        // Tag source for debugging
+                                        qso.id = "TYPE12".to_string();
                                         let _ = sender.send(UdpMessage::QsoLogged(qso));
                                     } else {
                                         log::error!("Failed to parse ADIF content: {}", adif_msg.adif);
@@ -486,7 +503,7 @@ pub fn send_reply(
     let addr = state.get_wsjtx_addr()
         .ok_or("WSJT-X address not known - wait for heartbeat")?;
     
-    let port = state.get_port();
+    let _port = state.get_port(); // Retrieved for future use
     
     // Create a socket to send from
     let socket = UdpSocket::bind("0.0.0.0:0")

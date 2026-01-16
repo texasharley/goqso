@@ -3,6 +3,11 @@
 // Parses the EN.dat file from the FCC ULS database.
 // EN.dat contains Entity records with licensee information.
 //
+// NOTE: Some FccLicense fields (entity_type) are parsed for completeness
+// but not currently used. Keeping for future filtering capabilities.
+//
+#![allow(dead_code)]
+
 // Format: Pipe-delimited (|) with the following columns:
 // 0:  Record Type (EN)
 // 1:  Unique System Identifier

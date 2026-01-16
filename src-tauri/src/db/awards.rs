@@ -1,6 +1,11 @@
 // Award progress calculations
+//
+// NOTE: These functions are intentionally not used yet - planned for future
+// awards matrix UI that will show DXCC/WAS/VUCC progress.
+//
+#![allow(dead_code)]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 /// Calculate DXCC progress from QSO data
 pub fn calculate_dxcc_progress(

@@ -1,6 +1,11 @@
 // ADIF Mode Registry
 // All 180+ modes from ADIF 3.1.4 specification
 // Reference: https://adif.org/314/ADIF_314.htm#Mode_Enumeration
+//
+// NOTE: Mode grouping and validation functions are for future award tracking
+// where mode category (Phone/CW/Data) matters for mixed-mode endorsements.
+//
+#![allow(dead_code)]
 
 /// Mode group for award categorization
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -300,12 +300,14 @@ async fn populate_reference_data(pool: &Pool<Sqlite>) -> Result<(), String> {
         // Use first zone from arrays for database (schema stores single zone)
         let cq_zone = entity.cq_zones.first().copied().unwrap_or(0) as i64;
         let itu_zone = entity.itu_zones.first().copied().unwrap_or(0) as i64;
+        // Parse entity_id from ARRL 3-digit string format to integer for database
+        let entity_code: i64 = entity.entity_id.parse().unwrap_or(0);
         
         sqlx::query(
             "INSERT OR IGNORE INTO dxcc_entities (entity_code, entity_name, cq_zone, itu_zone, continent, is_deleted) 
              VALUES (?, ?, ?, ?, ?, ?)"
         )
-        .bind(entity.entity_id as i64)
+        .bind(entity_code)
         .bind(entity.name)
         .bind(cq_zone)
         .bind(itu_zone)
@@ -318,11 +320,14 @@ async fn populate_reference_data(pool: &Pool<Sqlite>) -> Result<(), String> {
     
     // Insert prefix rules
     for rule in prefixes::PREFIX_RULES.iter() {
+        // Parse entity_id from ARRL 3-digit string format to integer for database
+        let entity_code: i64 = rule.entity_id.parse().unwrap_or(0);
+        
         sqlx::query(
             "INSERT OR IGNORE INTO callsign_prefixes (prefix, entity_code, is_exact) VALUES (?, ?, ?)"
         )
         .bind(rule.prefix)
-        .bind(rule.entity_id as i64)
+        .bind(entity_code)
         .bind(if rule.exact { 1 } else { 0 })
         .execute(&mut *tx)
         .await
